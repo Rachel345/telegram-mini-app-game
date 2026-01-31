@@ -7,9 +7,35 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
       body {
-        font-family: Arial, sans-serif;
-        margin: 24px;
-        color: #222;
+        background-color: var(--tg-theme-bg-color, #ffffff) !important;
+        color: var(--tg-theme-text-color, #111111) !important;
+        font-family: sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        margin: 0;
+        text-align: center;
+      }
+
+      p,
+      h1,
+      div {
+        color: var(--tg-theme-text-color, #111111) !important;
+      }
+
+      #app {
+        background-color: var(--tg-theme-secondary-bg-color, #f0f0f0) !important;
+        border: 1px solid
+          var(--tg-theme-hint-color, rgba(0, 0, 0, 0.12)) !important;
+        border-radius: 12px;
+        padding: 20px 24px;
+        max-width: 520px;
+        width: calc(100% - 48px);
+        box-sizing: border-box;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        color: var(--tg-theme-text-color, #111111) !important;
       }
     </style>
   </head>
@@ -18,13 +44,17 @@
 
     <script>
       const tg = window.Telegram.WebApp;
+      tg.ready();
+      tg.expand();
+
+      const appEl = document.getElementById("app");
       const user = tg?.initDataUnsafe?.user || {};
       const userId = user.id || "невідомо";
       const username = user.username || user.first_name || "друже";
       const livesPlaceholder = 5;
 
-      const app = document.getElementById("app");
-      app.textContent = `Привіт, ${username}! Твої життя: ${livesPlaceholder}. (user_id: ${userId})`;
+      appEl.textContent = `Привіт, ${username}! Твої життя: ${livesPlaceholder}. (user_id: ${userId})`;
     </script>
   </body>
 </html>
+
