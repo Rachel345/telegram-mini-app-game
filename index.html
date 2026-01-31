@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Telegram Mini App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 24px;
+        color: #222;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">Завантаження...</div>
+
+    <script>
+      const tg = window.Telegram.WebApp;
+      const user = tg?.initDataUnsafe?.user || {};
+      const userId = user.id || "невідомо";
+      const username = user.username || user.first_name || "друже";
+      const livesPlaceholder = 5;
+
+      const app = document.getElementById("app");
+      app.textContent = `Привіт, ${username}! Твої життя: ${livesPlaceholder}. (user_id: ${userId})`;
+    </script>
+  </body>
+</html>
