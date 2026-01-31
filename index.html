@@ -37,24 +37,98 @@
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
         color: var(--tg-theme-text-color, #111111) !important;
       }
+
+      #welcome-screen,
+      #menu-screen {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        align-items: center;
+      }
+
+      #menu-screen {
+        display: none;
+      }
+
+      button {
+        background-color: var(--tg-theme-button-color, #2ea6ff);
+        color: var(--tg-theme-button-text-color, #ffffff);
+        border: none;
+        border-radius: 10px;
+        padding: 12px 16px;
+        font-size: 16px;
+        width: 100%;
+        max-width: 360px;
+        cursor: pointer;
+      }
+
+      button:active {
+        transform: translateY(1px);
+      }
+
+      #feedback-message {
+        margin-top: 12px;
+        color: var(--tg-theme-text-color, #111111) !important;
+      }
     </style>
   </head>
   <body>
-    <div id="app">Завантаження...</div>
+    <div id="app">
+      <div id="welcome-screen">
+        <p id="welcome-text">Завантаження...</p>
+        <button id="start-game-button">Перейти до вибіру рівня</button>
+      </div>
+
+      <div id="menu-screen">
+        <h2>Оберіть дію:</h2>
+        <button id="btn-easy">Легкий</button>
+        <button id="btn-medium">Середній</button>
+        <button id="btn-hard">Складний</button>
+        <button id="btn-training">Навчання грі</button>
+        <button id="btn-info">Цікава інформація про криптографію</button>
+      </div>
+
+      <div id="feedback-message"></div>
+    </div>
 
     <script>
       const tg = window.Telegram.WebApp;
       tg.ready();
       tg.expand();
 
-      const appEl = document.getElementById("app");
       const user = tg?.initDataUnsafe?.user || {};
       const userId = user.id || "невідомо";
       const username = user.username || user.first_name || "друже";
-      const livesPlaceholder = 5;
 
-      appEl.textContent = `Привіт, ${username}! Твої життя: ${livesPlaceholder}. (user_id: ${userId})`;
+      const welcomeText = document.getElementById("welcome-text");
+      const startGameButton = document.getElementById("start-game-button");
+      const welcomeScreen = document.getElementById("welcome-screen");
+      const menuScreen = document.getElementById("menu-screen");
+      const feedbackMessage = document.getElementById("feedback-message");
+
+      welcomeText.textContent = `Привіт, ${username}! (user_id: ${userId})`;
+
+      startGameButton.addEventListener("click", () => {
+        welcomeScreen.style.display = "none";
+        menuScreen.style.display = "flex";
+      });
+
+      document.getElementById("btn-easy").addEventListener("click", () => {
+        feedbackMessage.textContent = "Ви обрали: Легкий";
+      });
+      document.getElementById("btn-medium").addEventListener("click", () => {
+        feedbackMessage.textContent = "Ви обрали: Середній";
+      });
+      document.getElementById("btn-hard").addEventListener("click", () => {
+        feedbackMessage.textContent = "Ви обрали: Складний";
+      });
+      document.getElementById("btn-training").addEventListener("click", () => {
+        feedbackMessage.textContent = "Ви обрали: Навчання грі";
+      });
+      document.getElementById("btn-info").addEventListener("click", () => {
+        feedbackMessage.textContent =
+          "Ви обрали: Цікава інформація про криптографію";
+      });
     </script>
   </body>
 </html>
-
