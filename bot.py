@@ -30,7 +30,7 @@ from game_logic import (
 logging.basicConfig(level=logging.INFO)
 
 # Ініціалізація бота з API токеном
-API_TOKEN = os.getenv("BOT_TOKEN")
+API_TOKEN = os.getenv("8290033163:AAH11alj0hWFsRkycOZ1hA5vybom0JH44dA")
 if not API_TOKEN:
     raise ValueError("BOT_TOKEN environment variable is not set")
 
@@ -443,4 +443,5 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
 
