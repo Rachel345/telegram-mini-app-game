@@ -183,18 +183,13 @@ async def cmd_start(message: Message, state: FSMContext):
                     text="Відкрити Mini App",
                     web_app=WebAppInfo(url=web_app_url),
                 )
-            ],
-            [
-                InlineKeyboardButton(text="Легкий", callback_data="start_easy_word_game"),
-                InlineKeyboardButton(text="Середній", callback_data="start_medium_word_game"),
-                InlineKeyboardButton(text="Складний", callback_data="start_hard_word_game"),
-            ],
+            ]
         ]
     )
 
     await message.answer(
         f"Вітаю, {username}! (user_id: {user_id})\n"
-        "Оберіть рівень гри або відкрийте Mini App:",
+        "Натисни кнопку нижче, щоб відкрити гру.",
         reply_markup=inline_kb,
     )
 
