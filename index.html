@@ -115,12 +115,15 @@
 
       document.getElementById("btn-easy").addEventListener("click", () => {
         feedbackMessage.textContent = "Ви обрали: Легкий";
+        tg.sendData(JSON.stringify({ action: "start_level", level: "easy_word_game" }));
       });
       document.getElementById("btn-medium").addEventListener("click", () => {
         feedbackMessage.textContent = "Ви обрали: Середній";
+        tg.sendData(JSON.stringify({ action: "start_level", level: "medium_word_game" }));
       });
       document.getElementById("btn-hard").addEventListener("click", () => {
         feedbackMessage.textContent = "Ви обрали: Складний";
+        tg.sendData(JSON.stringify({ action: "start_level", level: "hard_word_game" }));
       });
       document.getElementById("btn-training").addEventListener("click", () => {
         feedbackMessage.textContent = "Ви обрали: Навчання грі";
