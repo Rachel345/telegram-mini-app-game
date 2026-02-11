@@ -175,7 +175,7 @@ async def cmd_start(message: Message, state: FSMContext):
     await state.update_data(player_state=player_state)
     await state.set_state(GameStates.choose)
 
-    web_app_url = f"https://rachel345.github.io/telegram-mini-app-game/index.html?user_id={user_id}"
+   web_app_url = f"https://rachel345.github.io/telegram-mini-app-game/index.html?user_id={user_id}&v=2"
     inline_kb = InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -453,3 +453,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
