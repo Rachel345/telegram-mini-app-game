@@ -3,135 +3,423 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Telegram Mini App</title>
+    <title>Кріпто-тренажер</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-      body {
-        background-color: var(--tg-theme-bg-color, #ffffff) !important;
-        color: var(--tg-theme-text-color, #111111) !important;
-        font-family: sans-serif;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh;
-        margin: 0;
-        text-align: center;
-      }
-
-      p,
-      h1,
-      div {
-        color: var(--tg-theme-text-color, #111111) !important;
-      }
-
-      #app {
-        background-color: var(--tg-theme-secondary-bg-color, #f0f0f0) !important;
-        border: 1px solid
-          var(--tg-theme-hint-color, rgba(0, 0, 0, 0.12)) !important;
-        border-radius: 12px;
-        padding: 20px 24px;
-        max-width: 520px;
-        width: calc(100% - 48px);
+      * {
         box-sizing: border-box;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-        color: var(--tg-theme-text-color, #111111) !important;
+      }
+      body {
+        background-color: var(--tg-theme-bg-color, #1a1a2e) !important;
+        color: var(--tg-theme-text-color, #eee) !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        margin: 0;
+        padding: 16px;
+        min-height: 100vh;
       }
 
-      #welcome-screen,
-      #menu-screen {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        align-items: center;
-      }
-
-      #menu-screen {
+      .screen {
         display: none;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+        max-width: 400px;
+        margin: 0 auto;
+      }
+      .screen.active {
+        display: flex;
       }
 
-      button {
-        background-color: var(--tg-theme-button-color, #2ea6ff);
-        color: var(--tg-theme-button-text-color, #ffffff);
-        border: none;
-        border-radius: 10px;
-        padding: 12px 16px;
-        font-size: 16px;
+      .card {
+        background: var(--tg-theme-secondary-bg-color, #16213e);
+        border-radius: 16px;
+        padding: 24px;
         width: 100%;
         max-width: 360px;
+      }
+
+      h1, h2, h3, p {
+        margin: 0 0 12px 0;
+        color: var(--tg-theme-text-color, #eee) !important;
+      }
+
+      .btn {
+        background: var(--tg-theme-button-color, #2ea6ff);
+        color: var(--tg-theme-button-text-color, #fff) !important;
+        border: none;
+        border-radius: 12px;
+        padding: 14px 20px;
+        font-size: 16px;
+        width: 100%;
         cursor: pointer;
+        transition: transform 0.1s;
+      }
+      .btn:active {
+        transform: scale(0.98);
+      }
+      .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      .btn-success {
+        background: #22c55e;
+      }
+      .btn-danger {
+        background: #ef4444;
       }
 
-      button:active {
-        transform: translateY(1px);
+      .game-stats {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 16px;
+        font-size: 14px;
+      }
+      .game-stats span {
+        color: var(--tg-theme-hint-color, #999) !important;
       }
 
-      #feedback-message {
-        margin-top: 12px;
-        color: var(--tg-theme-text-color, #111111) !important;
+      .question-text {
+        font-size: 18px;
+        margin-bottom: 20px;
+        line-height: 1.5;
+      }
+
+      .options-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .option-btn {
+        background: var(--tg-theme-secondary-bg-color, #16213e);
+        color: var(--tg-theme-text-color, #eee) !important;
+        border: 2px solid var(--tg-theme-hint-color, rgba(255,255,255,0.2));
+        border-radius: 12px;
+        padding: 14px;
+        font-size: 16px;
+        text-align: left;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .option-btn:hover:not(:disabled) {
+        border-color: var(--tg-theme-button-color, #2ea6ff);
+        background: rgba(46, 166, 255, 0.12);
+      }
+      .option-btn.correct {
+        border-color: #22c55e;
+        background: rgba(34, 197, 94, 0.2);
+      }
+      .option-btn.wrong {
+        border-color: #ef4444;
+        background: rgba(239, 68, 68, 0.2);
+      }
+      .option-btn:disabled {
+        cursor: default;
+        opacity: 0.8;
+      }
+
+      .feedback {
+        font-size: 20px;
+        font-weight: bold;
+        padding: 16px;
+        border-radius: 12px;
+        margin: 16px 0;
+      }
+      .feedback.correct {
+        background: rgba(34, 197, 94, 0.2);
+        color: #22c55e;
+      }
+      .feedback.wrong {
+        background: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+      }
+
+      .game-over-card {
+        text-align: center;
+      }
+      .game-over-card h2 {
+        margin-bottom: 8px;
+      }
+      .game-over-card .final-score {
+        font-size: 24px;
+        color: var(--tg-theme-button-color, #2ea6ff);
+        margin: 16px 0;
       }
     </style>
   </head>
   <body>
     <div id="app">
-      <div id="welcome-screen">
-        <p id="welcome-text">Завантаження...</p>
-        <button id="start-game-button">Перейти до вибіру рівня</button>
+      <!-- Вітальний екран -->
+      <div id="welcome-screen" class="screen active">
+        <div class="card">
+          <p id="welcome-text">Завантаження...</p>
+          <button id="start-game-btn" class="btn">Перейти до вибіру рівня</button>
+        </div>
       </div>
 
-      <div id="menu-screen">
-        <h2>Оберіть дію:</h2>
-        <button id="btn-easy">Легкий</button>
-        <button id="btn-medium">Середній</button>
-        <button id="btn-hard">Складний</button>
-        <button id="btn-training">Навчання грі</button>
-        <button id="btn-info">Цікава інформація про криптографію</button>
+      <!-- Меню вибору рівня -->
+      <div id="menu-screen" class="screen">
+        <div class="card">
+          <h2>Оберіть рівень:</h2>
+          <button id="btn-easy" class="btn">Легкий</button>
+          <button id="btn-medium" class="btn">Середній</button>
+          <button id="btn-hard" class="btn">Складний</button>
+        </div>
       </div>
 
-      <div id="feedback-message"></div>
+      <!-- Екран гри -->
+      <div id="game-screen" class="screen">
+        <div class="card">
+          <div class="game-stats">
+            <span>❤️ <span id="lives">5</span></span>
+            <span>⭐ <span id="score">0</span></span>
+            <span>🪙 <span id="coins">0</span></span>
+          </div>
+          <h3>Вгадай слово</h3>
+          <p class="question-text" id="question-text"></p>
+          <p style="margin-bottom: 12px;">Оберіть правильний варіант:</p>
+          <div id="options-container" class="options-grid"></div>
+        </div>
+      </div>
+
+      <!-- Екран фідбеку -->
+      <div id="feedback-screen" class="screen">
+        <div class="card">
+          <div id="feedback-message" class="feedback"></div>
+          <p id="feedback-detail"></p>
+          <button id="next-question-btn" class="btn">Наступне питання</button>
+        </div>
+      </div>
+
+      <!-- Екран гри з кінцем -->
+      <div id="game-over-screen" class="screen">
+        <div class="card game-over-card">
+          <h2>Гру завершено</h2>
+          <p>Життя закінчились.</p>
+          <p class="final-score">Результат: <span id="final-score">0</span> очок</p>
+          <button id="restart-btn" class="btn">Повторити гру</button>
+          <button id="close-btn" class="btn" style="margin-top: 8px;">Закрити та надіслати результат</button>
+        </div>
+      </div>
     </div>
 
     <script>
-      const tg = window.Telegram.WebApp;
-      tg.ready();
-      tg.expand();
+      const tg = window.Telegram?.WebApp;
+      if (tg) {
+        tg.ready();
+        tg.expand();
+      }
 
-      const user = tg?.initDataUnsafe?.user || {};
-      const userId = user.id || "невідомо";
-      const username = user.username || user.first_name || "друже";
+      const WORDS = {
+        easy: {
+          apple: "A fruit that is red and round.",
+          banana: "A long yellow fruit.",
+          cat: "A small animal that says meow.",
+          dog: "A loyal animal that barks.",
+          house: "A place where people live.",
+          tree: "A tall plant with a trunk.",
+          sun: "The bright star in the sky.",
+          flower: "A colorful plant that blooms.",
+          chair: "Furniture you sit on.",
+          bread: "Food made from baked dough.",
+          cloud: "White shapes floating in the sky.",
+          river: "A long flowing body of water.",
+          book: "Something you read.",
+          milk: "A drink that comes from cows.",
+          shoe: "Something you wear on your foot.",
+        },
+        medium: {
+          camera: "A device used to take photos.",
+          guitar: "A musical instrument with strings.",
+          rocket: "A vehicle that goes to space.",
+          puzzle: "A game that tests your thinking.",
+          garden: "A place where plants grow.",
+          planet: "A large object that orbits a star.",
+          rabbit: "A small animal with long ears.",
+          lemon: "A sour yellow fruit.",
+          silver: "A shiny gray metal.",
+          window: "A glass opening in a wall.",
+          bridge: "A structure that crosses water or roads.",
+          castle: "A large old building with towers.",
+          market: "A place to buy and sell goods.",
+          pocket: "A small bag in clothing.",
+          tablet: "A flat device used for apps.",
+        },
+        hard: {
+          xylophone: "A musical instrument with wooden bars.",
+          zephyr: "A gentle, light wind.",
+          quokka: "A small marsupial from Australia.",
+          vortex: "A rotating mass of air or water.",
+          sphinx: "A mythical creature with a lion body.",
+          mnemonic: "A memory aid or technique.",
+          cryptic: "Mysterious or hard to understand.",
+          pneumonia: "A serious lung infection.",
+          unicorn: "A mythical horse with one horn.",
+          rhythm: "A regular pattern of beats.",
+          labyrinth: "A complex maze.",
+          conundrum: "A confusing problem.",
+          ephemeral: "Lasting for a very short time.",
+          silhouette: "A dark outline of a figure.",
+          ambiguous: "Having more than one meaning.",
+        },
+      };
 
-      const welcomeText = document.getElementById("welcome-text");
-      const startGameButton = document.getElementById("start-game-button");
-      const welcomeScreen = document.getElementById("welcome-screen");
-      const menuScreen = document.getElementById("menu-screen");
-      const feedbackMessage = document.getElementById("feedback-message");
+      const POINTS = { easy: 10, medium: 20, hard: 30 };
+      const OPTIONS_COUNT = { easy: 4, medium: 6, hard: 8 };
 
-      welcomeText.textContent = `Привіт, ${username}! (user_id: ${userId})`;
+      let gameState = {
+        level: "easy",
+        lives: 5,
+        score: 0,
+        coins: 0,
+        currentQuestion: null,
+      };
 
-      startGameButton.addEventListener("click", () => {
-        welcomeScreen.style.display = "none";
-        menuScreen.style.display = "flex";
-      });
+      function showScreen(screenId) {
+        document.querySelectorAll(".screen").forEach((s) => s.classList.remove("active"));
+        const el = document.getElementById(screenId);
+        if (el) el.classList.add("active");
+      }
 
-      document.getElementById("btn-easy").addEventListener("click", () => {
-        feedbackMessage.textContent = "Ви обрали: Легкий";
-        tg.sendData(JSON.stringify({ action: "start_level", level: "easy_word_game" }));
-      });
-      document.getElementById("btn-medium").addEventListener("click", () => {
-        feedbackMessage.textContent = "Ви обрали: Середній";
-        tg.sendData(JSON.stringify({ action: "start_level", level: "medium_word_game" }));
-      });
-      document.getElementById("btn-hard").addEventListener("click", () => {
-        feedbackMessage.textContent = "Ви обрали: Складний";
-        tg.sendData(JSON.stringify({ action: "start_level", level: "hard_word_game" }));
-      });
-      document.getElementById("btn-training").addEventListener("click", () => {
-        feedbackMessage.textContent = "Ви обрали: Навчання грі";
-      });
-      document.getElementById("btn-info").addEventListener("click", () => {
-        feedbackMessage.textContent =
-          "Ви обрали: Цікава інформація про криптографію";
-      });
+      function getRandomQuestion() {
+        const words = WORDS[gameState.level];
+        const keys = Object.keys(words);
+        const correct = keys[Math.floor(Math.random() * keys.length)];
+        const count = OPTIONS_COUNT[gameState.level];
+        const options = new Set([correct]);
+        while (options.size < count) {
+          options.add(keys[Math.floor(Math.random() * keys.length)]);
+        }
+        return {
+          question_text: words[correct],
+          correct_answer: correct,
+          options: [...options].sort(() => Math.random() - 0.5),
+        };
+      }
+
+      function startGame(level) {
+        gameState = {
+          level,
+          lives: 5,
+          score: 0,
+          coins: 0,
+          currentQuestion: null,
+        };
+        showQuestion();
+      }
+
+      function showQuestion() {
+        if (gameState.lives <= 0) {
+          showGameOver();
+          return;
+        }
+
+        gameState.currentQuestion = getRandomQuestion();
+        showScreen("game-screen");
+
+        document.getElementById("lives").textContent = gameState.lives;
+        document.getElementById("score").textContent = gameState.score;
+        document.getElementById("coins").textContent = gameState.coins;
+        document.getElementById("question-text").textContent = gameState.currentQuestion.question_text;
+
+        const container = document.getElementById("options-container");
+        container.innerHTML = "";
+        gameState.currentQuestion.options.forEach((opt) => {
+          const btn = document.createElement("button");
+          btn.className = "option-btn";
+          btn.textContent = opt;
+          btn.dataset.answer = opt;
+          btn.addEventListener("click", () => onAnswer(opt, btn));
+          container.appendChild(btn);
+        });
+      }
+
+      function onAnswer(selected, btnElement) {
+        const correct = gameState.currentQuestion.correct_answer;
+        const buttons = document.querySelectorAll(".option-btn");
+        buttons.forEach((b) => {
+          b.disabled = true;
+          if (b.dataset.answer === correct) b.classList.add("correct");
+          else if (b.dataset.answer === selected && selected !== correct) b.classList.add("wrong");
+        });
+
+        if (selected === correct) {
+          const pts = POINTS[gameState.level];
+          gameState.score += pts;
+          gameState.coins += 1;
+          showFeedback(true, pts);
+        } else {
+          gameState.lives -= 1;
+          showFeedback(false, correct);
+        }
+      }
+
+      function showFeedback(isCorrect, value) {
+        showScreen("feedback-screen");
+        const msgEl = document.getElementById("feedback-message");
+        const detailEl = document.getElementById("feedback-detail");
+
+        if (isCorrect) {
+          msgEl.textContent = "✅ Правильно!";
+          msgEl.className = "feedback correct";
+          detailEl.textContent = `+${value} очок, +1 монета`;
+        } else {
+          msgEl.textContent = "❌ Неправильно";
+          msgEl.className = "feedback wrong";
+          detailEl.textContent = `Правильна відповідь: ${value}`;
+        }
+
+        document.getElementById("lives").textContent = gameState.lives;
+        document.getElementById("score").textContent = gameState.score;
+        document.getElementById("coins").textContent = gameState.coins;
+      }
+
+      function showGameOver() {
+        showScreen("game-over-screen");
+        document.getElementById("final-score").textContent = gameState.score;
+      }
+
+      function sendResultAndClose() {
+        if (tg?.sendData) {
+          tg.sendData(
+            JSON.stringify({
+              action: "game_over",
+              score: gameState.score,
+              coins: gameState.coins,
+              level: gameState.level,
+            })
+          );
+        } else {
+          showScreen("menu-screen");
+        }
+      }
+
+      function init() {
+        const user = tg?.initDataUnsafe?.user || {};
+        const username = user.username || user.first_name || "друже";
+        document.getElementById("welcome-text").textContent = `Привіт, ${username}!`;
+
+        document.getElementById("start-game-btn").addEventListener("click", () => {
+          showScreen("menu-screen");
+        });
+
+        document.getElementById("btn-easy").addEventListener("click", () => startGame("easy"));
+        document.getElementById("btn-medium").addEventListener("click", () => startGame("medium"));
+        document.getElementById("btn-hard").addEventListener("click", () => startGame("hard"));
+
+        document.getElementById("next-question-btn").addEventListener("click", () => {
+          showQuestion();
+        });
+
+        document.getElementById("restart-btn").addEventListener("click", () => {
+          showScreen("menu-screen");
+        });
+
+        document.getElementById("close-btn").addEventListener("click", () => {
+          sendResultAndClose();
+        });
+      }
+
+      init();
     </script>
   </body>
 </html>
