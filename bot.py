@@ -423,6 +423,17 @@ async def process_web_app_data(message: Message, state: FSMContext):
         await start_game_level("word_game_hard", message, state)
         return
 
+    if action == "game_over":
+        score = payload.get("score", 0)
+        coins = payload.get("coins", 0)
+        level = payload.get("level", "easy")
+        await message.answer(
+            f"✅ Гру завершено!\n"
+            f"Результат: {score} очок, {coins} монет\n"
+            f"Рівень: {level}"
+        )
+        return
+
     await message.answer("Отримані дані з Mini App не підтримуються.")
 
 
