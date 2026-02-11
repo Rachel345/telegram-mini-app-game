@@ -193,10 +193,7 @@ async def cmd_start(message: Message, state: FSMContext):
         reply_markup=inline_kb,
     )
 
-@dp.callback_query(
-    F.data == "start_easy_caesar",
-    state=[GameStates.choose, GameStates.playing_level],
-)
+@dp.callback_query(F.data == "start_easy_caesar")
 async def process_start_easy_caesar(callback: CallbackQuery, state: FSMContext):
     logger.info("callback_data=%s, state=%s", callback.data, await state.get_state())
     await callback.answer()
@@ -204,10 +201,7 @@ async def process_start_easy_caesar(callback: CallbackQuery, state: FSMContext):
     await callback.message.delete()
 
 
-@dp.callback_query(
-    F.data == "start_easy_caesar_decrypt",
-    state=[GameStates.choose, GameStates.playing_level],
-)
+@dp.callback_query(F.data == "start_easy_caesar_decrypt")
 async def process_start_easy_caesar_decrypt(callback: CallbackQuery, state: FSMContext):
     logger.info("callback_data=%s, state=%s", callback.data, await state.get_state())
     await callback.answer()
@@ -215,10 +209,7 @@ async def process_start_easy_caesar_decrypt(callback: CallbackQuery, state: FSMC
     await callback.message.delete()
 
 
-@dp.callback_query(
-    F.data == "start_easy_word_game",
-    state=[GameStates.choose, GameStates.playing_level],
-)
+@dp.callback_query(F.data == "start_easy_word_game")
 async def process_start_easy_word_game(callback: CallbackQuery, state: FSMContext):
     logger.info("callback_data=%s, state=%s", callback.data, await state.get_state())
     await callback.answer()
@@ -226,10 +217,7 @@ async def process_start_easy_word_game(callback: CallbackQuery, state: FSMContex
     await callback.message.delete()
 
 
-@dp.callback_query(
-    F.data == "start_medium_word_game",
-    state=[GameStates.choose, GameStates.playing_level],
-)
+@dp.callback_query(F.data == "start_medium_word_game")
 async def process_start_medium_word_game(callback: CallbackQuery, state: FSMContext):
     logger.info("callback_data=%s, state=%s", callback.data, await state.get_state())
     await callback.answer()
@@ -237,10 +225,7 @@ async def process_start_medium_word_game(callback: CallbackQuery, state: FSMCont
     await callback.message.delete()
 
 
-@dp.callback_query(
-    F.data == "start_hard_word_game",
-    state=[GameStates.choose, GameStates.playing_level],
-)
+@dp.callback_query(F.data == "start_hard_word_game")
 async def process_start_hard_word_game(callback: CallbackQuery, state: FSMContext):
     logger.info("callback_data=%s, state=%s", callback.data, await state.get_state())
     await callback.answer()
