@@ -28,6 +28,7 @@ from game_logic import (
 
 # Налаштування логування
 logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Ініціалізація бота з API токеном
 API_TOKEN = os.getenv("BOT_TOKEN")
@@ -40,6 +41,7 @@ dp = Dispatcher(storage=storage)
 
 
 class GameStates(StatesGroup):
+    choose = State()
     in_game = State()
     playing_level = State()
 
@@ -171,6 +173,7 @@ async def cmd_start(message: Message, state: FSMContext):
     else:
         player_state = PlayerState()
     await state.update_data(player_state=player_state)
+    await state.set_state(GameStates.choose)
 
     web_app_url = f"https://rachel345.github.io/telegram-mini-app-game/index.html?user_id={user_id}"
     inline_kb = InlineKeyboardMarkup(
@@ -190,53 +193,64 @@ async def cmd_start(message: Message, state: FSMContext):
         reply_markup=inline_kb,
     )
 
-@dp.callback_query(F.data == "start_easy_caesar")
+@dp.callback_query(
+    F.data == "start_easy_caesar",
+    state=[GameStates.choose, GameStates.playing_level],
+)
 async def process_start_easy_caesar(callback: CallbackQuery, state: FSMContext):
+    logger.info("callback_data=%s, state=%s", callback.data, await state.get_state())
     await callback.answer()
-
     await start_game_level("caesar_easy", callback.message, state)
-
     await callback.message.delete()
 
 
-@dp.callback_query(F.data == "start_easy_caesar_decrypt")
+@dp.callback_query(
+    F.data == "start_easy_caesar_decrypt",
+    state=[GameStates.choose, GameStates.playing_level],
+)
 async def process_start_easy_caesar_decrypt(callback: CallbackQuery, state: FSMContext):
+    logger.info("callback_data=%s, state=%s", callback.data, await state.get_state())
     await callback.answer()
-
     await start_game_level("caesar_decrypt_easy", callback.message, state)
-
     await callback.message.delete()
 
 
-@dp.callback_query(F.data == "start_easy_word_game")
+@dp.callback_query(
+    F.data == "start_easy_word_game",
+    state=[GameStates.choose, GameStates.playing_level],
+)
 async def process_start_easy_word_game(callback: CallbackQuery, state: FSMContext):
+    logger.info("callback_data=%s, state=%s", callback.data, await state.get_state())
     await callback.answer()
-
     await start_game_level("word_game_easy", callback.message, state)
-
     await callback.message.delete()
 
 
-@dp.callback_query(F.data == "start_medium_word_game")
+@dp.callback_query(
+    F.data == "start_medium_word_game",
+    state=[GameStates.choose, GameStates.playing_level],
+)
 async def process_start_medium_word_game(callback: CallbackQuery, state: FSMContext):
+    logger.info("callback_data=%s, state=%s", callback.data, await state.get_state())
     await callback.answer()
-
     await start_game_level("word_game_medium", callback.message, state)
-
     await callback.message.delete()
 
 
-@dp.callback_query(F.data == "start_hard_word_game")
+@dp.callback_query(
+    F.data == "start_hard_word_game",
+    state=[GameStates.choose, GameStates.playing_level],
+)
 async def process_start_hard_word_game(callback: CallbackQuery, state: FSMContext):
+    logger.info("callback_data=%s, state=%s", callback.data, await state.get_state())
     await callback.answer()
-
     await start_game_level("word_game_hard", callback.message, state)
-
     await callback.message.delete()
 
 
 @dp.callback_query(GameStates.playing_level, F.data.startswith("caesar_answer_"))
 async def process_caesar_answer(callback: CallbackQuery, state: FSMContext):
+    logger.info("callback_data=%s, state=%s", callback.data, await state.get_state())
     await callback.answer()
     index_str = callback.data.replace("caesar_answer_", "", 1)
     try:
@@ -314,6 +328,7 @@ async def process_caesar_answer(callback: CallbackQuery, state: FSMContext):
 
 @dp.callback_query(GameStates.playing_level, F.data.startswith("word_game_answer_"))
 async def process_word_game_answer(callback: CallbackQuery, state: FSMContext):
+    logger.info("callback_data=%s, state=%s", callback.data, await state.get_state())
     await callback.answer()
     index_str = callback.data.replace("word_game_answer_", "", 1)
     try:
@@ -393,30 +408,29 @@ async def process_web_app_data(message: Message, state: FSMContext):
     try:
         payload = json.loads(message.web_app_data.data)
     except json.JSONDecodeError:
+        logger.warning("Некоректні JSON дані з Mini App: %s", message.web_app_data.data)
         await message.answer("Некоректні дані з Mini App.")
         return
+
+    current_state = await state.get_state()
+    logger.info("web_app_data: %s, state=%s", payload, current_state)
 
     action = payload.get("action")
     level = payload.get("level")
     if action == "start_level" and level == "easy_caesar":
         await start_game_level("caesar_easy", message, state)
-        await message.answer("Запускаю легкий рівень Цезаря з Mini App.")
         return
     if action == "start_level" and level == "easy_caesar_decrypt":
         await start_game_level("caesar_decrypt_easy", message, state)
-        await message.answer("Запускаю легкий рівень дешифрування Цезаря з Mini App.")
         return
     if action == "start_level" and level == "easy_word_game":
         await start_game_level("word_game_easy", message, state)
-        await message.answer("Запускаю легкий рівень 'Вгадай слово' з Mini App.")
         return
     if action == "start_level" and level == "medium_word_game":
         await start_game_level("word_game_medium", message, state)
-        await message.answer("Запускаю середній рівень 'Вгадай слово' з Mini App.")
         return
     if action == "start_level" and level == "hard_word_game":
         await start_game_level("word_game_hard", message, state)
-        await message.answer("Запускаю складний рівень 'Вгадай слово' з Mini App.")
         return
 
     await message.answer("Отримані дані з Mini App не підтримуються.")
@@ -443,7 +457,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-
-
-
-
