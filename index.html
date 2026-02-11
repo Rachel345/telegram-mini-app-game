@@ -39,12 +39,17 @@
         width: 100%;
         max-width: 360px;
       }
-      #welcome-screen .card {
+      .level-select-card {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        min-height: 120px;
+        gap: 20px;
+      }
+      .level-select-title {
+        margin: 0 0 8px 0 !important;
+        font-size: 22px;
+        text-align: center;
       }
 
       h1, h2, h3, p {
@@ -157,17 +162,10 @@
   </head>
   <body>
     <div id="app">
-      <!-- Вітальний екран -->
-      <div id="welcome-screen" class="screen active">
-        <div class="card">
-          <button id="start-game-btn" class="btn">Обрати рівень</button>
-        </div>
-      </div>
-
-      <!-- Меню вибору рівня -->
-      <div id="menu-screen" class="screen">
-        <div class="card">
-          <h2>Оберіть рівень:</h2>
+      <!-- Екран вибору рівня (перший екран) -->
+      <div id="menu-screen" class="screen active">
+        <div class="card level-select-card">
+          <h2 class="level-select-title">Обрати рівень</h2>
           <button id="btn-easy" class="btn">Легкий</button>
           <button id="btn-medium" class="btn">Середній</button>
           <button id="btn-hard" class="btn">Складний</button>
@@ -402,10 +400,6 @@
       }
 
       function init() {
-        document.getElementById("start-game-btn").addEventListener("click", () => {
-          showScreen("menu-screen");
-        });
-
         document.getElementById("btn-easy").addEventListener("click", () => startGame("easy"));
         document.getElementById("btn-medium").addEventListener("click", () => startGame("medium"));
         document.getElementById("btn-hard").addEventListener("click", () => startGame("hard"));
