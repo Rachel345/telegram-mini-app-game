@@ -22,7 +22,7 @@
         display: none;
         flex-direction: column;
         align-items: center;
-        justify-content: center;
+        justify-content: flex-start;
         gap: 16px;
         max-width: 400px;
         margin: 0 auto;
@@ -71,80 +71,44 @@
       .btn:active {
         transform: scale(0.98);
       }
-      .btn:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-      }
-      .btn-success {
-        background: #22c55e;
-      }
-      .btn-danger {
-        background: #ef4444;
-      }
 
+      /* Верхня панель гри */
+      .game-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        background: var(--tg-theme-secondary-bg-color, #16213e);
+        border-radius: 12px;
+        width: 100%;
+        max-width: 360px;
+        margin-bottom: 16px;
+      }
       .game-stats {
         display: flex;
         gap: 16px;
-        margin-bottom: 16px;
         font-size: 14px;
       }
       .game-stats span {
-        color: var(--tg-theme-hint-color, #999) !important;
-      }
-
-      .question-text {
-        font-size: 18px;
-        margin-bottom: 20px;
-        line-height: 1.5;
-      }
-
-      .options-grid {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
-      .option-btn {
-        background: var(--tg-theme-secondary-bg-color, #16213e);
         color: var(--tg-theme-text-color, #eee) !important;
-        border: 2px solid var(--tg-theme-hint-color, rgba(255,255,255,0.2));
-        border-radius: 12px;
-        padding: 14px;
-        font-size: 16px;
-        text-align: left;
-        cursor: pointer;
-        transition: all 0.2s;
-      }
-      .option-btn:hover:not(:disabled) {
-        border-color: var(--tg-theme-button-color, #2ea6ff);
-        background: rgba(46, 166, 255, 0.12);
-      }
-      .option-btn.correct {
-        border-color: #22c55e;
-        background: rgba(34, 197, 94, 0.2);
-      }
-      .option-btn.wrong {
-        border-color: #ef4444;
-        background: rgba(239, 68, 68, 0.2);
-      }
-      .option-btn:disabled {
-        cursor: default;
-        opacity: 0.8;
       }
 
-      .feedback {
-        font-size: 20px;
-        font-weight: bold;
-        padding: 16px;
-        border-radius: 12px;
-        margin: 16px 0;
+      /* Центральний блок - пустий, для майбутнього контенту шифрів */
+      .game-content {
+        flex: 1;
+        width: 100%;
+        max-width: 360px;
+        min-height: 200px;
+        background: var(--tg-theme-secondary-bg-color, #16213e);
+        border-radius: 16px;
+        padding: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
-      .feedback.correct {
-        background: rgba(34, 197, 94, 0.2);
-        color: #22c55e;
-      }
-      .feedback.wrong {
-        background: rgba(239, 68, 68, 0.2);
-        color: #ef4444;
+      .game-content-placeholder {
+        color: var(--tg-theme-hint-color, #999) !important;
+        font-size: 14px;
       }
 
       .game-over-card {
@@ -162,7 +126,7 @@
   </head>
   <body>
     <div id="app">
-      <!-- Екран вибору рівня (перший екран) -->
+      <!-- Екран вибору шифру -->
       <div id="menu-screen" class="screen active">
         <div class="card level-select-card">
           <h2 class="level-select-title">Обрати рівень</h2>
@@ -172,27 +136,20 @@
         </div>
       </div>
 
-      <!-- Екран гри -->
+      <!-- Базовий екран гри з шифрами -->
       <div id="game-screen" class="screen">
-        <div class="card">
+        <!-- Верхня панель з назвою та статами -->
+        <div class="game-header">
+          <h3 style="margin: 0;">Кріпто-тренажер</h3>
           <div class="game-stats">
             <span>❤️ <span id="lives">5</span></span>
             <span>⭐ <span id="score">0</span></span>
             <span>🪙 <span id="coins">0</span></span>
           </div>
-          <h3>Вгадай слово</h3>
-          <p class="question-text" id="question-text"></p>
-          <p style="margin-bottom: 12px;">Оберіть правильний варіант:</p>
-          <div id="options-container" class="options-grid"></div>
         </div>
-      </div>
-
-      <!-- Екран фідбеку -->
-      <div id="feedback-screen" class="screen">
-        <div class="card">
-          <div id="feedback-message" class="feedback"></div>
-          <p id="feedback-detail"></p>
-          <button id="next-question-btn" class="btn">Наступне питання</button>
+        <!-- Пустий центральний блок для вибору шифру / гри з Шифром Цезаря -->
+        <div id="game-content" class="game-content">
+          <span class="game-content-placeholder">Тут буде контент гри</span>
         </div>
       </div>
 
@@ -215,69 +172,11 @@
         tg.expand();
       }
 
-      const WORDS = {
-        easy: {
-          apple: "A fruit that is red and round.",
-          banana: "A long yellow fruit.",
-          cat: "A small animal that says meow.",
-          dog: "A loyal animal that barks.",
-          house: "A place where people live.",
-          tree: "A tall plant with a trunk.",
-          sun: "The bright star in the sky.",
-          flower: "A colorful plant that blooms.",
-          chair: "Furniture you sit on.",
-          bread: "Food made from baked dough.",
-          cloud: "White shapes floating in the sky.",
-          river: "A long flowing body of water.",
-          book: "Something you read.",
-          milk: "A drink that comes from cows.",
-          shoe: "Something you wear on your foot.",
-        },
-        medium: {
-          camera: "A device used to take photos.",
-          guitar: "A musical instrument with strings.",
-          rocket: "A vehicle that goes to space.",
-          puzzle: "A game that tests your thinking.",
-          garden: "A place where plants grow.",
-          planet: "A large object that orbits a star.",
-          rabbit: "A small animal with long ears.",
-          lemon: "A sour yellow fruit.",
-          silver: "A shiny gray metal.",
-          window: "A glass opening in a wall.",
-          bridge: "A structure that crosses water or roads.",
-          castle: "A large old building with towers.",
-          market: "A place to buy and sell goods.",
-          pocket: "A small bag in clothing.",
-          tablet: "A flat device used for apps.",
-        },
-        hard: {
-          xylophone: "A musical instrument with wooden bars.",
-          zephyr: "A gentle, light wind.",
-          quokka: "A small marsupial from Australia.",
-          vortex: "A rotating mass of air or water.",
-          sphinx: "A mythical creature with a lion body.",
-          mnemonic: "A memory aid or technique.",
-          cryptic: "Mysterious or hard to understand.",
-          pneumonia: "A serious lung infection.",
-          unicorn: "A mythical horse with one horn.",
-          rhythm: "A regular pattern of beats.",
-          labyrinth: "A complex maze.",
-          conundrum: "A confusing problem.",
-          ephemeral: "Lasting for a very short time.",
-          silhouette: "A dark outline of a figure.",
-          ambiguous: "Having more than one meaning.",
-        },
-      };
-
-      const POINTS = { easy: 10, medium: 20, hard: 30 };
-      const OPTIONS_COUNT = { easy: 4, medium: 6, hard: 8 };
-
       let gameState = {
         level: "easy",
         lives: 5,
         score: 0,
         coins: 0,
-        currentQuestion: null,
       };
 
       function showScreen(screenId) {
@@ -286,20 +185,10 @@
         if (el) el.classList.add("active");
       }
 
-      function getRandomQuestion() {
-        const words = WORDS[gameState.level];
-        const keys = Object.keys(words);
-        const correct = keys[Math.floor(Math.random() * keys.length)];
-        const count = OPTIONS_COUNT[gameState.level];
-        const options = new Set([correct]);
-        while (options.size < count) {
-          options.add(keys[Math.floor(Math.random() * keys.length)]);
-        }
-        return {
-          question_text: words[correct],
-          correct_answer: correct,
-          options: [...options].sort(() => Math.random() - 0.5),
-        };
+      function updateStats() {
+        document.getElementById("lives").textContent = gameState.lives;
+        document.getElementById("score").textContent = gameState.score;
+        document.getElementById("coins").textContent = gameState.coins;
       }
 
       function startGame(level) {
@@ -308,75 +197,9 @@
           lives: 5,
           score: 0,
           coins: 0,
-          currentQuestion: null,
         };
-        showQuestion();
-      }
-
-      function showQuestion() {
-        if (gameState.lives <= 0) {
-          showGameOver();
-          return;
-        }
-
-        gameState.currentQuestion = getRandomQuestion();
+        updateStats();
         showScreen("game-screen");
-
-        document.getElementById("lives").textContent = gameState.lives;
-        document.getElementById("score").textContent = gameState.score;
-        document.getElementById("coins").textContent = gameState.coins;
-        document.getElementById("question-text").textContent = gameState.currentQuestion.question_text;
-
-        const container = document.getElementById("options-container");
-        container.innerHTML = "";
-        gameState.currentQuestion.options.forEach((opt) => {
-          const btn = document.createElement("button");
-          btn.className = "option-btn";
-          btn.textContent = opt;
-          btn.dataset.answer = opt;
-          btn.addEventListener("click", () => onAnswer(opt, btn));
-          container.appendChild(btn);
-        });
-      }
-
-      function onAnswer(selected, btnElement) {
-        const correct = gameState.currentQuestion.correct_answer;
-        const buttons = document.querySelectorAll(".option-btn");
-        buttons.forEach((b) => {
-          b.disabled = true;
-          if (b.dataset.answer === correct) b.classList.add("correct");
-          else if (b.dataset.answer === selected && selected !== correct) b.classList.add("wrong");
-        });
-
-        if (selected === correct) {
-          const pts = POINTS[gameState.level];
-          gameState.score += pts;
-          gameState.coins += 1;
-          showFeedback(true, pts);
-        } else {
-          gameState.lives -= 1;
-          showFeedback(false, correct);
-        }
-      }
-
-      function showFeedback(isCorrect, value) {
-        showScreen("feedback-screen");
-        const msgEl = document.getElementById("feedback-message");
-        const detailEl = document.getElementById("feedback-detail");
-
-        if (isCorrect) {
-          msgEl.textContent = "✅ Правильно!";
-          msgEl.className = "feedback correct";
-          detailEl.textContent = `+${value} очок, +1 монета`;
-        } else {
-          msgEl.textContent = "❌ Неправильно";
-          msgEl.className = "feedback wrong";
-          detailEl.textContent = `Правильна відповідь: ${value}`;
-        }
-
-        document.getElementById("lives").textContent = gameState.lives;
-        document.getElementById("score").textContent = gameState.score;
-        document.getElementById("coins").textContent = gameState.coins;
       }
 
       function showGameOver() {
@@ -403,10 +226,6 @@
         document.getElementById("btn-easy").addEventListener("click", () => startGame("easy"));
         document.getElementById("btn-medium").addEventListener("click", () => startGame("medium"));
         document.getElementById("btn-hard").addEventListener("click", () => startGame("hard"));
-
-        document.getElementById("next-question-btn").addEventListener("click", () => {
-          showQuestion();
-        });
 
         document.getElementById("restart-btn").addEventListener("click", () => {
           showScreen("menu-screen");
