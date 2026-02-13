@@ -12,7 +12,7 @@ class PlayerState:
     score: int = 0
     coins: int = 0
     current_level_type: Optional[str] = None
-    current_question_data: Optional[Union["CaesarQuestion", "WordGameQuestion"]] = None
+    current_question_data: Optional["CaesarQuestion"] = None
 
     def decrease_life(self) -> None:
         if self.lives > 0:
@@ -40,12 +40,6 @@ class CaesarQuestion(TypedDict):
     shift: int
     encrypted_word_correct: str
     options: list[str]
-
-
-class WordGameQuestion(TypedDict):
-    question_text: str
-    correct_answer: str
-    options: List[str]
 
 
 def caesar_cipher(text: str, shift: int, encrypt: bool = True) -> str:
@@ -301,85 +295,5 @@ def generate_caesar_decrypt_question(difficulty_level: str = "easy") -> CaesarQu
         "original_word": original_word,
         "shift": shift,
         "encrypted_word_correct": decrypted_word_correct,
-        "options": options_list,
-    }
-
-
-def generate_word_game_question(difficulty_level: str = "easy") -> WordGameQuestion:
-    words_easy = {
-        "apple": "A fruit that is red and round.",
-        "banana": "A long yellow fruit.",
-        "cat": "A small animal that says meow.",
-        "dog": "A loyal animal that barks.",
-        "house": "A place where people live.",
-        "tree": "A tall plant with a trunk.",
-        "sun": "The bright star in the sky.",
-        "flower": "A colorful plant that blooms.",
-        "chair": "Furniture you sit on.",
-        "bread": "Food made from baked dough.",
-        "cloud": "White shapes floating in the sky.",
-        "river": "A long flowing body of water.",
-        "book": "Something you read.",
-        "milk": "A drink that comes from cows.",
-        "shoe": "Something you wear on your foot.",
-    }
-    words_medium = {
-        "camera": "A device used to take photos.",
-        "guitar": "A musical instrument with strings.",
-        "rocket": "A vehicle that goes to space.",
-        "puzzle": "A game that tests your thinking.",
-        "garden": "A place where plants grow.",
-        "planet": "A large object that orbits a star.",
-        "rabbit": "A small animal with long ears.",
-        "lemon": "A sour yellow fruit.",
-        "silver": "A shiny gray metal.",
-        "window": "A glass opening in a wall.",
-        "bridge": "A structure that crosses water or roads.",
-        "castle": "A large old building with towers.",
-        "market": "A place to buy and sell goods.",
-        "pocket": "A small bag in clothing.",
-        "tablet": "A flat device used for apps.",
-    }
-    words_hard = {
-        "xylophone": "A musical instrument with wooden bars.",
-        "zephyr": "A gentle, light wind.",
-        "quokka": "A small marsupial from Australia.",
-        "vortex": "A rotating mass of air or water.",
-        "sphinx": "A mythical creature with a lion body.",
-        "mnemonic": "A memory aid or technique.",
-        "cryptic": "Mysterious or hard to understand.",
-        "pneumonia": "A serious lung infection.",
-        "unicorn": "A mythical horse with one horn.",
-        "rhythm": "A regular pattern of beats.",
-        "labyrinth": "A complex maze.",
-        "conundrum": "A confusing problem.",
-        "ephemeral": "Lasting for a very short time.",
-        "silhouette": "A dark outline of a figure.",
-        "ambiguous": "Having more than one meaning.",
-    }
-
-    if difficulty_level == "easy":
-        words_map = words_easy
-        options_count = 4
-    elif difficulty_level == "medium":
-        words_map = words_medium
-        options_count = 6
-    else:
-        words_map = words_hard
-        options_count = 8
-
-    correct_answer = random.choice(list(words_map.keys()))
-    question_text = words_map[correct_answer]
-
-    options = {correct_answer}
-    while len(options) < options_count:
-        options.add(random.choice(list(words_map.keys())))
-
-    options_list = list(options)
-    random.shuffle(options_list)
-
-    return {
-        "question_text": question_text,
-        "correct_answer": correct_answer,
         "options": options_list,
     }
