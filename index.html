@@ -136,6 +136,82 @@
         color: var(--tg-theme-button-color, #2ea6ff);
         margin: 16px 0;
       }
+
+      /* CaesarCipherGameScreen */
+      .caesar-game-screen .game-header {
+        flex-wrap: wrap;
+      }
+      .caesar-question-block {
+        width: 100%;
+        max-width: 360px;
+        background: var(--tg-theme-secondary-bg-color, #16213e);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 16px;
+      }
+      .caesar-word {
+        font-size: 24px;
+        font-weight: bold;
+        margin: 12px 0;
+        color: var(--tg-theme-text-color, #eee) !important;
+      }
+      .caesar-shift {
+        font-size: 16px;
+        color: var(--tg-theme-hint-color, #999) !important;
+        margin-bottom: 16px;
+      }
+      .caesar-options {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .caesar-option-btn {
+        background: var(--tg-theme-secondary-bg-color, #16213e);
+        color: var(--tg-theme-text-color, #eee) !important;
+        border: 2px solid var(--tg-theme-hint-color, rgba(255,255,255,0.2));
+        border-radius: 12px;
+        padding: 14px;
+        font-size: 16px;
+        text-align: left;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .caesar-option-btn:hover:not(:disabled) {
+        border-color: var(--tg-theme-button-color, #2ea6ff);
+        background: rgba(46, 166, 255, 0.12);
+      }
+      .caesar-option-btn.correct {
+        border-color: #22c55e;
+        background: rgba(34, 197, 94, 0.2);
+      }
+      .caesar-option-btn.wrong {
+        border-color: #ef4444;
+        background: rgba(239, 68, 68, 0.2);
+      }
+      .caesar-option-btn:disabled {
+        cursor: default;
+        opacity: 0.8;
+      }
+      .caesar-feedback {
+        font-size: 18px;
+        font-weight: bold;
+        padding: 16px;
+        border-radius: 12px;
+        margin: 16px 0;
+      }
+      .caesar-feedback.correct {
+        background: rgba(34, 197, 94, 0.2);
+        color: #22c55e;
+      }
+      .caesar-feedback.wrong {
+        background: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+      }
+      .back-btn {
+        background: transparent;
+        color: var(--tg-theme-button-color, #2ea6ff) !important;
+        border: 1px solid var(--tg-theme-button-color, #2ea6ff);
+      }
     </style>
   </head>
   <body>
@@ -171,6 +247,30 @@
         </div>
       </div>
 
+      <!-- CaesarCipherGameScreen - гра з шифром Цезаря -->
+      <div id="caesar-cipher-game-screen" class="screen caesar-game-screen">
+        <div class="game-header">
+          <h3 style="margin: 0;">Кріпто-тренажер</h3>
+          <div class="game-stats">
+            <span>❤️ <span id="caesar-lives">5</span></span>
+            <span>⭐ <span id="caesar-score">0</span></span>
+            <span>🪙 <span id="caesar-coins">0</span></span>
+          </div>
+        </div>
+        <div id="caesar-question-block" class="caesar-question-block">
+          <p style="margin: 0 0 8px 0;">Зашифруй слово шифром Цезаря:</p>
+          <p id="caesar-word" class="caesar-word"></p>
+          <p id="caesar-shift" class="caesar-shift"></p>
+          <p style="margin-bottom: 12px;">Оберіть правильний варіант:</p>
+          <div id="caesar-options" class="caesar-options"></div>
+        </div>
+        <div id="caesar-feedback-block" class="caesar-question-block" style="display: none;">
+          <div id="caesar-feedback" class="caesar-feedback"></div>
+          <button id="caesar-next-btn" class="btn">Наступне питання</button>
+        </div>
+        <button id="caesar-back-btn" class="btn back-btn">Назад до вибору шифру</button>
+      </div>
+
       <!-- Екран гри з кінцем -->
       <div id="game-over-screen" class="screen">
         <div class="card game-over-card">
@@ -190,12 +290,151 @@
         tg.expand();
       }
 
+      // Українська абетка для шифру Цезаря
+      const ALPHABET_UK = "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя";
+
+      const UK_WORDS = [
+        "привіт", "слово", "дім", "ніч", "мама", "папа", "кіт", "рік", "хліб",
+        "вода", "сон", "час", "місто", "рука", "нога", "око", "двері", "вікно",
+        "стіл", "книга", "молоко", "чай", "суп", "сир", "риба", "яблуко", "груша",
+        "слива", "вишня", "банан", "лимон", "кава", "сіль", "цукор", "каша", "сік",
+        "сніг", "ліс", "пісня", "пісок", "день", "сонце", "зоря", "місяць", "хмара",
+        "дощ", "вітер", "вогонь", "земля", "дерево", "квітка", "трава", "птах", "гра",
+        "сміх", "радість", "серце", "мисль", "думка", "мова", "година", "мить", "життя",
+        "свято", "ранок", "вечір", "світанок", "захід", "схід", "південь", "північ"
+      ];
+
+      const POINTS_EASY = 10;
+
       let gameState = {
         level: "easy",
         lives: 5,
         score: 0,
         coins: 0,
       };
+
+      let caesarState = {
+        currentQuestion: null,
+        lives: 5,
+        score: 0,
+        coins: 0,
+      };
+
+      function caesarCipher(text, shift, encrypt = true) {
+        const shiftVal = encrypt ? shift : -shift;
+        let result = "";
+        const lower = ALPHABET_UK.toLowerCase();
+        const upper = ALPHABET_UK.toUpperCase();
+        for (let i = 0; i < text.length; i++) {
+          const ch = text[i];
+          let idx = lower.indexOf(ch.toLowerCase());
+          if (idx >= 0) {
+            const newIdx = (idx + shiftVal + lower.length) % lower.length;
+            result += ch === ch.toUpperCase() ? upper[newIdx] : lower[newIdx];
+          } else {
+            result += ch;
+          }
+        }
+        return result;
+      }
+
+      function getCaesarQuestion() {
+        const word = UK_WORDS[Math.floor(Math.random() * UK_WORDS.length)];
+        const shift = 1 + Math.floor(Math.random() * 6);
+        const correct = caesarCipher(word, shift);
+        const options = new Set([correct]);
+        while (options.size < 4) {
+          const wrongShift = 1 + Math.floor(Math.random() * 32);
+          if (wrongShift === shift) continue;
+          const wrong = caesarCipher(word, wrongShift);
+          if (wrong !== correct) options.add(wrong);
+        }
+        return {
+          word,
+          shift,
+          correct,
+          options: [...options].sort(() => Math.random() - 0.5),
+        };
+      }
+
+      function updateCaesarStats() {
+        document.getElementById("caesar-lives").textContent = caesarState.lives;
+        document.getElementById("caesar-score").textContent = caesarState.score;
+        document.getElementById("caesar-coins").textContent = caesarState.coins;
+      }
+
+      function showCaesarQuestion() {
+        if (caesarState.lives <= 0) {
+          gameState.lives = caesarState.lives;
+          gameState.score = caesarState.score;
+          gameState.coins = caesarState.coins;
+          showGameOver();
+          return;
+        }
+        caesarState.currentQuestion = getCaesarQuestion();
+        document.getElementById("caesar-question-block").style.display = "block";
+        document.getElementById("caesar-feedback-block").style.display = "none";
+
+        document.getElementById("caesar-word").textContent = caesarState.currentQuestion.word;
+        document.getElementById("caesar-shift").textContent = "Зсув: " + caesarState.currentQuestion.shift;
+
+        const container = document.getElementById("caesar-options");
+        container.innerHTML = "";
+        caesarState.currentQuestion.options.forEach((opt) => {
+          const btn = document.createElement("button");
+          btn.className = "caesar-option-btn";
+          btn.textContent = opt;
+          btn.dataset.answer = opt;
+          btn.addEventListener("click", () => onCaesarAnswer(opt, btn));
+          container.appendChild(btn);
+        });
+        updateCaesarStats();
+      }
+
+      function onCaesarAnswer(selected, btnEl) {
+        const correct = caesarState.currentQuestion.correct;
+        const buttons = document.querySelectorAll(".caesar-option-btn");
+        buttons.forEach((b) => {
+          b.disabled = true;
+          if (b.dataset.answer === correct) b.classList.add("correct");
+          else if (b.dataset.answer === selected && selected !== correct) b.classList.add("wrong");
+        });
+
+        if (selected === correct) {
+          caesarState.score += POINTS_EASY;
+          caesarState.coins += 1;
+          showCaesarFeedback(true, POINTS_EASY);
+        } else {
+          caesarState.lives -= 1;
+          showCaesarFeedback(false, correct);
+        }
+        updateCaesarStats();
+      }
+
+      function showCaesarFeedback(isCorrect, value) {
+        document.getElementById("caesar-question-block").style.display = "none";
+        document.getElementById("caesar-feedback-block").style.display = "block";
+
+        const feedbackEl = document.getElementById("caesar-feedback");
+        if (isCorrect) {
+          feedbackEl.textContent = "✅ Правильно! +" + value + " очок, +1 монета.";
+          feedbackEl.className = "caesar-feedback correct";
+        } else {
+          feedbackEl.textContent = "❌ Неправильно. Правильна відповідь: " + value;
+          feedbackEl.className = "caesar-feedback wrong";
+        }
+      }
+
+      function startCaesarGame() {
+        caesarState = {
+          currentQuestion: null,
+          lives: gameState.lives,
+          score: gameState.score,
+          coins: gameState.coins,
+        };
+        showScreen("caesar-cipher-game-screen");
+        showCaesarQuestion();
+      }
 
       function showScreen(screenId) {
         document.querySelectorAll(".screen").forEach((s) => s.classList.remove("active"));
@@ -246,7 +485,19 @@
         document.getElementById("btn-hard").addEventListener("click", () => startGame("hard"));
 
         document.getElementById("btn-caesar").addEventListener("click", () => {
-          // TODO: запуск гри з Шифром Цезаря
+          startCaesarGame();
+        });
+
+        document.getElementById("caesar-next-btn").addEventListener("click", () => {
+          showCaesarQuestion();
+        });
+
+        document.getElementById("caesar-back-btn").addEventListener("click", () => {
+          gameState.lives = caesarState.lives;
+          gameState.score = caesarState.score;
+          gameState.coins = caesarState.coins;
+          updateStats();
+          showScreen("game-screen");
         });
 
         document.getElementById("restart-btn").addEventListener("click", () => {
