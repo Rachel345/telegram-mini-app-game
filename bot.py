@@ -2,7 +2,7 @@ import asyncio
 import json
 import logging
 import os
-from typing import Callable, TypedDict, Union
+from typing import Callable, TypedDict
 from aiogram import Bot, Dispatcher, F
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
@@ -20,8 +20,6 @@ from database import add_user, get_user_stats
 from game_logic import (
     CaesarQuestion,
     PlayerState,
-    WordGameQuestion,
-    generate_word_game_question,
     generate_caesar_decrypt_question,
     generate_caesar_question,
 )
@@ -47,7 +45,7 @@ class GameStates(StatesGroup):
 
 
 class LevelConfig(TypedDict):
-    generator: Callable[[], Union[CaesarQuestion, WordGameQuestion]]
+    generator: Callable[[], CaesarQuestion]
     question_template: str
     callback_prefix: str
     next_level_callback: str
@@ -78,39 +76,6 @@ LEVEL_CONFIGS: dict[str, LevelConfig] = {
         "callback_prefix": "caesar_answer_",
         "next_level_callback": "start_easy_caesar_decrypt",
         "points": 10,
-    },
-    "word_game_easy": {
-        "generator": lambda: generate_word_game_question("easy"),
-        "question_template": (
-            "*Вгадай слово*\n"
-            "{question_text}\n"
-            "Оберіть правильний варіант:"
-        ),
-        "callback_prefix": "word_game_answer_",
-        "next_level_callback": "start_easy_word_game",
-        "points": 10,
-    },
-    "word_game_medium": {
-        "generator": lambda: generate_word_game_question("medium"),
-        "question_template": (
-            "*Вгадай слово*\n"
-            "{question_text}\n"
-            "Оберіть правильний варіант:"
-        ),
-        "callback_prefix": "word_game_answer_",
-        "next_level_callback": "start_medium_word_game",
-        "points": 20,
-    },
-    "word_game_hard": {
-        "generator": lambda: generate_word_game_question("hard"),
-        "question_template": (
-            "*Вгадай слово*\n"
-            "{question_text}\n"
-            "Оберіть правильний варіант:"
-        ),
-        "callback_prefix": "word_game_answer_",
-        "next_level_callback": "start_hard_word_game",
-        "points": 30,
     },
 }
 
@@ -175,7 +140,7 @@ async def cmd_start(message: Message, state: FSMContext):
     await state.update_data(player_state=player_state)
     await state.set_state(GameStates.choose)
 
-   web_app_url = f"https://rachel345.github.io/telegram-mini-app-game/index.html?user_id={user_id}&v=2"
+    web_app_url = f"https://rachel345.github.io/telegram-mini-app-game/index.html?user_id={user_id}&v=2"
     inline_kb = InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -206,30 +171,6 @@ async def process_start_easy_caesar_decrypt(callback: CallbackQuery, state: FSMC
     logger.info("callback_data=%s, state=%s", callback.data, await state.get_state())
     await callback.answer()
     await start_game_level("caesar_decrypt_easy", callback.message, state)
-    await callback.message.delete()
-
-
-@dp.callback_query(F.data == "start_easy_word_game")
-async def process_start_easy_word_game(callback: CallbackQuery, state: FSMContext):
-    logger.info("callback_data=%s, state=%s", callback.data, await state.get_state())
-    await callback.answer()
-    await start_game_level("word_game_easy", callback.message, state)
-    await callback.message.delete()
-
-
-@dp.callback_query(F.data == "start_medium_word_game")
-async def process_start_medium_word_game(callback: CallbackQuery, state: FSMContext):
-    logger.info("callback_data=%s, state=%s", callback.data, await state.get_state())
-    await callback.answer()
-    await start_game_level("word_game_medium", callback.message, state)
-    await callback.message.delete()
-
-
-@dp.callback_query(F.data == "start_hard_word_game")
-async def process_start_hard_word_game(callback: CallbackQuery, state: FSMContext):
-    logger.info("callback_data=%s, state=%s", callback.data, await state.get_state())
-    await callback.answer()
-    await start_game_level("word_game_hard", callback.message, state)
     await callback.message.delete()
 
 
@@ -311,83 +252,6 @@ async def process_caesar_answer(callback: CallbackQuery, state: FSMContext):
     )
 
 
-@dp.callback_query(GameStates.playing_level, F.data.startswith("word_game_answer_"))
-async def process_word_game_answer(callback: CallbackQuery, state: FSMContext):
-    logger.info("callback_data=%s, state=%s", callback.data, await state.get_state())
-    await callback.answer()
-    index_str = callback.data.replace("word_game_answer_", "", 1)
-    try:
-        answer_index = int(index_str)
-    except ValueError:
-        await callback.message.answer("Некоректна відповідь. Спробуйте ще раз.")
-        return
-
-    data = await state.get_data()
-    player_state = data.get("player_state")
-    options = data.get("current_question_options") or []
-    if not isinstance(player_state, PlayerState) or not player_state.current_question_data:
-        await callback.message.answer("Сесія втрачена. Почніть знову командою /start.")
-        await state.clear()
-        return
-    if answer_index < 0 or answer_index >= len(options):
-        await callback.message.answer("Некоректна відповідь. Спробуйте ще раз.")
-        return
-
-    user_answer = options[answer_index]
-    correct = player_state.current_question_data["correct_answer"]
-    if user_answer == correct:
-        points = LEVEL_CONFIGS.get(
-            player_state.current_level_type, LEVEL_CONFIGS["word_game_easy"]
-        )["points"]
-        player_state.add_score(points)
-        player_state.add_coins(1)
-        await callback.message.answer(f"✅ Правильно! +{points} очок, +1 монета.")
-    else:
-        player_state.decrease_life()
-        await callback.message.answer(
-            f"❌ Неправильно. Правильна відповідь: `{correct}`",
-            parse_mode="Markdown",
-        )
-
-    await state.update_data(player_state=player_state)
-    await callback.message.edit_reply_markup(reply_markup=None)
-
-    if player_state.is_game_over():
-        restart_kb = InlineKeyboardMarkup(
-            inline_keyboard=[
-                [
-                    InlineKeyboardButton(
-                        text="Повторити гру",
-                        callback_data="restart_game",
-                    )
-                ]
-            ]
-        )
-        await callback.message.answer(
-            "Гру завершено. Життя закінчились.\n"
-            "Натисніть кнопку, щоб почати знову.",
-            reply_markup=restart_kb,
-        )
-        return
-
-    next_kb = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text="Наступне питання",
-                    callback_data=LEVEL_CONFIGS.get(
-                        player_state.current_level_type, LEVEL_CONFIGS["word_game_easy"]
-                    )["next_level_callback"],
-                )
-            ]
-        ]
-    )
-    await callback.message.answer(
-        "Готові до наступного питання?",
-        reply_markup=next_kb,
-    )
-
-
 @dp.message(F.web_app_data)
 async def process_web_app_data(message: Message, state: FSMContext):
     try:
@@ -407,15 +271,6 @@ async def process_web_app_data(message: Message, state: FSMContext):
         return
     if action == "start_level" and level == "easy_caesar_decrypt":
         await start_game_level("caesar_decrypt_easy", message, state)
-        return
-    if action == "start_level" and level == "easy_word_game":
-        await start_game_level("word_game_easy", message, state)
-        return
-    if action == "start_level" and level == "medium_word_game":
-        await start_game_level("word_game_medium", message, state)
-        return
-    if action == "start_level" and level == "hard_word_game":
-        await start_game_level("word_game_hard", message, state)
         return
 
     if action == "game_over":
@@ -453,4 +308,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-
