@@ -31,6 +31,9 @@
       .screen.active {
         display: flex;
       }
+      #menu-screen {
+        justify-content: center;
+      }
 
       .card {
         background: var(--tg-theme-secondary-bg-color, #16213e);
@@ -71,6 +74,20 @@
       .btn:active {
         transform: scale(0.98);
       }
+      .btn:disabled,
+      .btn.btn-disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        pointer-events: none;
+      }
+
+      /* Центральний блок з кнопками шифрів */
+      .cipher-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        width: 100%;
+      }
 
       /* Верхня панель гри */
       .game-header {
@@ -93,7 +110,7 @@
         color: var(--tg-theme-text-color, #eee) !important;
       }
 
-      /* Центральний блок - пустий, для майбутнього контенту шифрів */
+      /* Центральний блок з вибором шифру */
       .game-content {
         flex: 1;
         width: 100%;
@@ -103,12 +120,9 @@
         border-radius: 16px;
         padding: 24px;
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
-      }
-      .game-content-placeholder {
-        color: var(--tg-theme-hint-color, #999) !important;
-        font-size: 14px;
       }
 
       .game-over-card {
@@ -147,9 +161,13 @@
             <span>🪙 <span id="coins">0</span></span>
           </div>
         </div>
-        <!-- Пустий центральний блок для вибору шифру / гри з Шифром Цезаря -->
+        <!-- Центральний блок з кнопками вибору шифру -->
         <div id="game-content" class="game-content">
-          <span class="game-content-placeholder">Тут буде контент гри</span>
+          <div class="cipher-buttons">
+            <button id="btn-caesar" class="btn">Шифр Цезаря</button>
+            <button id="btn-vigenere" class="btn btn-disabled">Шифр Віженера</button>
+            <button id="btn-playfair" class="btn btn-disabled">Шифр Плейфера</button>
+          </div>
         </div>
       </div>
 
@@ -226,6 +244,10 @@
         document.getElementById("btn-easy").addEventListener("click", () => startGame("easy"));
         document.getElementById("btn-medium").addEventListener("click", () => startGame("medium"));
         document.getElementById("btn-hard").addEventListener("click", () => startGame("hard"));
+
+        document.getElementById("btn-caesar").addEventListener("click", () => {
+          // TODO: запуск гри з Шифром Цезаря
+        });
 
         document.getElementById("restart-btn").addEventListener("click", () => {
           showScreen("menu-screen");
