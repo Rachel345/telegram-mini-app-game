@@ -31,7 +31,8 @@
       .screen.active {
         display: flex;
       }
-      #menu-screen {
+      #menu-screen,
+      #level-placeholder-screen {
         justify-content: center;
       }
 
@@ -240,7 +241,7 @@
         <!-- Центральний блок з кнопками вибору шифру -->
         <div id="game-content" class="game-content">
           <div class="cipher-buttons">
-            <button id="btn-caesar" class="btn">Шифр Цезаря</button>
+            <button id="btn-caesar" class="btn" type="button">Шифр Цезаря</button>
             <button id="btn-vigenere" class="btn btn-disabled">Шифр Віженера</button>
             <button id="btn-playfair" class="btn btn-disabled">Шифр Плейфера</button>
           </div>
@@ -269,6 +270,14 @@
           <button id="caesar-next-btn" class="btn">Наступне питання</button>
         </div>
         <button id="caesar-back-btn" class="btn back-btn">Назад до вибору шифру</button>
+      </div>
+
+      <!-- Екран-заглушка для середнього та складного рівня -->
+      <div id="level-placeholder-screen" class="screen">
+        <div class="card level-select-card">
+          <p id="placeholder-message" style="text-align: center; margin-bottom: 16px;"></p>
+          <button id="placeholder-back-btn" class="btn back-btn">Назад до вибору рівня</button>
+        </div>
       </div>
 
       <!-- Екран гри з кінцем -->
@@ -456,7 +465,13 @@
           coins: 0,
         };
         updateStats();
-        showScreen("game-screen");
+        if (level === "easy") {
+          showScreen("game-screen");
+        } else {
+          document.getElementById("placeholder-message").textContent =
+            "Скоро тут буде контент для " + (level === "medium" ? "середнього" : "складного") + " рівня.";
+          showScreen("level-placeholder-screen");
+        }
       }
 
       function showGameOver() {
@@ -484,8 +499,14 @@
         document.getElementById("btn-medium").addEventListener("click", () => startGame("medium"));
         document.getElementById("btn-hard").addEventListener("click", () => startGame("hard"));
 
-        document.getElementById("btn-caesar").addEventListener("click", () => {
+        document.getElementById("btn-caesar").addEventListener("click", function(e) {
+          e.preventDefault();
+          e.stopPropagation();
           startCaesarGame();
+        });
+
+        document.getElementById("placeholder-back-btn").addEventListener("click", () => {
+          showScreen("menu-screen");
         });
 
         document.getElementById("caesar-next-btn").addEventListener("click", () => {
