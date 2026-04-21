@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 import os
+import random
 from typing import Callable, TypedDict
 from aiogram import Bot, Dispatcher, F
 from aiogram.filters import CommandStart
@@ -22,6 +23,7 @@ from game_logic import (
     PlayerState,
     generate_caesar_decrypt_question,
     generate_caesar_question,
+    generate_caesar_shift_guess_question,
 )
 
 # Налаштування логування
@@ -62,7 +64,19 @@ LEVEL_CONFIGS: dict[str, LevelConfig] = {
             "Оберіть правильний зашифрований варіант:"
         ),
         "callback_prefix": "caesar_answer_",
-        "next_level_callback": "start_easy_caesar",
+        "next_level_callback": "start_easy_caesar_mixed",
+        "points": 10,
+    },
+    "caesar_easy_shift": {
+        "generator": lambda: generate_caesar_shift_guess_question("easy"),
+        "question_template": (
+            "*Легкий рівень 2*\n"
+            "Зашифроване слово: `{ciphertext}`\n"
+            "Початкове слово: `{original_word}`\n\n"
+            "Оберіть правильний варіант ключа для слова `{original_word}`:"
+        ),
+        "callback_prefix": "caesar_answer_",
+        "next_level_callback": "start_easy_caesar_mixed",
         "points": 10,
     },
     "caesar_decrypt_easy": {
@@ -122,6 +136,13 @@ async def start_game_level(level_type: str, target_message: Message, state: FSMC
     )
 
 
+EASY_MIXED_LEVELS = ("caesar_easy", "caesar_easy_shift")
+
+
+async def start_random_easy_level(target_message: Message, state: FSMContext) -> None:
+    await start_game_level(random.choice(EASY_MIXED_LEVELS), target_message, state)
+
+
 # Обробник команди /start
 @dp.message(CommandStart())
 async def cmd_start(message: Message, state: FSMContext):
@@ -140,7 +161,7 @@ async def cmd_start(message: Message, state: FSMContext):
     await state.update_data(player_state=player_state)
     await state.set_state(GameStates.choose)
 
-    web_app_url = f"https://rachel345.github.io/telegram-mini-app-game/index.html?user_id={user_id}&v=2"
+    web_app_url = f"https://rachel345.github.io/telegram-mini-app-game/index.html?user_id={user_id}&v=3"
     inline_kb = InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -158,11 +179,11 @@ async def cmd_start(message: Message, state: FSMContext):
         reply_markup=inline_kb,
     )
 
-@dp.callback_query(F.data == "start_easy_caesar")
-async def process_start_easy_caesar(callback: CallbackQuery, state: FSMContext):
+@dp.callback_query(F.data.in_({"start_easy_caesar", "start_easy_caesar_mixed"}))
+async def process_start_easy_caesar_mixed(callback: CallbackQuery, state: FSMContext):
     logger.info("callback_data=%s, state=%s", callback.data, await state.get_state())
     await callback.answer()
-    await start_game_level("caesar_easy", callback.message, state)
+    await start_random_easy_level(callback.message, state)
     await callback.message.delete()
 
 
@@ -197,9 +218,19 @@ async def process_caesar_answer(callback: CallbackQuery, state: FSMContext):
         return
 
     user_answer = options[answer_index]
+    q_data = player_state.current_question_data
 
-    correct = player_state.current_question_data["encrypted_word_correct"]
-    if user_answer == correct:
+    if q_data.get("answer_mode") == "shift":
+        try:
+            chosen_shift = int(user_answer.split(":", 1)[1].strip())
+        except (IndexError, ValueError):
+            chosen_shift = -1
+        is_correct = chosen_shift == q_data["shift"]
+    else:
+        correct_word = q_data["encrypted_word_correct"]
+        is_correct = user_answer == correct_word
+
+    if is_correct:
         points = LEVEL_CONFIGS.get(
             player_state.current_level_type, LEVEL_CONFIGS["caesar_easy"]
         )["points"]
@@ -208,10 +239,16 @@ async def process_caesar_answer(callback: CallbackQuery, state: FSMContext):
         await callback.message.answer(f"✅ Правильно! +{points} очок, +1 монета.")
     else:
         player_state.decrease_life()
-        await callback.message.answer(
-            f"❌ Неправильно. Правильна відповідь: `{correct}`",
-            parse_mode="Markdown",
-        )
+        if q_data.get("answer_mode") == "shift":
+            await callback.message.answer(
+                f"❌ Неправильно. Правильна відповідь: Зсув: {q_data['shift']}"
+            )
+        else:
+            correct_word = q_data["encrypted_word_correct"]
+            await callback.message.answer(
+                f"❌ Неправильно. Правильна відповідь: `{correct_word}`",
+                parse_mode="Markdown",
+            )
 
     await state.update_data(player_state=player_state)
     await callback.message.edit_reply_markup(reply_markup=None)
@@ -267,7 +304,7 @@ async def process_web_app_data(message: Message, state: FSMContext):
     action = payload.get("action")
     level = payload.get("level")
     if action == "start_level" and level == "easy_caesar":
-        await start_game_level("caesar_easy", message, state)
+        await start_random_easy_level(message, state)
         return
     if action == "start_level" and level == "easy_caesar_decrypt":
         await start_game_level("caesar_decrypt_easy", message, state)
