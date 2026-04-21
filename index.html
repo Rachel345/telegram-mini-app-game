@@ -6,531 +6,192 @@
     <title>Кріпто-тренажер</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-      * {
-        box-sizing: border-box;
-      }
+      * { box-sizing: border-box; }
       body {
         background-color: var(--tg-theme-bg-color, #1a1a2e) !important;
         color: var(--tg-theme-text-color, #eee) !important;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        margin: 0;
-        padding: 16px;
-        min-height: 100vh;
+        margin: 0; padding: 16px; min-height: 100vh;
       }
-
       .screen {
-        display: none;
-        flex-direction: column;
-        align-items: center;
-        justify-content: flex-start;
-        gap: 16px;
-        max-width: 400px;
-        margin: 0 auto;
-        min-height: calc(100vh - 32px);
+        display: none; flex-direction: column; align-items: center; justify-content: flex-start;
+        gap: 16px; max-width: 400px; margin: 0 auto; min-height: calc(100vh - 32px);
       }
-      .screen.active {
-        display: flex;
-      }
-      #menu-screen,
-      #level-placeholder-screen {
-        justify-content: center;
-      }
-
+      .screen.active { display: flex; }
+      #menu-screen, #level-detail-screen, #level-placeholder-screen { justify-content: center; }
       .card {
         background: var(--tg-theme-secondary-bg-color, #16213e);
-        border-radius: 16px;
-        padding: 24px;
-        width: 100%;
-        max-width: 360px;
+        border-radius: 16px; padding: 24px; width: 100%; max-width: 360px;
       }
-      .level-select-card {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 20px;
-      }
-      .level-select-title {
-        margin: 0 0 8px 0 !important;
-        font-size: 22px;
-        text-align: center;
-      }
-
-      h1, h2, h3, p {
-        margin: 0 0 12px 0;
-        color: var(--tg-theme-text-color, #eee) !important;
-      }
-
+      .level-select-card { display: flex; flex-direction: column; align-items: center; gap: 20px; }
       .btn {
         background: var(--tg-theme-button-color, #2ea6ff);
         color: var(--tg-theme-button-text-color, #fff) !important;
-        border: none;
-        border-radius: 12px;
-        padding: 14px 20px;
-        font-size: 16px;
-        width: 100%;
-        cursor: pointer;
-        transition: transform 0.1s;
+        border: none; border-radius: 12px; padding: 14px 20px; font-size: 16px; width: 100%; cursor: pointer;
       }
-      .btn:active {
-        transform: scale(0.98);
-      }
-      .btn:disabled,
-      .btn.btn-disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-        pointer-events: none;
-      }
-
-      /* Центральний блок з кнопками шифрів */
-      .cipher-buttons {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        width: 100%;
-      }
-
-      /* Верхня панель гри */
+      .btn:active { transform: scale(0.98); }
       .game-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 12px 16px;
-        background: var(--tg-theme-secondary-bg-color, #16213e);
-        border-radius: 12px;
-        width: 100%;
-        max-width: 360px;
-        margin-bottom: 16px;
-      }
-      .game-stats {
-        display: flex;
-        gap: 16px;
-        font-size: 14px;
-      }
-      .game-stats span {
-        color: var(--tg-theme-text-color, #eee) !important;
-      }
-
-      /* Центральний блок з вибором шифру */
-      .game-content {
-        flex: 1;
-        width: 100%;
-        max-width: 360px;
-        min-height: 200px;
-        background: var(--tg-theme-secondary-bg-color, #16213e);
-        border-radius: 16px;
-        padding: 24px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .game-over-card {
-        text-align: center;
-      }
-      .game-over-card h2 {
-        margin-bottom: 8px;
-      }
-      .game-over-card .final-score {
-        font-size: 24px;
-        color: var(--tg-theme-button-color, #2ea6ff);
-        margin: 16px 0;
-      }
-
-      /* CaesarCipherGameScreen */
-      .caesar-game-screen .game-header {
-        flex-wrap: wrap;
-      }
-      .caesar-question-block {
-        width: 100%;
-        max-width: 360px;
-        background: var(--tg-theme-secondary-bg-color, #16213e);
-        border-radius: 16px;
-        padding: 24px;
-        margin-bottom: 16px;
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 12px 16px; background: var(--tg-theme-secondary-bg-color, #16213e);
+        border-radius: 12px; width: 100%; margin-bottom: 16px;
       }
       .caesar-word {
-        font-size: 24px;
-        font-weight: bold;
-        margin: 12px 0;
-        color: var(--tg-theme-text-color, #eee) !important;
+        font-size: 24px; font-weight: bold; margin: 12px 0; text-align: center;
+        background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 12px;
       }
-      .caesar-shift {
-        font-size: 16px;
-        color: var(--tg-theme-hint-color, #999) !important;
-        margin-bottom: 16px;
-      }
-      .caesar-options {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-      }
+      .caesar-shift { font-size: 18px; color: #2ea6ff; font-weight: bold; text-align: center; margin-bottom: 15px; }
+      .caesar-options { display: flex; flex-direction: column; gap: 10px; width: 100%; }
       .caesar-option-btn {
-        background: var(--tg-theme-secondary-bg-color, #16213e);
-        color: var(--tg-theme-text-color, #eee) !important;
-        border: 2px solid var(--tg-theme-hint-color, rgba(255,255,255,0.2));
-        border-radius: 12px;
-        padding: 14px;
-        font-size: 16px;
-        text-align: left;
-        cursor: pointer;
-        transition: all 0.2s;
+        background: transparent; color: inherit; border: 2px solid rgba(255,255,255,0.2);
+        border-radius: 12px; padding: 14px; font-size: 16px; cursor: pointer;
       }
-      .caesar-option-btn:hover:not(:disabled) {
-        border-color: var(--tg-theme-button-color, #2ea6ff);
-        background: rgba(46, 166, 255, 0.12);
-      }
-      .caesar-option-btn.correct {
-        border-color: #22c55e;
-        background: rgba(34, 197, 94, 0.2);
-      }
-      .caesar-option-btn.wrong {
-        border-color: #ef4444;
-        background: rgba(239, 68, 68, 0.2);
-      }
-      .caesar-option-btn:disabled {
-        cursor: default;
-        opacity: 0.8;
-      }
-      .caesar-feedback {
-        font-size: 18px;
-        font-weight: bold;
-        padding: 16px;
-        border-radius: 12px;
-        margin: 16px 0;
-      }
-      .caesar-feedback.correct {
-        background: rgba(34, 197, 94, 0.2);
-        color: #22c55e;
-      }
-      .caesar-feedback.wrong {
-        background: rgba(239, 68, 68, 0.2);
-        color: #ef4444;
-      }
-      .back-btn {
-        background: transparent;
-        color: var(--tg-theme-button-color, #2ea6ff) !important;
-        border: 1px solid var(--tg-theme-button-color, #2ea6ff);
-      }
+      .caesar-option-btn.correct { border-color: #22c55e; background: rgba(34, 197, 94, 0.2); }
+      .caesar-option-btn.wrong { border-color: #ef4444; background: rgba(239, 68, 68, 0.2); }
+      .back-btn { background: transparent; border: 1px solid #2ea6ff; color: #2ea6ff !important; margin-top: 10px; }
     </style>
   </head>
   <body>
     <div id="app">
-      <!-- Екран вибору шифру -->
+      <!-- Вибір складності -->
       <div id="menu-screen" class="screen active">
         <div class="card level-select-card">
-          <h2 class="level-select-title">Обрати рівень</h2>
+          <h2>Обери складність</h2>
           <button id="btn-easy" class="btn">Легкий</button>
-          <button id="btn-medium" class="btn">Середній</button>
-          <button id="btn-hard" class="btn">Складний</button>
+          <button class="btn" style="opacity: 0.5">Середній (скоро)</button>
+          <button class="btn" style="opacity: 0.5">Складний (скоро)</button>
         </div>
       </div>
 
-      <!-- Базовий екран гри з шифрами -->
-      <div id="game-screen" class="screen">
-        <!-- Верхня панель з назвою та статами -->
-        <div class="game-header">
-          <h3 style="margin: 0;">Кріпто-тренажер</h3>
-          <div class="game-stats">
-            <span>❤️ <span id="lives">5</span></span>
-            <span>⭐ <span id="score">0</span></span>
-            <span>🪙 <span id="coins">0</span></span>
-          </div>
-        </div>
-        <!-- Центральний блок з кнопками вибору шифру -->
-        <div id="game-content" class="game-content">
-          <div class="cipher-buttons">
-            <button id="btn-caesar" class="btn" type="button">Шифр Цезаря</button>
-            <button id="btn-vigenere" class="btn btn-disabled">Шифр Віженера</button>
-            <button id="btn-playfair" class="btn btn-disabled">Шифр Плейфера</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- CaesarCipherGameScreen - гра з шифром Цезаря -->
-      <div id="caesar-cipher-game-screen" class="screen caesar-game-screen">
-        <div class="game-header">
-          <h3 style="margin: 0;">Кріпто-тренажер</h3>
-          <div class="game-stats">
-            <span>❤️ <span id="caesar-lives">5</span></span>
-            <span>⭐ <span id="caesar-score">0</span></span>
-            <span>🪙 <span id="caesar-coins">0</span></span>
-          </div>
-        </div>
-        <div id="caesar-question-block" class="caesar-question-block">
-          <p style="margin: 0 0 8px 0;">Зашифруй слово шифром Цезаря:</p>
-          <p id="caesar-word" class="caesar-word"></p>
-          <p id="caesar-shift" class="caesar-shift"></p>
-          <p style="margin-bottom: 12px;">Оберіть правильний варіант:</p>
-          <div id="caesar-options" class="caesar-options"></div>
-        </div>
-        <div id="caesar-feedback-block" class="caesar-question-block" style="display: none;">
-          <div id="caesar-feedback" class="caesar-feedback"></div>
-          <button id="caesar-next-btn" class="btn">Наступне питання</button>
-        </div>
-        <button id="caesar-back-btn" class="btn back-btn">Назад до вибору шифру</button>
-      </div>
-
-      <!-- Екран-заглушка для середнього та складного рівня -->
-      <div id="level-placeholder-screen" class="screen">
+      <!-- Вибір підрівня -->
+      <div id="level-detail-screen" class="screen">
         <div class="card level-select-card">
-          <p id="placeholder-message" style="text-align: center; margin-bottom: 16px;"></p>
-          <button id="placeholder-back-btn" class="btn back-btn">Назад до вибору рівня</button>
+          <h2>Легкий рівень</h2>
+          <button id="btn-lvl-1" class="btn">Рівень 1: Зашифруй слово</button>
+          <button id="btn-lvl-2" class="btn">Рівень 2: Відгадай ключ</button>
+          <button id="detail-back-btn" class="btn back-btn">Назад</button>
         </div>
       </div>
 
-      <!-- Екран гри з кінцем -->
+      <!-- Гра Цезаря -->
+      <div id="caesar-screen" class="screen">
+        <div class="game-header">
+          <span>❤️ <span id="lives">5</span></span>
+          <span>⭐ <span id="score">0</span></span>
+        </div>
+        <div class="card">
+          <p id="instr" style="text-align: center;"></p>
+          <div id="word" class="caesar-word"></div>
+          <div id="shift-info" class="caesar-shift"></div>
+          <div id="options" class="caesar-options"></div>
+          <div id="feedback" style="display:none; margin-top:15px; text-align:center; font-weight:bold;"></div>
+          <button id="next-btn" class="btn" style="display:none; margin-top:15px;">Наступне</button>
+        </div>
+        <button id="exit-btn" class="btn back-btn">Вийти</button>
+      </div>
+
+      <!-- Game Over -->
       <div id="game-over-screen" class="screen">
-        <div class="card game-over-card">
-          <h2>Гру завершено</h2>
-          <p>Життя закінчились.</p>
-          <p class="final-score">Результат: <span id="final-score">0</span> очок</p>
-          <button id="restart-btn" class="btn">Повторити гру</button>
-          <button id="close-btn" class="btn" style="margin-top: 8px;">Закрити та надіслати результат</button>
+        <div class="card" style="text-align: center;">
+          <h2>Гру завершено!</h2>
+          <p>Ваш результат: <span id="final-score">0</span></p>
+          <button id="restart-btn" class="btn">В меню</button>
         </div>
       </div>
     </div>
 
     <script>
-      const tg = window.Telegram?.WebApp;
-      if (tg) {
-        tg.ready();
-        tg.expand();
+      const ALPHABET = "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя";
+      const WORDS = ["привіт", "слово", "мова", "книга", "місто", "річка", "сонце", "школа", "україна", "дружба"];
+      
+      let state = { lives: 5, score: 0, subLevel: 1, currentAns: "" };
+
+      function cipher(text, s) {
+        return text.split('').map(char => {
+          let idx = ALPHABET.indexOf(char.toLowerCase());
+          if (idx < 0) return char;
+          return ALPHABET[(idx + s + ALPHABET.length) % ALPHABET.length];
+        }).join('');
       }
 
-      // Українська абетка для шифру Цезаря
-      const ALPHABET_UK = "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя";
-
-      const UK_WORDS = [
-        "привіт", "слово", "дім", "ніч", "мама", "папа", "кіт", "рік", "хліб",
-        "вода", "сон", "час", "місто", "рука", "нога", "око", "двері", "вікно",
-        "стіл", "книга", "молоко", "чай", "суп", "сир", "риба", "яблуко", "груша",
-        "слива", "вишня", "банан", "лимон", "кава", "сіль", "цукор", "каша", "сік",
-        "сніг", "ліс", "пісня", "пісок", "день", "сонце", "зоря", "місяць", "хмара",
-        "дощ", "вітер", "вогонь", "земля", "дерево", "квітка", "трава", "птах", "гра",
-        "сміх", "радість", "серце", "мисль", "думка", "мова", "година", "мить", "життя",
-        "свято", "ранок", "вечір", "світанок", "захід", "схід", "південь", "північ"
-      ];
-
-      const POINTS_EASY = 10;
-
-      let gameState = {
-        level: "easy",
-        lives: 5,
-        score: 0,
-        coins: 0,
-      };
-
-      let caesarState = {
-        currentQuestion: null,
-        lives: 5,
-        score: 0,
-        coins: 0,
-      };
-
-      function caesarCipher(text, shift, encrypt = true) {
-        const shiftVal = encrypt ? shift : -shift;
-        let result = "";
-        const lower = ALPHABET_UK.toLowerCase();
-        const upper = ALPHABET_UK.toUpperCase();
-        for (let i = 0; i < text.length; i++) {
-          const ch = text[i];
-          let idx = lower.indexOf(ch.toLowerCase());
-          if (idx >= 0) {
-            const newIdx = (idx + shiftVal + lower.length) % lower.length;
-            result += ch === ch.toUpperCase() ? upper[newIdx] : lower[newIdx];
-          } else {
-            result += ch;
-          }
-        }
-        return result;
+      function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
       }
 
-      function getCaesarQuestion() {
-        const word = UK_WORDS[Math.floor(Math.random() * UK_WORDS.length)];
-        const shift = 1 + Math.floor(Math.random() * 6);
-        const correct = caesarCipher(word, shift);
-        const options = new Set([correct]);
-        while (options.size < 4) {
-          const wrongShift = 1 + Math.floor(Math.random() * 32);
-          if (wrongShift === shift) continue;
-          const wrong = caesarCipher(word, wrongShift);
-          if (wrong !== correct) options.add(wrong);
-        }
-        return {
-          word,
-          shift,
-          correct,
-          options: [...options].sort(() => Math.random() - 0.5),
-        };
-      }
-
-      function updateCaesarStats() {
-        document.getElementById("caesar-lives").textContent = caesarState.lives;
-        document.getElementById("caesar-score").textContent = caesarState.score;
-        document.getElementById("caesar-coins").textContent = caesarState.coins;
-      }
-
-      function showCaesarQuestion() {
-        if (caesarState.lives <= 0) {
-          gameState.lives = caesarState.lives;
-          gameState.score = caesarState.score;
-          gameState.coins = caesarState.coins;
-          showGameOver();
+      function nextQuestion() {
+        if (state.lives <= 0) {
+          document.getElementById('final-score').textContent = state.score;
+          showScreen('game-over-screen');
           return;
         }
-        caesarState.currentQuestion = getCaesarQuestion();
-        document.getElementById("caesar-question-block").style.display = "block";
-        document.getElementById("caesar-feedback-block").style.display = "none";
 
-        document.getElementById("caesar-word").textContent = caesarState.currentQuestion.word;
-        document.getElementById("caesar-shift").textContent = "Зсув: " + caesarState.currentQuestion.shift;
+        const word = WORDS[Math.floor(Math.random() * WORDS.length)];
+        const s = 1 + Math.floor(Math.random() * 10);
+        const opts = document.getElementById('options');
+        const fback = document.getElementById('feedback');
+        const nbtn = document.getElementById('next-btn');
+        
+        opts.innerHTML = "";
+        fback.style.display = "none";
+        nbtn.style.display = "none";
 
-        const container = document.getElementById("caesar-options");
-        container.innerHTML = "";
-        caesarState.currentQuestion.options.forEach((opt) => {
-          const btn = document.createElement("button");
-          btn.className = "caesar-option-btn";
-          btn.textContent = opt;
-          btn.dataset.answer = opt;
-          btn.addEventListener("click", () => onCaesarAnswer(opt, btn));
-          container.appendChild(btn);
-        });
-        updateCaesarStats();
-      }
-
-      function onCaesarAnswer(selected, btnEl) {
-        const correct = caesarState.currentQuestion.correct;
-        const buttons = document.querySelectorAll(".caesar-option-btn");
-        buttons.forEach((b) => {
-          b.disabled = true;
-          if (b.dataset.answer === correct) b.classList.add("correct");
-          else if (b.dataset.answer === selected && selected !== correct) b.classList.add("wrong");
-        });
-
-        if (selected === correct) {
-          caesarState.score += POINTS_EASY;
-          caesarState.coins += 1;
-          showCaesarFeedback(true, POINTS_EASY);
+        if (state.subLevel === 1) {
+          document.getElementById('instr').textContent = "Зашифруй слово:";
+          document.getElementById('word').textContent = word;
+          document.getElementById('shift-info').textContent = "Зсув: " + s;
+          state.currentAns = cipher(word, s);
+          generateOptions(state.currentAns, () => cipher(word, Math.floor(Math.random()*20)));
         } else {
-          caesarState.lives -= 1;
-          showCaesarFeedback(false, correct);
-        }
-        updateCaesarStats();
-      }
-
-      function showCaesarFeedback(isCorrect, value) {
-        document.getElementById("caesar-question-block").style.display = "none";
-        document.getElementById("caesar-feedback-block").style.display = "block";
-
-        const feedbackEl = document.getElementById("caesar-feedback");
-        if (isCorrect) {
-          feedbackEl.textContent = "✅ Правильно! +" + value + " очок, +1 монета.";
-          feedbackEl.className = "caesar-feedback correct";
-        } else {
-          feedbackEl.textContent = "❌ Неправильно. Правильна відповідь: " + value;
-          feedbackEl.className = "caesar-feedback wrong";
+          document.getElementById('instr').textContent = "Який тут зсув?";
+          document.getElementById('word').textContent = word + " → " + cipher(word, s);
+          document.getElementById('shift-info').textContent = "Знайди ключ";
+          state.currentAns = s;
+          generateOptions(s, () => 1 + Math.floor(Math.random()*15));
         }
       }
 
-      function startCaesarGame() {
-        caesarState = {
-          currentQuestion: null,
-          lives: gameState.lives,
-          score: gameState.score,
-          coins: gameState.coins,
-        };
-        showScreen("caesar-cipher-game-screen");
-        showCaesarQuestion();
-      }
-
-      function showScreen(screenId) {
-        document.querySelectorAll(".screen").forEach((s) => s.classList.remove("active"));
-        const el = document.getElementById(screenId);
-        if (el) el.classList.add("active");
-      }
-
-      function updateStats() {
-        document.getElementById("lives").textContent = gameState.lives;
-        document.getElementById("score").textContent = gameState.score;
-        document.getElementById("coins").textContent = gameState.coins;
-      }
-
-      function startGame(level) {
-        gameState = {
-          level,
-          lives: 5,
-          score: 0,
-          coins: 0,
-        };
-        updateStats();
-        if (level === "easy") {
-          showScreen("game-screen");
-        } else {
-          document.getElementById("placeholder-message").textContent =
-            "Скоро тут буде контент для " + (level === "medium" ? "середнього" : "складного") + " рівня.";
-          showScreen("level-placeholder-screen");
-        }
-      }
-
-      function showGameOver() {
-        showScreen("game-over-screen");
-        document.getElementById("final-score").textContent = gameState.score;
-      }
-
-      function sendResultAndClose() {
-        if (tg?.sendData) {
-          tg.sendData(
-            JSON.stringify({
-              action: "game_over",
-              score: gameState.score,
-              coins: gameState.coins,
-              level: gameState.level,
-            })
-          );
-        } else {
-          showScreen("menu-screen");
-        }
-      }
-
-      function init() {
-        document.getElementById("btn-easy").addEventListener("click", () => startGame("easy"));
-        document.getElementById("btn-medium").addEventListener("click", () => startGame("medium"));
-        document.getElementById("btn-hard").addEventListener("click", () => startGame("hard"));
-
-        document.getElementById("btn-caesar").addEventListener("click", function(e) {
-          e.preventDefault();
-          e.stopPropagation();
-          startCaesarGame();
-        });
-
-        document.getElementById("placeholder-back-btn").addEventListener("click", () => {
-          showScreen("menu-screen");
-        });
-
-        document.getElementById("caesar-next-btn").addEventListener("click", () => {
-          showCaesarQuestion();
-        });
-
-        document.getElementById("caesar-back-btn").addEventListener("click", () => {
-          gameState.lives = caesarState.lives;
-          gameState.score = caesarState.score;
-          gameState.coins = caesarState.coins;
-          updateStats();
-          showScreen("game-screen");
-        });
-
-        document.getElementById("restart-btn").addEventListener("click", () => {
-          showScreen("menu-screen");
-        });
-
-        document.getElementById("close-btn").addEventListener("click", () => {
-          sendResultAndClose();
+      function generateOptions(correct, wrongGen) {
+        let choices = new Set([correct]);
+        while(choices.size < 4) choices.add(wrongGen());
+        [...choices].sort(() => Math.random() - 0.5).forEach(val => {
+          const b = document.createElement('button');
+          b.className = 'caesar-option-btn';
+          b.textContent = val;
+          b.onclick = () => {
+            document.querySelectorAll('.caesar-option-btn').forEach(btn => btn.disabled = true);
+            if (val == correct) {
+              b.classList.add('correct');
+              state.score += 10;
+              document.getElementById('feedback').textContent = "✅ Вірно!";
+            } else {
+              b.classList.add('wrong');
+              state.lives--;
+              document.getElementById('feedback').textContent = "❌ Помилка! Правильно: " + correct;
+            }
+            document.getElementById('lives').textContent = state.lives;
+            document.getElementById('score').textContent = state.score;
+            document.getElementById('feedback').style.display = "block";
+            document.getElementById('next-btn').style.display = "block";
+          };
+          document.getElementById('options').appendChild(b);
         });
       }
 
-      init();
+      document.getElementById('btn-easy').onclick = () => showScreen('level-detail-screen');
+      document.getElementById('btn-lvl-1').onclick = () => { state.subLevel = 1; start(); };
+      document.getElementById('btn-lvl-2').onclick = () => { state.subLevel = 2; start(); };
+      document.getElementById('detail-back-btn').onclick = () => showScreen('menu-screen');
+      document.getElementById('exit-btn').onclick = () => showScreen('menu-screen');
+      document.getElementById('next-btn').onclick = nextQuestion;
+      document.getElementById('restart-btn').onclick = () => { state.lives = 5; state.score = 0; showScreen('menu-screen'); };
+
+      function start() {
+        state.lives = 5; state.score = 0;
+        document.getElementById('lives').textContent = state.lives;
+        document.getElementById('score').textContent = state.score;
+        showScreen('caesar-screen');
+        nextQuestion();
+      }
     </script>
   </body>
 </html>
