@@ -18,7 +18,7 @@
         gap: 16px; max-width: 400px; margin: 0 auto; min-height: calc(100vh - 32px);
       }
       .screen.active { display: flex; }
-      #menu-screen, #level-detail-screen, #level-placeholder-screen { justify-content: center; }
+      #menu-screen, #level-detail-screen { justify-content: center; }
       .card {
         background: var(--tg-theme-secondary-bg-color, #16213e);
         border-radius: 16px; padding: 24px; width: 100%; max-width: 360px;
@@ -52,7 +52,6 @@
   </head>
   <body>
     <div id="app">
-      <!-- Вибір складності -->
       <div id="menu-screen" class="screen active">
         <div class="card level-select-card">
           <h2>Обери складність</h2>
@@ -62,24 +61,23 @@
         </div>
       </div>
 
-      <!-- Вибір підрівня -->
       <div id="level-detail-screen" class="screen">
         <div class="card level-select-card">
           <h2>Легкий рівень</h2>
-          <button id="btn-lvl-1" class="btn">Рівень 1: Зашифруй слово</button>
+          <button id="btn-lvl-1" class="btn">Рівень 1: Зашифруй</button>
           <button id="btn-lvl-2" class="btn">Рівень 2: Відгадай ключ</button>
+          <button id="btn-lvl-3" class="btn">Рівень 3: Крипто-слова</button>
           <button id="detail-back-btn" class="btn back-btn">Назад</button>
         </div>
       </div>
 
-      <!-- Гра Цезаря -->
       <div id="caesar-screen" class="screen">
         <div class="game-header">
           <span>❤️ <span id="lives">5</span></span>
           <span>⭐ <span id="score">0</span></span>
         </div>
         <div class="card">
-          <p id="instr" style="text-align: center;"></p>
+          <p id="instr" style="text-align: center; font-size: 14px; min-height: 40px;"></p>
           <div id="word" class="caesar-word"></div>
           <div id="shift-info" class="caesar-shift"></div>
           <div id="options" class="caesar-options"></div>
@@ -89,7 +87,6 @@
         <button id="exit-btn" class="btn back-btn">Вийти</button>
       </div>
 
-      <!-- Game Over -->
       <div id="game-over-screen" class="screen">
         <div class="card" style="text-align: center;">
           <h2>Гру завершено!</h2>
@@ -101,7 +98,8 @@
 
     <script>
       const ALPHABET = "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя";
-      const WORDS = ["привіт", "слово", "мова", "книга", "місто", "річка", "сонце", "школа", "україна", "дружба"];
+      // Розширений список слів для гри в слова
+      const WORDS = ["привіт", "театр", "річка", "апельсин", "нога", "авто", "око", "озеро", "острів", "вітер", "робот", "танк", "карта", "абетка", "ананас", "слово", "хліб", "банан", "море", "ефір", "радіо", "океан", "номер"];
       
       let state = { lives: 5, score: 0, subLevel: 1, currentAns: "" };
 
@@ -126,7 +124,7 @@
         }
 
         const word = WORDS[Math.floor(Math.random() * WORDS.length)];
-        const s = 1 + Math.floor(Math.random() * 10);
+        const s = 1 + Math.floor(Math.random() * 5); // Невеликий зсув для легкого рівня
         const opts = document.getElementById('options');
         const fback = document.getElementById('feedback');
         const nbtn = document.getElementById('next-btn');
@@ -140,13 +138,27 @@
           document.getElementById('word').textContent = word;
           document.getElementById('shift-info').textContent = "Зсув: " + s;
           state.currentAns = cipher(word, s);
-          generateOptions(state.currentAns, () => cipher(word, Math.floor(Math.random()*20)));
-        } else {
+          generateOptions(state.currentAns, () => cipher(WORDS[Math.floor(Math.random()*WORDS.length)], 1+Math.floor(Math.random()*5)));
+        } else if (state.subLevel === 2) {
           document.getElementById('instr').textContent = "Який тут зсув?";
           document.getElementById('word').textContent = word + " → " + cipher(word, s);
           document.getElementById('shift-info').textContent = "Знайди ключ";
           state.currentAns = s;
-          generateOptions(s, () => 1 + Math.floor(Math.random()*15));
+          generateOptions(s, () => 1 + Math.floor(Math.random()*10));
+        } else {
+          const encrypted = cipher(word, s);
+          const lastChar = word.slice(-1).toLowerCase();
+          document.getElementById('instr').textContent = "Розшифруй в умі. Яке слово починається на останню літеру?";
+          document.getElementById('word').textContent = "Бот: " + encrypted;
+          document.getElementById('shift-info').textContent = "Зсув: " + s;
+          
+          const possible = WORDS.filter(w => w[0].toLowerCase() === lastChar && w !== word);
+          state.currentAns = possible.length > 0 ? possible[Math.floor(Math.random()*possible.length)] : "абетка";
+          
+          generateOptions(state.currentAns, () => {
+            const wrong = WORDS.filter(w => w[0].toLowerCase() !== lastChar);
+            return wrong[Math.floor(Math.random()*wrong.length)];
+          });
         }
       }
 
@@ -161,12 +173,12 @@
             document.querySelectorAll('.caesar-option-btn').forEach(btn => btn.disabled = true);
             if (val == correct) {
               b.classList.add('correct');
-              state.score += 10;
-              document.getElementById('feedback').textContent = "✅ Вірно!";
+              state.score += 15;
+              document.getElementById('feedback').textContent = "✅ Правильно!";
             } else {
               b.classList.add('wrong');
               state.lives--;
-              document.getElementById('feedback').textContent = "❌ Помилка! Правильно: " + correct;
+              document.getElementById('feedback').textContent = "❌ Ні. Відповідь: " + correct;
             }
             document.getElementById('lives').textContent = state.lives;
             document.getElementById('score').textContent = state.score;
@@ -180,6 +192,7 @@
       document.getElementById('btn-easy').onclick = () => showScreen('level-detail-screen');
       document.getElementById('btn-lvl-1').onclick = () => { state.subLevel = 1; start(); };
       document.getElementById('btn-lvl-2').onclick = () => { state.subLevel = 2; start(); };
+      document.getElementById('btn-lvl-3').onclick = () => { state.subLevel = 3; start(); };
       document.getElementById('detail-back-btn').onclick = () => showScreen('menu-screen');
       document.getElementById('exit-btn').onclick = () => showScreen('menu-screen');
       document.getElementById('next-btn').onclick = nextQuestion;
