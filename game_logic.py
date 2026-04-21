@@ -1,6 +1,6 @@
 import random
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, TypedDict, Union
+from typing import List, Literal, Optional, TypedDict
 
 ALPHABET_RU = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"
 ALPHABET_EN = "abcdefghijklmnopqrstuvwxyz"
@@ -35,11 +35,13 @@ class PlayerState:
         self.current_question_data = None
 
 
-class CaesarQuestion(TypedDict):
+class CaesarQuestion(TypedDict, total=False):
     original_word: str
     shift: int
     encrypted_word_correct: str
     options: list[str]
+    answer_mode: Literal["word", "shift"]
+    ciphertext: str
 
 
 def caesar_cipher(text: str, shift: int, encrypt: bool = True) -> str:
@@ -200,6 +202,40 @@ def generate_caesar_question(difficulty_level: str = "easy") -> CaesarQuestion:
         "shift": shift,
         "encrypted_word_correct": encrypted_word_correct,
         "options": options_list,
+        "answer_mode": "word",
+    }
+
+
+def generate_caesar_shift_guess_question(difficulty_level: str = "easy") -> CaesarQuestion:
+    """Показуємо шифртекст і відкрите слово; гравець обирає правильний зсув."""
+    base = generate_caesar_question(difficulty_level)
+    shift = base["shift"]
+    plaintext = base["original_word"]
+    ciphertext = base["encrypted_word_correct"]
+
+    if difficulty_level == "easy":
+        min_s, max_s = 1, 7
+    elif difficulty_level == "medium":
+        min_s, max_s = 5, 15
+    else:
+        min_s, max_s = 10, 20
+
+    wrong: set[int] = set()
+    while len(wrong) < 3:
+        s = random.randint(min_s, max_s)
+        if s != shift:
+            wrong.add(s)
+
+    shifts = [shift, *wrong]
+    random.shuffle(shifts)
+    options = [f"Зсув: {s}" for s in shifts]
+
+    return {
+        "original_word": plaintext,
+        "shift": shift,
+        "ciphertext": ciphertext,
+        "options": options,
+        "answer_mode": "shift",
     }
 
 
@@ -296,4 +332,5 @@ def generate_caesar_decrypt_question(difficulty_level: str = "easy") -> CaesarQu
         "shift": shift,
         "encrypted_word_correct": decrypted_word_correct,
         "options": options_list,
+        "answer_mode": "word",
     }
