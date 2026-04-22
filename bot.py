@@ -16,8 +16,11 @@ from aiogram.types import (
     Message,
     WebAppInfo,
 )
+# Додаємо імпорт для сервера
+from aiohttp import web
 
-from database import add_user, get_user_stats
+# Імпортуємо функції бази даних
+from database import add_user, get_user_stats, update_user_stats
 from game_logic import (
     CaesarQuestion,
     PlayerState,
@@ -30,7 +33,7 @@ from game_logic import (
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Ініціалізація бота з API токеном
+# Ініціалізація бота
 API_TOKEN = os.getenv("BOT_TOKEN")
 if not API_TOKEN:
     raise ValueError("BOT_TOKEN environment variable is not set")
@@ -39,12 +42,42 @@ bot = Bot(token=API_TOKEN)
 storage = MemoryStorage()
 dp = Dispatcher(storage=storage)
 
+# --- БЛОК СЕРВЕРА ---
+
+async def handle_update_stars(request):
+    """Обробляє запити від фронтенду для збереження зірочок"""
+    try:
+        data = await request.json()
+        user_id = data.get("user_id")
+        stars = data.get("stars")
+
+        if user_id is None or stars is None:
+            return web.json_response({"status": "error", "message": "Incomplete data"}, status=400)
+
+        update_user_stats(user_id, stars)
+        logger.info(f"Updated stars for user {user_id}: {stars}")
+        
+        return web.json_response({"status": "ok", "new_stars": stars})
+    except Exception as e:
+        logger.error(f"Error updating stars: {e}")
+        return web.json_response({"status": "error", "message": str(e)}, status=500)
+
+app = web.Application()
+app.router.add_post('/update_stars', handle_update_stars)
+
+async def on_prepare(request, response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+
+app.on_response_prepare.append(on_prepare)
+
+# --- КІНЕЦЬ БЛОКУ СЕРВЕРА ---
 
 class GameStates(StatesGroup):
     choose = State()
     in_game = State()
     playing_level = State()
-
 
 class LevelConfig(TypedDict):
     generator: Callable[[], CaesarQuestion]
@@ -52,7 +85,6 @@ class LevelConfig(TypedDict):
     callback_prefix: str
     next_level_callback: str
     points: int
-
 
 LEVEL_CONFIGS: dict[str, LevelConfig] = {
     "caesar_easy": {
@@ -93,7 +125,6 @@ LEVEL_CONFIGS: dict[str, LevelConfig] = {
     },
 }
 
-
 async def start_game_level(level_type: str, target_message: Message, state: FSMContext) -> None:
     data = await state.get_data()
     player_state = data.get("player_state")
@@ -101,11 +132,11 @@ async def start_game_level(level_type: str, target_message: Message, state: FSMC
         player_state = PlayerState()
 
     player_state.current_level_type = level_type
-
     config = LEVEL_CONFIGS.get(level_type)
     if not config:
         await target_message.answer("Цей рівень поки не підтримується.")
         return
+        
     question_data = config["generator"]()
     question_text = config["question_template"].format(**question_data)
     answer_prefix = config["callback_prefix"]
@@ -119,38 +150,30 @@ async def start_game_level(level_type: str, target_message: Message, state: FSMC
 
     inline_kb = InlineKeyboardMarkup(
         inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text=option,
-                    callback_data=f"{answer_prefix}{idx}",
-                )
-            ]
+            [InlineKeyboardButton(text=option, callback_data=f"{answer_prefix}{idx}")]
             for idx, option in enumerate(question_data["options"])
         ]
     )
 
-    await target_message.answer(
-        question_text,
-        reply_markup=inline_kb,
-        parse_mode="Markdown",
-    )
-
+    await target_message.answer(question_text, reply_markup=inline_kb, parse_mode="Markdown")
 
 EASY_MIXED_LEVELS = ("caesar_easy", "caesar_easy_shift")
-
 
 async def start_random_easy_level(target_message: Message, state: FSMContext) -> None:
     await start_game_level(random.choice(EASY_MIXED_LEVELS), target_message, state)
 
-
-# Обробник команди /start
 @dp.message(CommandStart())
 async def cmd_start(message: Message, state: FSMContext):
     user_id = message.from_user.id
     username = message.from_user.username or message.from_user.full_name or ""
 
-    if not get_user_stats(user_id):
+    stats = get_user_stats(user_id)
+    if not stats:
         add_user(user_id, username)
+        stars = 0
+    else:
+        # Отримуємо зірочки зі словника, який повертає оновлений database.py
+        stars = stats.get('stars', 0)
 
     data = await state.get_data()
     player_state = data.get("player_state")
@@ -158,190 +181,86 @@ async def cmd_start(message: Message, state: FSMContext):
         player_state.reset_state()
     else:
         player_state = PlayerState()
+    
     await state.update_data(player_state=player_state)
     await state.set_state(GameStates.choose)
 
-    web_app_url = f"https://rachel345.github.io/telegram-mini-app-game/index.html?user_id={user_id}&v=3"
+    # Версія v=4 для оновлення кешу в Telegram
+    web_app_url = f"https://rachel345.github.io/telegram-mini-app-game/index.html?user_id={user_id}&stars={stars}&v=4"
+    
     inline_kb = InlineKeyboardMarkup(
         inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text="Відкрити Mini App",
-                    web_app=WebAppInfo(url=web_app_url),
-                )
-            ]
+            [InlineKeyboardButton(text="Відкрити Mini App", web_app=WebAppInfo(url=web_app_url))]
         ]
     )
 
     await message.answer(
-        f"Вітаю, {username}! (user_id: {user_id})\n"
-        "Натисни кнопку нижче, щоб відкрити гру.",
+        f"Вітаю, {username}! (user_id: {user_id})\nВаші зірочки: {stars} ⭐",
         reply_markup=inline_kb,
     )
 
 @dp.callback_query(F.data.in_({"start_easy_caesar", "start_easy_caesar_mixed"}))
 async def process_start_easy_caesar_mixed(callback: CallbackQuery, state: FSMContext):
-    logger.info("callback_data=%s, state=%s", callback.data, await state.get_state())
     await callback.answer()
     await start_random_easy_level(callback.message, state)
     await callback.message.delete()
 
-
 @dp.callback_query(F.data == "start_easy_caesar_decrypt")
 async def process_start_easy_caesar_decrypt(callback: CallbackQuery, state: FSMContext):
-    logger.info("callback_data=%s, state=%s", callback.data, await state.get_state())
     await callback.answer()
     await start_game_level("caesar_decrypt_easy", callback.message, state)
     await callback.message.delete()
 
-
 @dp.callback_query(GameStates.playing_level, F.data.startswith("caesar_answer_"))
 async def process_caesar_answer(callback: CallbackQuery, state: FSMContext):
-    logger.info("callback_data=%s, state=%s", callback.data, await state.get_state())
     await callback.answer()
     index_str = callback.data.replace("caesar_answer_", "", 1)
-    try:
-        answer_index = int(index_str)
-    except ValueError:
-        await callback.message.answer("Некоректна відповідь. Спробуйте ще раз.")
-        return
+    answer_index = int(index_str)
 
     data = await state.get_data()
     player_state = data.get("player_state")
     options = data.get("current_question_options") or []
-    if not isinstance(player_state, PlayerState) or not player_state.current_question_data:
-        await callback.message.answer("Сесія втрачена. Почніть знову командою /start.")
-        await state.clear()
-        return
-    if answer_index < 0 or answer_index >= len(options):
-        await callback.message.answer("Некоректна відповідь. Спробуйте ще раз.")
-        return
-
+    
     user_answer = options[answer_index]
     q_data = player_state.current_question_data
 
-    if q_data.get("answer_mode") == "shift":
-        try:
-            chosen_shift = int(user_answer.split(":", 1)[1].strip())
-        except (IndexError, ValueError):
-            chosen_shift = -1
-        is_correct = chosen_shift == q_data["shift"]
-    else:
-        correct_word = q_data["encrypted_word_correct"]
-        is_correct = user_answer == correct_word
+    is_correct = user_answer == q_data.get("encrypted_word_correct") or \
+                 (q_data.get("answer_mode") == "shift" and int(user_answer.split(":")[1].strip()) == q_data["shift"])
 
     if is_correct:
-        points = LEVEL_CONFIGS.get(
-            player_state.current_level_type, LEVEL_CONFIGS["caesar_easy"]
-        )["points"]
-        player_state.add_score(points)
-        player_state.add_coins(1)
-        await callback.message.answer(f"✅ Правильно! +{points} очок, +1 монета.")
+        player_state.add_score(10)
+        await callback.message.answer("✅ Правильно!")
     else:
         player_state.decrease_life()
-        if q_data.get("answer_mode") == "shift":
-            await callback.message.answer(
-                f"❌ Неправильно. Правильна відповідь: Зсув: {q_data['shift']}"
-            )
-        else:
-            correct_word = q_data["encrypted_word_correct"]
-            await callback.message.answer(
-                f"❌ Неправильно. Правильна відповідь: `{correct_word}`",
-                parse_mode="Markdown",
-            )
+        await callback.message.answer(f"❌ Неправильно.")
 
     await state.update_data(player_state=player_state)
-    await callback.message.edit_reply_markup(reply_markup=None)
-
-    if player_state.is_game_over():
-        restart_kb = InlineKeyboardMarkup(
-            inline_keyboard=[
-                [
-                    InlineKeyboardButton(
-                        text="Повторити гру",
-                        callback_data="restart_game",
-                    )
-                ]
-            ]
-        )
-        await callback.message.answer(
-            "Гру завершено. Життя закінчились.\n"
-            "Натисніть кнопку, щоб почати знову.",
-            reply_markup=restart_kb,
-        )
-        return
-
-    next_kb = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text="Наступне питання",
-                    callback_data=LEVEL_CONFIGS.get(
-                        player_state.current_level_type, LEVEL_CONFIGS["caesar_easy"]
-                    )["next_level_callback"],
-                )
-            ]
-        ]
-    )
-    await callback.message.answer(
-        "Готові до наступного питання?",
-        reply_markup=next_kb,
-    )
-
+    
+    next_kb = InlineKeyboardMarkup(inline_keyboard=[[
+        InlineKeyboardButton(text="Наступне питання", callback_data="start_easy_caesar_mixed")
+    ]])
+    await callback.message.answer("Далі?", reply_markup=next_kb)
 
 @dp.message(F.web_app_data)
 async def process_web_app_data(message: Message, state: FSMContext):
-    try:
-        payload = json.loads(message.web_app_data.data)
-    except json.JSONDecodeError:
-        logger.warning("Некоректні JSON дані з Mini App: %s", message.web_app_data.data)
-        await message.answer("Некоректні дані з Mini App.")
-        return
-
-    current_state = await state.get_state()
-    logger.info("web_app_data: %s, state=%s", payload, current_state)
-
+    payload = json.loads(message.web_app_data.data)
     action = payload.get("action")
-    level = payload.get("level")
-    if action == "start_level" and level == "easy_caesar":
+    if action == "start_level":
         await start_random_easy_level(message, state)
-        return
-    if action == "start_level" and level == "easy_caesar_decrypt":
-        await start_game_level("caesar_decrypt_easy", message, state)
-        return
 
-    if action == "game_over":
-        score = payload.get("score", 0)
-        coins = payload.get("coins", 0)
-        level = payload.get("level", "easy")
-        await message.answer(
-            f"✅ Гру завершено!\n"
-            f"Результат: {score} очок, {coins} монет\n"
-            f"Рівень: {level}"
-        )
-        return
-
-    await message.answer("Отримані дані з Mini App не підтримуються.")
-
-
-@dp.callback_query(F.data == "restart_game")
-async def process_restart_game(callback: CallbackQuery, state: FSMContext):
-    await callback.answer()
-    data = await state.get_data()
-    player_state = data.get("player_state")
-    if isinstance(player_state, PlayerState):
-        player_state.reset_state()
-        await state.update_data(player_state=player_state)
-    await state.clear()
-    await cmd_start(callback.message, state)
-    await callback.message.delete()
-
-
-# Функція для запуску бота
 async def main():
-    logging.info("Запуск бота...")
-    await dp.start_polling(bot)
+    loop = asyncio.get_event_loop()
+    bot_task = loop.create_task(dp.start_polling(bot))
+    
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, '0.0.0.0', 8080)
+    
+    logging.info("Сервер запущено на порту 8080")
+    await site.start()
+    await bot_task
+
+if __name__ == "__main__":   
+    asyncio.run(main())        
 
 
-if __name__ == "__main__":
-    asyncio.run(main())
