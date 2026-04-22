@@ -97,11 +97,32 @@
     </div>
 
     <script>
+      const tg = window.Telegram.WebApp;
+      tg.expand();
+
       const ALPHABET = "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя";
-      // Розширений список слів для гри в слова
       const WORDS = ["привіт", "театр", "річка", "апельсин", "нога", "авто", "око", "озеро", "острів", "вітер", "робот", "танк", "карта", "абетка", "ананас", "слово", "хліб", "банан", "море", "ефір", "радіо", "океан", "номер"];
       
       let state = { lives: 5, score: 0, subLevel: 1, currentAns: "" };
+
+      // ФУНКЦІЯ СИНХРОНІЗАЦІЇ З БЕКЕНДОМ
+      async function syncStars(stars) {
+        const userId = tg.initDataUnsafe?.user?.id || 12345; // Якщо не в Telegram, шлемо тест ID 12345
+        const url = `https://anyway-art-mustard.ngrok-free.dev/update_stars`;
+
+        try {
+          console.log(`Відправка ${stars} зірочок для ID ${userId}...`);
+          const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: userId, stars: stars })
+          });
+          const data = await response.json();
+          console.log('Відповідь сервера:', data);
+        } catch (error) {
+          console.error('Помилка синхронізації:', error);
+        }
+      }
 
       function cipher(text, s) {
         return text.split('').map(char => {
@@ -124,7 +145,7 @@
         }
 
         const word = WORDS[Math.floor(Math.random() * WORDS.length)];
-        const s = 1 + Math.floor(Math.random() * 5); // Невеликий зсув для легкого рівня
+        const s = 1 + Math.floor(Math.random() * 5);
         const opts = document.getElementById('options');
         const fback = document.getElementById('feedback');
         const nbtn = document.getElementById('next-btn');
@@ -194,9 +215,18 @@
       document.getElementById('btn-lvl-2').onclick = () => { state.subLevel = 2; start(); };
       document.getElementById('btn-lvl-3').onclick = () => { state.subLevel = 3; start(); };
       document.getElementById('detail-back-btn').onclick = () => showScreen('menu-screen');
-      document.getElementById('exit-btn').onclick = () => showScreen('menu-screen');
+      document.getElementById('exit-btn').onclick = () => {
+         if(state.score > 0) syncStars(state.score); // Відправити результат при виході
+         showScreen('menu-screen');
+      };
       document.getElementById('next-btn').onclick = nextQuestion;
-      document.getElementById('restart-btn').onclick = () => { state.lives = 5; state.score = 0; showScreen('menu-screen'); };
+      
+      document.getElementById('restart-btn').onclick = () => { 
+        if(state.score > 0) syncStars(state.score); // ВІДПРАВЛЯЄМО ЗІРОЧКИ В БАЗУ
+        state.lives = 5; 
+        state.score = 0; 
+        showScreen('menu-screen'); 
+      };
 
       function start() {
         state.lives = 5; state.score = 0;
@@ -208,3 +238,4 @@
     </script>
   </body>
 </html>
+
