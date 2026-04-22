@@ -88,13 +88,18 @@ async def handle_get_stars(request):
         })
 
     try:
-        user_id = request.query.get("user_id")
-        if not user_id:
+        user_id_raw = request.query.get("user_id")
+        if not user_id_raw:
             return web.json_response({"error": "No user_id"}, status=400, headers={'Access-Control-Allow-Origin': '*'})
 
-        # Отримуємо дані з бази (використовуємо вже підключену функцію get_user_stats)
-        stats = get_user_stats(int(user_id))
+        # Конвертуємо в int безпечно
+        user_id = int(user_id_raw)
+        
+        # Отримуємо дані з бази
+        stats = get_user_stats(user_id)
         stars = stats.get('stars', 0) if stats else 0
+        
+        logger.info(f"📊 Запит балансу для ID {user_id}: знайдено {stars}")
         
         return web.json_response(
             {"stars": stars},
@@ -103,8 +108,7 @@ async def handle_get_stars(request):
     except Exception as e:
         logger.error(f"❌ Помилка при отриманні зірочок: {e}")
         return web.json_response(
-            {"status": "error", "message": str(e)}, 
-            status=500, 
+            {"stars": 0, "error": str(e)}, 
             headers={'Access-Control-Allow-Origin': '*'}
         )
 
