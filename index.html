@@ -126,22 +126,24 @@
       let state = { lives: 5, score: 0, subLevel: 1, currentAns: "" };
 
       // --- НОВА ФУНКЦІЯ: ЗАВАНТАЖЕННЯ ЗІРОК З БЕКЕНДУ ---
-         async function loadStars() {
+               async function loadStars() {
         const userId = tg.initDataUnsafe?.user?.id || 981926714;
-        // Додаємо дату, щоб браузер не брав старі дані з кешу
-        const url = `https://anyway-art-mustard.ngrok-free.dev/get_stars?user_id=${userId}&t=${new Date().getTime()}`;
+        const url = `https://anyway-art-mustard.ngrok-free.dev/get_stars?user_id=${userId}`;
 
         try {
-          const response = await fetch(url);
+          const response = await fetch(url, {
+            headers: {
+              'ngrok-skip-browser-warning': 'true' // Просимо ngrok не показувати рекламу
+            }
+          });
           const data = await response.json();
-          
-          console.log("Дані з сервера:", data);
           
           if (data.stars !== undefined) {
             document.getElementById('total-stars').textContent = data.stars;
           }
         } catch (error) {
-          console.error('Помилка завантаження зірок:', error);
+          console.error('Помилка:', error);
+          document.getElementById('total-stars').textContent = "Помилка";
         }
       }
 
