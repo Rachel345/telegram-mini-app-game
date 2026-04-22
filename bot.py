@@ -42,35 +42,45 @@ bot = Bot(token=API_TOKEN)
 storage = MemoryStorage()
 dp = Dispatcher(storage=storage)
 
-# --- БЛОК СЕРВЕРА ---
+# --- БЛОК СЕРВЕРА З ВИПРАВЛЕНИМ CORS ---
 
 async def handle_update_stars(request):
     """Обробляє запити від фронтенду для збереження зірочок"""
+    # Обробка OPTIONS запиту (попередній запит браузера)
+    if request.method == 'OPTIONS':
+        return web.Response(headers={
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type',
+        })
+
     try:
         data = await request.json()
         user_id = data.get("user_id")
         stars = data.get("stars")
 
         if user_id is None or stars is None:
-            return web.json_response({"status": "error", "message": "Incomplete data"}, status=400)
+            return web.json_response({"status": "error", "message": "Incomplete data"}, status=400, headers={'Access-Control-Allow-Origin': '*'})
 
+        # Оновлюємо зірочки в базі даних
         update_user_stats(user_id, stars)
-        logger.info(f"Updated stars for user {user_id}: {stars}")
+        logger.info(f"✅ Успішно оновлено зірочки для ID {user_id}: +{stars}")
         
-        return web.json_response({"status": "ok", "new_stars": stars})
+        return web.json_response(
+            {"status": "ok", "new_stars": stars},
+            headers={'Access-Control-Allow-Origin': '*'}
+        )
     except Exception as e:
-        logger.error(f"Error updating stars: {e}")
-        return web.json_response({"status": "error", "message": str(e)}, status=500)
+        logger.error(f"❌ Помилка при оновленні зірочок: {e}")
+        return web.json_response(
+            {"status": "error", "message": str(e)}, 
+            status=500, 
+            headers={'Access-Control-Allow-Origin': '*'}
+        )
 
 app = web.Application()
-app.router.add_post('/update_stars', handle_update_stars)
-
-async def on_prepare(request, response):
-    response.headers['Access-Control-Allow-Origin'] = '*'
-    response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
-
-app.on_response_prepare.append(on_prepare)
+# Дозволяємо і POST і OPTIONS для цього маршруту
+app.router.add_route('*', '/update_stars', handle_update_stars)
 
 # --- КІНЕЦЬ БЛОКУ СЕРВЕРА ---
 
@@ -172,7 +182,6 @@ async def cmd_start(message: Message, state: FSMContext):
         add_user(user_id, username)
         stars = 0
     else:
-        # Отримуємо зірочки зі словника, який повертає оновлений database.py
         stars = stats.get('stars', 0)
 
     data = await state.get_data()
@@ -185,8 +194,8 @@ async def cmd_start(message: Message, state: FSMContext):
     await state.update_data(player_state=player_state)
     await state.set_state(GameStates.choose)
 
-    # Версія v=4 для оновлення кешу в Telegram
-    web_app_url = f"https://rachel345.github.io/telegram-mini-app-game/index.html?user_id={user_id}&stars={stars}&v=4"
+    # Версія v=5 для оновлення
+    web_app_url = f"https://rachel345.github.io/telegram-mini-app-game/index.html?user_id={user_id}&stars={stars}&v=5"
     
     inline_kb = InlineKeyboardMarkup(
         inline_keyboard=[
@@ -254,13 +263,13 @@ async def main():
     
     runner = web.AppRunner(app)
     await runner.setup()
+    # Слухаємо всі інтерфейси на порту 8080
     site = web.TCPSite(runner, '0.0.0.0', 8080)
     
-    logging.info("Сервер запущено на порту 8080")
+    print("--- СЕРВЕР ЗАПУЩЕНО НА ПОРТУ 8080 ---")
     await site.start()
     await bot_task
 
-if __name__ == "__main__":   
-    asyncio.run(main())        
-
+if __name__ == "__main__":
+    asyncio.run(main())
 
