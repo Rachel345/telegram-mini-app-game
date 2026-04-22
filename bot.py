@@ -103,7 +103,11 @@ async def handle_get_stars(request):
         
         return web.json_response(
             {"stars": stars},
-            headers={'Access-Control-Allow-Origin': '*'}
+            headers={
+                'Access-Control-Allow-Origin': '*',
+             'ngrok-skip-browser-warning': 'true'
+             }
+
         )
     except Exception as e:
         logger.error(f"❌ Помилка при отриманні зірочок: {e}")
