@@ -18,7 +18,6 @@ from aiogram.types import (
 )
 # Додаємо імпорт для сервера
 from aiohttp import web
-
 # Імпортуємо функції бази даних
 from database import add_user, get_user_stats, update_user_stats
 from game_logic import (
@@ -51,7 +50,7 @@ async def handle_update_stars(request):
         return web.Response(headers={
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Headers': 'Content-Type, ngrok-skip-browser-warning',
         })
 
     try:
@@ -68,14 +67,15 @@ async def handle_update_stars(request):
         
         return web.json_response(
             {"status": "ok", "new_stars": stars},
-            headers={'Access-Control-Allow-Origin': '*'}
+            headers={'Access-Control-Allow-Origin': '*',
+             'ngrok-skip-browser-warning': 'true'}
         )
     except Exception as e:
         logger.error(f"❌ Помилка при оновленні зірочок: {e}")
-              return web.json_response(
+        return web.json_response(
             {"status": "error", "message": str(e)}, 
             status=500, 
-            headers={'Access-Control-Allow-Origin': '*'}
+            headers={'Access-Control-Allow-Origin': '*','ngrok-skip-browser-warning': 'true'}
         )
 
 async def handle_get_stars(request):
@@ -84,7 +84,7 @@ async def handle_get_stars(request):
         return web.Response(headers={
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'GET, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Headers': 'Content-Type, ngrok-skip-browser-warning',
         })
 
     try:
@@ -310,4 +310,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-
