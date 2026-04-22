@@ -47,12 +47,12 @@ def get_user_stats(user_id):
         row = cursor.fetchone()
         return dict(row) if row else None
 
-def update_user_stats(user_id, stars):
-    """Оновлює кількість зірочок користувача"""
+def update_user_stats(user_id, new_stars):
+    """Додає нові зірочки до вже існуючих"""
     with _get_connection() as connection:
         connection.execute(
-            "UPDATE users SET stars = ? WHERE user_id = ?",
-            (stars, user_id),
+            "UPDATE users SET stars = stars + ? WHERE user_id = ?",
+            (new_stars, user_id),
         )
         connection.commit()
 
