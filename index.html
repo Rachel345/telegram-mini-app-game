@@ -6,6 +6,7 @@
     <title>Кріпто-тренажер</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+      /* Твої існуючі стилі залишаються без змін */
       * { box-sizing: border-box; }
       body {
         background-color: var(--tg-theme-bg-color, #1a1a2e) !important;
@@ -23,6 +24,20 @@
         background: var(--tg-theme-secondary-bg-color, #16213e);
         border-radius: 16px; padding: 24px; width: 100%; max-width: 360px;
       }
+      
+      /* Новий стиль для плашки балансу в меню */
+      .balance-badge {
+        background: rgba(46, 166, 255, 0.2);
+        border: 1px solid #2ea6ff;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
       .level-select-card { display: flex; flex-direction: column; align-items: center; gap: 20px; }
       .btn {
         background: var(--tg-theme-button-color, #2ea6ff);
@@ -53,6 +68,11 @@
   <body>
     <div id="app">
       <div id="menu-screen" class="screen active">
+        <!-- Додаємо відображення загального балансу -->
+        <div class="balance-badge">
+            ⭐ Ваш баланс: <span id="total-stars">...</span>
+        </div>
+        
         <div class="card level-select-card">
           <h2>Обери складність</h2>
           <button id="btn-easy" class="btn">Легкий</button>
@@ -105,9 +125,29 @@
       
       let state = { lives: 5, score: 0, subLevel: 1, currentAns: "" };
 
-      // ФУНКЦІЯ СИНХРОНІЗАЦІЇ З БЕКЕНДОМ
+      // --- НОВА ФУНКЦІЯ: ЗАВАНТАЖЕННЯ ЗІРОК З БЕКЕНДУ ---
+      async function loadStars() {
+        const userId = tg.initDataUnsafe?.user?.id || 981926714; // Твій ID як дефолт для тестів
+        const url = `https://anyway-art-mustard.ngrok-free.dev/get_stars?user_id=${userId}`;
+
+        try {
+          const response = await fetch(url);
+          const data = await response.json();
+          if (data.stars !== undefined) {
+            document.getElementById('total-stars').textContent = data.stars;
+          }
+        } catch (error) {
+          console.error('Помилка завантаження зірок:', error);
+          document.getElementById('total-stars').textContent = "0";
+        }
+      }
+
+      // Викликаємо при запуску
+      loadStars();
+
+      // ФУНКЦІЯ СИНХРОНІЗАЦІЇ З БЕКЕНДОМ (ОНОВЛЕНО)
       async function syncStars(stars) {
-        const userId = tg.initDataUnsafe?.user?.id || 12345; // Якщо не в Telegram, шлемо тест ID 12345
+        const userId = tg.initDataUnsafe?.user?.id || 981926714;
         const url = `https://anyway-art-mustard.ngrok-free.dev/update_stars`;
 
         try {
@@ -119,6 +159,9 @@
           });
           const data = await response.json();
           console.log('Відповідь сервера:', data);
+          
+          // Після успішного запису в базу — оновлюємо цифру в меню
+          loadStars(); 
         } catch (error) {
           console.error('Помилка синхронізації:', error);
         }
@@ -215,14 +258,19 @@
       document.getElementById('btn-lvl-2').onclick = () => { state.subLevel = 2; start(); };
       document.getElementById('btn-lvl-3').onclick = () => { state.subLevel = 3; start(); };
       document.getElementById('detail-back-btn').onclick = () => showScreen('menu-screen');
+      
       document.getElementById('exit-btn').onclick = () => {
-         if(state.score > 0) syncStars(state.score); // Відправити результат при виході
+         if(state.score > 0) {
+             syncStars(state.score);
+         }
          showScreen('menu-screen');
       };
       document.getElementById('next-btn').onclick = nextQuestion;
       
       document.getElementById('restart-btn').onclick = () => { 
-        if(state.score > 0) syncStars(state.score); // ВІДПРАВЛЯЄМО ЗІРОЧКИ В БАЗУ
+        if(state.score > 0) {
+            syncStars(state.score); 
+        }
         state.lives = 5; 
         state.score = 0; 
         showScreen('menu-screen'); 
