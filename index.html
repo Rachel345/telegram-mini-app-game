@@ -1,276 +1,111 @@
 <!DOCTYPE html>
 <html lang="uk">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Кріпто-тренажер</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-      * { box-sizing: border-box; }
-      body {
-        background-color: var(--tg-theme-bg-color, #1a1a2e) !important;
-        color: var(--tg-theme-text-color, #eee) !important;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        margin: 0; padding: 16px; min-height: 100vh;
-      }
-      .screen {
-        display: none; flex-direction: column; align-items: center; justify-content: flex-start;
-        gap: 16px; max-width: 400px; margin: 0 auto; min-height: calc(100vh - 32px);
-      }
-      .screen.active { display: flex; }
-      #menu-screen, #level-detail-screen { justify-content: center; }
-      .card {
-        background: var(--tg-theme-secondary-bg-color, #16213e);
-        border-radius: 16px; padding: 24px; width: 100%; max-width: 360px;
-      }
-      
-      .balance-badge {
-        background: rgba(46, 166, 255, 0.2);
-        border: 1px solid #2ea6ff;
-        padding: 8px 16px;
-        border-radius: 20px;
-        font-weight: bold;
-        margin-bottom: 10px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .level-select-card { display: flex; flex-direction: column; align-items: center; gap: 20px; }
-      .btn {
-        background: var(--tg-theme-button-color, #2ea6ff);
-        color: var(--tg-theme-button-text-color, #fff) !important;
-        border: none; border-radius: 12px; padding: 14px 20px; font-size: 16px; width: 100%; cursor: pointer;
-        text-align: center; text-decoration: none;
-      }
-      .btn:active { transform: scale(0.98); }
-      .game-header {
-        display: flex; align-items: center; justify-content: space-between;
-        padding: 12px 16px; background: var(--tg-theme-secondary-bg-color, #16213e);
-        border-radius: 12px; width: 100%; margin-bottom: 16px;
-      }
-      .caesar-word {
-        font-size: 24px; font-weight: bold; margin: 12px 0; text-align: center;
-        background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 12px;
-      }
-      .caesar-shift { font-size: 18px; color: #2ea6ff; font-weight: bold; text-align: center; margin-bottom: 15px; }
-      .caesar-options { display: flex; flex-direction: column; gap: 10px; width: 100%; }
-      .caesar-option-btn {
-        background: transparent; color: inherit; border: 2px solid rgba(255,255,255,0.2);
-        border-radius: 12px; padding: 14px; font-size: 16px; cursor: pointer;
-      }
-      .caesar-option-btn.correct { border-color: #22c55e; background: rgba(34, 197, 94, 0.2); }
-      .caesar-option-btn.wrong { border-color: #ef4444; background: rgba(239, 68, 68, 0.2); }
-      .back-btn { background: transparent; border: 1px solid #2ea6ff; color: #2ea6ff !important; margin-top: 10px; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .stats {
+            background: #1e293b;
+            padding: 10px 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #334155;
+        }
+        .menu-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            width: 100%;
+            max-width: 400px;
+        }
+        .level-card {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid #334155;
+            cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .level-card:active {
+            transform: scale(0.98);
+        }
+        .level-card.locked {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .level-card h3 { margin: 0 0 10px 0; color: #38bdf8; }
+        .level-card p { margin: 0; font-size: 0.9em; color: #94a3b8; }
+        .star-icon { color: #fbbf24; margin-right: 5px; }
     </style>
-  </head>
-  <body>
-    <div id="app">
-      <div id="menu-screen" class="screen active">
-        <div class="balance-badge">
-            ⭐ Ваш баланс: <span id="total-stars">...</span>
+</head>
+<body>
+    <div class="header">
+        <h1>Кріпто-тренажер</h1>
+        <div class="stats">
+            <span class="star-icon">⭐</span> Зірок: <span id="star-count">0</span>
+        </div>
+    </div>
+
+    <div class="menu-grid">
+        <div class="level-card" onclick="goToLevel('easy')">
+            <h3>Легкий: Шифр Цезаря</h3>
+            <p>Вивчіть основи зсуву алфавіту</p>
         </div>
         
-        <div class="card level-select-card">
-          <h2>Обери складність</h2>
-          <button id="btn-easy" class="btn">Легкий</button>
-          <button id="btn-medium" class="btn">Середній</button>
-          <button class="btn" style="opacity: 0.5" disabled>Складний (скоро)</button>
+        <div class="level-card" onclick="goToLevel('medium')">
+            <h3>Середній: Шифр Атбаш</h3>
+            <p>Дзеркальне відображення алфавіту</p>
         </div>
-      </div>
-    
-      <div id="level-detail-screen" class="screen">
-        <div class="card level-select-card">
-          <h2>Легкий рівень</h2>
-          <button id="btn-lvl-1" class="btn">Рівень 1: Зашифруй</button>
-          <button id="btn-lvl-2" class="btn">Рівень 2: Відгадай ключ</button>
-          <button id="btn-lvl-3" class="btn">Рівень 3: Крипто-слова</button>
-          <button id="detail-back-btn" class="btn back-btn">Назад</button>
-        </div>
-      </div>
 
-      <div id="caesar-screen" class="screen">
-        <div class="game-header">
-          <span>❤️ <span id="lives">5</span></span>
-          <span>⭐ <span id="score">0</span></span>
+        <div class="level-card locked">
+            <h3>Складний: Віженер</h3>
+            <p>Скоро у грі...</p>
         </div>
-        <div class="card">
-          <p id="instr" style="text-align: center; font-size: 14px; min-height: 40px;"></p>
-          <div id="word" class="caesar-word"></div>
-          <div id="shift-info" class="caesar-shift"></div>
-          <div id="options" class="caesar-options"></div>
-          <div id="feedback" style="display:none; margin-top:15px; text-align:center; font-weight:bold;"></div>
-          <button id="next-btn" class="btn" style="display:none; margin-top:15px;">Наступне</button>
-        </div>
-        <button id="exit-btn" class="btn back-btn">Вийти</button>
-      </div>
-
-      <div id="game-over-screen" class="screen">
-        <div class="card" style="text-align: center;">
-          <h2>Гру завершено!</h2>
-          <p>Ваш результат: <span id="final-score">0</span></p>
-          <button id="restart-btn" class="btn">В меню</button>
-        </div>
-      </div>
     </div>
 
     <script>
-      const tg = window.Telegram.WebApp;
-      tg.expand();
+        const tg = window.Telegram.WebApp;
+        tg.expand();
 
-      const ALPHABET = "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя";
-      const WORDS = ["привіт", "театр", "річка", "апельсин", "нога", "авто", "око", "озеро", "острів", "вітер", "робот", "танк", "карта", "абетка", "ананас", "слово", "хліб", "банан", "море", "ефір", "радіо", "океан", "номер"];
-      
-      let state = { lives: 5, score: 0, subLevel: 1, currentAns: "" };
-
-      async function loadStars() {
-        const userId = tg.initDataUnsafe?.user?.id || 981926714;
-        const url = `https://anyway-art-mustard.ngrok-free.dev/get_stars?user_id=${userId}`;
-        try {
-          const response = await fetch(url, { headers: { 'ngrok-skip-browser-warning': 'true' } });
-          const data = await response.json();
-          if (data.stars !== undefined) {
-            document.getElementById('total-stars').textContent = data.stars;
-          }
-        } catch (error) {
-          console.error('Помилка:', error);
-          document.getElementById('total-stars').textContent = "0";
-        }
-      }
-
-      async function syncStars(stars) {
-        const userId = tg.initDataUnsafe?.user?.id || 981926714;
-        const url = `https://anyway-art-mustard.ngrok-free.dev/update_stars`;
-        try {
-          await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: userId, stars: stars })
-          });
-          loadStars(); 
-        } catch (error) {
-          console.error('Помилка синхронізації:', error);
-        }
-      }
-
-      function cipher(text, s) {
-        return text.split('').map(char => {
-          let idx = ALPHABET.indexOf(char.toLowerCase());
-          if (idx < 0) return char;
-          return ALPHABET[(idx + s + ALPHABET.length) % ALPHABET.length];
-        }).join('');
-      }
-
-      function showScreen(id) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-      }
-
-      function nextQuestion() {
-        if (state.lives <= 0) {
-          document.getElementById('final-score').textContent = state.score;
-          showScreen('game-over-screen');
-          return;
-        }
-
-        const word = WORDS[Math.floor(Math.random() * WORDS.length)];
-        const s = 1 + Math.floor(Math.random() * 5);
-        const opts = document.getElementById('options');
-        const fback = document.getElementById('feedback');
-        const nbtn = document.getElementById('next-btn');
-        
-        opts.innerHTML = "";
-        fback.style.display = "none";
-        nbtn.style.display = "none";
-
-        if (state.subLevel === 1) {
-          document.getElementById('instr').textContent = "Зашифруй слово:";
-          document.getElementById('word').textContent = word;
-          document.getElementById('shift-info').textContent = "Зсув: " + s;
-          state.currentAns = cipher(word, s);
-          generateOptions(state.currentAns, () => cipher(WORDS[Math.floor(Math.random()*WORDS.length)], 1+Math.floor(Math.random()*5)));
-        } else if (state.subLevel === 2) {
-          document.getElementById('instr').textContent = "Який тут зсув?";
-          document.getElementById('word').textContent = word + " → " + cipher(word, s);
-          document.getElementById('shift-info').textContent = "Знайди ключ";
-          state.currentAns = s;
-          generateOptions(s, () => 1 + Math.floor(Math.random()*10));
-        } else {
-          const encrypted = cipher(word, s);
-          const lastChar = word.slice(-1).toLowerCase();
-          document.getElementById('instr').textContent = "Розшифруй в умі. Яке слово починається на останню літеру?";
-          document.getElementById('word').textContent = encrypted;
-          document.getElementById('shift-info').textContent = "Зсув: -" + s;
-          
-          const possible = WORDS.filter(w => w[0].toLowerCase() === lastChar && w !== word);
-          state.currentAns = possible.length > 0 ? possible[Math.floor(Math.random()*possible.length)] : "абетка";
-          
-          generateOptions(state.currentAns, () => {
-            const wrong = WORDS.filter(w => w[0].toLowerCase() !== lastChar);
-            return wrong[Math.floor(Math.random()*wrong.length)];
-          });
-        }
-      }
-
-      function generateOptions(correct, wrongGen) {
-        let choices = new Set([correct]);
-        while(choices.size < 4) choices.add(wrongGen());
-        [...choices].sort(() => Math.random() - 0.5).forEach(val => {
-          const b = document.createElement('button');
-          b.className = 'caesar-option-btn';
-          b.textContent = val;
-          b.onclick = () => {
-            document.querySelectorAll('.caesar-option-btn').forEach(btn => btn.disabled = true);
-            if (val == correct) {
-              b.classList.add('correct');
-              state.score += 15;
-              document.getElementById('feedback').textContent = "✅ Правильно!";
-            } else {
-              b.classList.add('wrong');
-              state.lives--;
-              document.getElementById('feedback').textContent = "❌ Ні. Відповідь: " + correct;
+        async function fetchStars() {
+            try {
+                const response = await fetch(`/get_stars?user_id=${tg.initDataUnsafe.user.id}`);
+                const data = await response.json();
+                document.getElementById('star-count').innerText = data.stars;
+            } catch (e) {
+                console.error("Помилка отримання зірок", e);
             }
-            document.getElementById('lives').textContent = state.lives;
-            document.getElementById('score').textContent = state.score;
-            document.getElementById('feedback').style.display = "block";
-            document.getElementById('next-btn').style.display = "block";
-          };
-          document.getElementById('options').appendChild(b);
-        });
-      }
+        }
 
-      function start() {
-        state.lives = 5; state.score = 0;
-        document.getElementById('lives').textContent = state.lives;
-        document.getElementById('score').textContent = state.score;
-        showScreen('caesar-screen');
-        nextQuestion();
-      }
+        // Функція для переходу на рівні з униканням кешу
+        function goToLevel(level) {
+            const version = Date.now(); // Створюємо унікальний штамп часу
+            if (level === 'easy') {
+                // Якщо у вас легкий рівень окремим файлом:
+                // window.location.href = `easy.html?v=${version}`;
+                alert("Легкий рівень в розробці або вбудований");
+            } else if (level === 'medium') {
+                window.location.href = `medium.html?v=${version}`;
+            }
+        }
 
-      // --- ОБРОБНИКИ ПОДІЙ (БЕЗ ДУБЛЮВАННЯ) ---
-      document.getElementById('btn-easy').onclick = () => showScreen('level-detail-screen');
-      document.getElementById('btn-medium').onclick = () => { window.location.href = 'medium.html?v=' + Date.now(); };
-      
-      document.getElementById('btn-lvl-1').onclick = () => { state.subLevel = 1; start(); };
-      document.getElementById('btn-lvl-2').onclick = () => { state.subLevel = 2; start(); };
-      document.getElementById('btn-lvl-3').onclick = () => { state.subLevel = 3; start(); };
-      
-      document.getElementById('detail-back-btn').onclick = () => showScreen('menu-screen');
-      document.getElementById('next-btn').onclick = nextQuestion;
-      
-      document.getElementById('exit-btn').onclick = () => {
-         if(state.score > 0) syncStars(state.score);
-         showScreen('menu-screen');
-      };
-      
-      document.getElementById('restart-btn').onclick = () => { 
-        if(state.score > 0) syncStars(state.score); 
-        state.lives = 5; 
-        state.score = 0; 
-        showScreen('menu-screen'); 
-      };
-
-      loadStars();
+        fetchStars();
     </script>
-  </body>
+</body>
 </html>
