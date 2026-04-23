@@ -218,8 +218,8 @@
           const encrypted = cipher(word, s);
           const lastChar = word.slice(-1).toLowerCase();
           document.getElementById('instr').textContent = "Розшифруй в умі. Яке слово починається на останню літеру?";
-          document.getElementById('word').textContent = "Бот: " + encrypted;
-          document.getElementById('shift-info').textContent = "Зсув: " + s;
+         document.getElementById('word').textContent = encrypted;
+          document.getElementById('shift-info').textContent = "Зсув: -" + s;
           
           const possible = WORDS.filter(w => w[0].toLowerCase() === lastChar && w !== word);
           state.currentAns = possible.length > 0 ? possible[Math.floor(Math.random()*possible.length)] : "абетка";
