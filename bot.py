@@ -56,19 +56,21 @@ async def handle_update_stars(request):
     try:
         data = await request.json()
         user_id = data.get("user_id")
-        stars = data.get("stars")
+        stars_to_add = data.get("stars") # Беремо саме ту кількість, яку надіслала гра
 
-        if user_id is None or stars is None:
+        if user_id is None or stars_to_add is None:
             return web.json_response({"status": "error", "message": "Incomplete data"}, status=400, headers={'Access-Control-Allow-Origin': '*'})
 
-        # Оновлюємо зірочки в базі даних
-        update_user_stats(user_id, stars)
-        logger.info(f"✅ Успішно оновлено зірочки для ID {user_id}: +{stars}")
+        # Оновлюємо зірочки в базі даних (додаємо stars_to_add до існуючих)
+        update_user_stats(user_id, stars_to_add)
+        logger.info(f"✅ Успішно оновлено зірочки для ID {user_id}: +{stars_to_add}")
         
         return web.json_response(
-            {"status": "ok", "new_stars": stars},
-            headers={'Access-Control-Allow-Origin': '*',
-             'ngrok-skip-browser-warning': 'true'}
+            {"status": "ok", "new_stars": stars_to_add},
+            headers={
+                'Access-Control-Allow-Origin': '*',
+                'ngrok-skip-browser-warning': 'true'
+            }
         )
     except Exception as e:
         logger.error(f"❌ Помилка при оновленні зірочок: {e}")
@@ -92,10 +94,7 @@ async def handle_get_stars(request):
         if not user_id_raw:
             return web.json_response({"error": "No user_id"}, status=400, headers={'Access-Control-Allow-Origin': '*'})
 
-        # Конвертуємо в int безпечно
         user_id = int(user_id_raw)
-        
-        # Отримуємо дані з бази
         stats = get_user_stats(user_id)
         stars = stats.get('stars', 0) if stats else 0
         
@@ -105,9 +104,8 @@ async def handle_get_stars(request):
             {"stars": stars},
             headers={
                 'Access-Control-Allow-Origin': '*',
-             'ngrok-skip-browser-warning': 'true'
+                'ngrok-skip-browser-warning': 'true'
              }
-
         )
     except Exception as e:
         logger.error(f"❌ Помилка при отриманні зірочок: {e}")
@@ -118,9 +116,11 @@ async def handle_get_stars(request):
 
 app = web.Application()
 app.router.add_route('*', '/update_stars', handle_update_stars)
-app.router.add_route('*', '/get_stars', handle_get_stars) # Додали цей рядок
+app.router.add_route('*', '/get_stars', handle_get_stars)
 
 # --- КІНЕЦЬ БЛОКУ СЕРВЕРА ---
+
+# (Решта вашого коду GameStates, LevelConfig, start_game_level тощо залишається без змін)
 
 class GameStates(StatesGroup):
     choose = State()
@@ -232,7 +232,6 @@ async def cmd_start(message: Message, state: FSMContext):
     await state.update_data(player_state=player_state)
     await state.set_state(GameStates.choose)
 
-    # Версія v=5 для оновлення
     web_app_url = f"https://rachel345.github.io/telegram-mini-app-game/index.html?user_id={user_id}&stars={stars}&v=5"
     
     inline_kb = InlineKeyboardMarkup(
@@ -301,7 +300,6 @@ async def main():
     
     runner = web.AppRunner(app)
     await runner.setup()
-    # Слухаємо всі інтерфейси на порту 8080
     site = web.TCPSite(runner, '0.0.0.0', 8080)
     
     print("--- СЕРВЕР ЗАПУЩЕНО НА ПОРТУ 8080 ---")
