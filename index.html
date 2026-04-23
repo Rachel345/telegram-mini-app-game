@@ -138,14 +138,17 @@
         }
       }
 
-      async function syncStars(stars) {
+      async function syncStars(starsToAdd) {
         const userId = tg.initDataUnsafe?.user?.id || 981926714;
         const url = `https://anyway-art-mustard.ngrok-free.dev/update_stars`;
         try {
           await fetch(url, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: userId, stars: stars })
+            headers: { 
+              'Content-Type': 'application/json',
+              'ngrok-skip-browser-warning': 'true' 
+            },
+            body: JSON.stringify({ user_id: userId, stars: starsToAdd })
           });
           loadStars(); 
         } catch (error) {
@@ -219,12 +222,13 @@
           const b = document.createElement('button');
           b.className = 'caesar-option-btn';
           b.textContent = val;
-          b.onclick = () => {
+          b.onclick = async () => {
             document.querySelectorAll('.caesar-option-btn').forEach(btn => btn.disabled = true);
             if (val == correct) {
               b.classList.add('correct');
-              state.score += 15;
-              document.getElementById('feedback').textContent = "✅ Правильно!";
+              state.score += 25;
+              document.getElementById('feedback').textContent = "✅ Правильно! +25 зірок";
+              await syncStars(25);
             } else {
               b.classList.add('wrong');
               state.lives--;
@@ -247,7 +251,6 @@
         nextQuestion();
       }
 
-      // --- ОБРОБНИКИ ПОДІЙ (БЕЗ ДУБЛЮВАННЯ) ---
       document.getElementById('btn-easy').onclick = () => showScreen('level-detail-screen');
       document.getElementById('btn-medium').onclick = () => { window.location.href = 'medium.html?v=' + Date.now(); };
       
@@ -259,12 +262,10 @@
       document.getElementById('next-btn').onclick = nextQuestion;
       
       document.getElementById('exit-btn').onclick = () => {
-         if(state.score > 0) syncStars(state.score);
          showScreen('menu-screen');
       };
       
       document.getElementById('restart-btn').onclick = () => { 
-        if(state.score > 0) syncStars(state.score); 
         state.lives = 5; 
         state.score = 0; 
         showScreen('menu-screen'); 
