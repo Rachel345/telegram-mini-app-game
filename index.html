@@ -249,7 +249,7 @@
 
       // --- ОБРОБНИКИ ПОДІЙ (БЕЗ ДУБЛЮВАННЯ) ---
       document.getElementById('btn-easy').onclick = () => showScreen('level-detail-screen');
-      document.getElementById('btn-medium').onclick = () => { window.location.href = 'medium.html'; };
+      document.getElementById('btn-medium').onclick = () => { window.location.href = 'medium.html?v=' + Date.now(); };
       
       document.getElementById('btn-lvl-1').onclick = () => { state.subLevel = 1; start(); };
       document.getElementById('btn-lvl-2').onclick = () => { state.subLevel = 2; start(); };
