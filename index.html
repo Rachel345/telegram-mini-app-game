@@ -6,7 +6,6 @@
     <title>Кріпто-тренажер</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-      /* Твої існуючі стилі залишаються без змін */
       * { box-sizing: border-box; }
       body {
         background-color: var(--tg-theme-bg-color, #1a1a2e) !important;
@@ -25,7 +24,6 @@
         border-radius: 16px; padding: 24px; width: 100%; max-width: 360px;
       }
       
-      /* Новий стиль для плашки балансу в меню */
       .balance-badge {
         background: rgba(46, 166, 255, 0.2);
         border: 1px solid #2ea6ff;
@@ -43,6 +41,7 @@
         background: var(--tg-theme-button-color, #2ea6ff);
         color: var(--tg-theme-button-text-color, #fff) !important;
         border: none; border-radius: 12px; padding: 14px 20px; font-size: 16px; width: 100%; cursor: pointer;
+        text-align: center; text-decoration: none;
       }
       .btn:active { transform: scale(0.98); }
       .game-header {
@@ -68,7 +67,6 @@
   <body>
     <div id="app">
       <div id="menu-screen" class="screen active">
-        <!-- Додаємо відображення загального балансу -->
         <div class="balance-badge">
             ⭐ Ваш баланс: <span id="total-stars">...</span>
         </div>
@@ -76,12 +74,11 @@
         <div class="card level-select-card">
           <h2>Обери складність</h2>
           <button id="btn-easy" class="btn">Легкий</button>
-          <button id="btn-medium" class="btn">Середній рівень</button>
-          <button class="btn" style="opacity: 0.5">Складний (скоро)</button>
+          <button id="btn-medium" class="btn">Середній</button>
+          <button class="btn" style="opacity: 0.5" disabled>Складний (скоро)</button>
         </div>
       </div>
     
-
       <div id="level-detail-screen" class="screen">
         <div class="card level-select-card">
           <h2>Легкий рівень</h2>
@@ -126,47 +123,30 @@
       
       let state = { lives: 5, score: 0, subLevel: 1, currentAns: "" };
 
-      // --- НОВА ФУНКЦІЯ: ЗАВАНТАЖЕННЯ ЗІРОК З БЕКЕНДУ ---
       async function loadStars() {
         const userId = tg.initDataUnsafe?.user?.id || 981926714;
         const url = `https://anyway-art-mustard.ngrok-free.dev/get_stars?user_id=${userId}`;
-
         try {
-          const response = await fetch(url, {
-            headers: {
-              'ngrok-skip-browser-warning': 'true' // Просимо ngrok не показувати рекламу
-            }
-          });
+          const response = await fetch(url, { headers: { 'ngrok-skip-browser-warning': 'true' } });
           const data = await response.json();
-          
           if (data.stars !== undefined) {
             document.getElementById('total-stars').textContent = data.stars;
           }
         } catch (error) {
           console.error('Помилка:', error);
-          document.getElementById('total-stars').textContent = "Помилка";
+          document.getElementById('total-stars').textContent = "0";
         }
       }
 
-      // Викликаємо при запуску
-      loadStars();
-
-      // ФУНКЦІЯ СИНХРОНІЗАЦІЇ З БЕКЕНДОМ (ОНОВЛЕНО)
       async function syncStars(stars) {
         const userId = tg.initDataUnsafe?.user?.id || 981926714;
         const url = `https://anyway-art-mustard.ngrok-free.dev/update_stars`;
-
         try {
-          console.log(`Відправка ${stars} зірочок для ID ${userId}...`);
-          const response = await fetch(url, {
+          await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ user_id: userId, stars: stars })
           });
-          const data = await response.json();
-          console.log('Відповідь сервера:', data);
-          
-          // Після успішного запису в базу — оновлюємо цифру в меню
           loadStars(); 
         } catch (error) {
           console.error('Помилка синхронізації:', error);
@@ -259,81 +239,6 @@
         });
       }
 
-      document.getElementById('btn-easy').onclick = () => showScreen('level-detail-screen');
-      document.getElementById('btn-lvl-1').onclick = () => { state.subLevel = 1; start(); };
-      document.getElementById('btn-lvl-2').onclick = () => { state.subLevel = 2; start(); };
-      document.getElementById('btn-lvl-3').onclick = () => { state.subLevel = 3; start(); };
-      document.getElementById('detail-back-btn').onclick = () => showScreen('menu-screen');
-      
-      document.getElementById('exit-btn').onclick = () => {
-         if(state.score > 0) {
-             syncStars(state.score);
-         }
-         showScreen('menu-screen');
-      };
-      document.getElementById('next-btn').onclick = nextQuestion;
-      
-      document.getElementById('restart-btn').onclick = () => { 
-        if(state.score > 0) {
-            syncStars(state.score); 
-        }
-        state.lives = 5; 
-        state.score = 0; 
-        showScreen('menu-screen'); 
-      };
-
-      function generateOptions(correct, wrongGen) {
-        let choices = new Set([correct]);
-        while(choices.size < 4) choices.add(wrongGen());
-        [...choices].sort(() => Math.random() - 0.5).forEach(val => {
-          const b = document.createElement('button');
-          b.className = 'caesar-option-btn';
-          b.textContent = val;
-          b.onclick = () => {
-            document.querySelectorAll('.caesar-option-btn').forEach(btn => btn.disabled = true);
-            if (val == correct) {
-              b.classList.add('correct');
-              state.score += 15;
-              document.getElementById('feedback').textContent = "✅ Правильно!";
-            } else {
-              b.classList.add('wrong');
-              state.lives--;
-              document.getElementById('feedback').textContent = "❌ Ні. Відповідь: " + correct;
-            }
-            document.getElementById('lives').textContent = state.lives;
-            document.getElementById('score').textContent = state.score;
-            document.getElementById('feedback').style.display = "block";
-            document.getElementById('next-btn').style.display = "block";
-          };
-          document.getElementById('options').appendChild(b);
-        });
-      }
-
-      document.getElementById('btn-easy').onclick = () => showScreen('level-detail-screen');
-      document.getElementById('btn-lvl-1').onclick = () => { state.subLevel = 1; start(); };
-      document.getElementById('btn-lvl-2').onclick = () => { state.subLevel = 2; start(); };
-      document.getElementById('btn-lvl-3').onclick = () => { state.subLevel = 3; start(); };
-      document.getElementById('detail-back-btn').onclick = () => showScreen('menu-screen');
-      
-      document.getElementById('exit-btn').onclick = () => {
-         if(state.score > 0) {
-             syncStars(state.score);
-         }
-         showScreen('menu-screen');
-      };
-      document.getElementById('next-btn').onclick = nextQuestion;
-      
-      document.getElementById('restart-btn').onclick = () => { 
-        if(state.score > 0) {
-            syncStars(state.score); 
-        }
-        state.lives = 5; 
-        state.score = 0; 
-        showScreen('menu-screen'); 
-      };
-      document.getElementById('btn-medium').onclick = () => {
-        window.location.href = 'medium.html'; };
-
       function start() {
         state.lives = 5; state.score = 0;
         document.getElementById('lives').textContent = state.lives;
@@ -341,6 +246,31 @@
         showScreen('caesar-screen');
         nextQuestion();
       }
+
+      // --- ОБРОБНИКИ ПОДІЙ (БЕЗ ДУБЛЮВАННЯ) ---
+      document.getElementById('btn-easy').onclick = () => showScreen('level-detail-screen');
+      document.getElementById('btn-medium').onclick = () => { window.location.href = 'medium.html'; };
+      
+      document.getElementById('btn-lvl-1').onclick = () => { state.subLevel = 1; start(); };
+      document.getElementById('btn-lvl-2').onclick = () => { state.subLevel = 2; start(); };
+      document.getElementById('btn-lvl-3').onclick = () => { state.subLevel = 3; start(); };
+      
+      document.getElementById('detail-back-btn').onclick = () => showScreen('menu-screen');
+      document.getElementById('next-btn').onclick = nextQuestion;
+      
+      document.getElementById('exit-btn').onclick = () => {
+         if(state.score > 0) syncStars(state.score);
+         showScreen('menu-screen');
+      };
+      
+      document.getElementById('restart-btn').onclick = () => { 
+        if(state.score > 0) syncStars(state.score); 
+        state.lives = 5; 
+        state.score = 0; 
+        showScreen('menu-screen'); 
+      };
+
+      loadStars();
     </script>
   </body>
 </html>
