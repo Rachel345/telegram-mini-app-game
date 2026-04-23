@@ -190,9 +190,9 @@
             document.querySelectorAll('.option-btn').forEach(btn => btn.disabled = true);
             if (val === correct) {
               b.classList.add('correct');
-              state.score += 25;
-              document.getElementById('feedback').textContent = "✅ Правильно! +25 ⭐";
-              await savePoints(25); 
+              state.score += 2;
+              document.getElementById('feedback').textContent = "✅ Правильно! +2 ⭐";
+              await savePoints(2); 
             } else {
               b.classList.add('wrong');
               state.lives--;
