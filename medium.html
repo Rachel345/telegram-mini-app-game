@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Середній рівень - Кріпто-тренажер</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        background-color: var(--tg-theme-bg-color, #1a1a2e) !important;
+        color: var(--tg-theme-text-color, #eee) !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        margin: 0; padding: 16px; min-height: 100vh;
+      }
+      .screen {
+        display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+        gap: 16px; max-width: 400px; margin: 0 auto;
+      }
+      .card {
+        background: var(--tg-theme-secondary-bg-color, #16213e);
+        border-radius: 16px; padding: 24px; width: 100%; position: relative;
+      }
+      .timer-container {
+        width: 100%; height: 6px; background: rgba(255,255,255,0.1);
+        border-radius: 3px; margin-bottom: 20px; overflow: hidden;
+      }
+      #timer-bar {
+        width: 100%; height: 100%; background: #ef4444; transition: width 0.1s linear;
+      }
+      .game-header {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 12px 16px; background: var(--tg-theme-secondary-bg-color, #16213e);
+        border-radius: 12px; width: 100%; margin-bottom: 8px;
+      }
+      .cipher-word {
+        font-size: 28px; font-weight: bold; margin: 12px 0; text-align: center;
+        letter-spacing: 2px; color: #fff;
+      }
+      .cipher-info { font-size: 16px; color: #2ea6ff; text-align: center; margin-bottom: 15px; font-weight: 500; }
+      .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
+      .option-btn {
+        background: rgba(255,255,255,0.05); color: inherit; border: 2px solid rgba(255,255,255,0.1);
+        border-radius: 12px; padding: 16px 10px; font-size: 16px; cursor: pointer; transition: 0.2s;
+      }
+      .option-btn.correct { border-color: #22c55e; background: rgba(34, 197, 94, 0.2); }
+      .option-btn.wrong { border-color: #ef4444; background: rgba(239, 68, 68, 0.2); }
+      .btn {
+        background: var(--tg-theme-button-color, #2ea6ff);
+        color: var(--tg-theme-button-text-color, #fff) !important;
+        border: none; border-radius: 12px; padding: 14px; width: 100%; font-size: 16px; margin-top: 10px;
+      }
+      .back-btn { background: transparent; border: 1px solid #ef4444; color: #ef4444 !important; }
+    </style>
+  </head>
+  <body>
+    <div class="screen">
+      <div class="game-header">
+        <span>❤️ <span id="lives">5</span></span>
+        <span style="font-weight: bold; color: #facc15;">Середній рівень</span>
+        <span>⭐ <span id="score">0</span></span>
+      </div>
+
+      <div class="card">
+        <div class="timer-container"><div id="timer-bar"></div></div>
+        <p id="instr" style="text-align: center; opacity: 0.8; margin-bottom: 10px;">Розшифруй Атбаш:</p>
+        <div id="word" class="cipher-word">---</div>
+        <div class="cipher-info">Шифр Атбаш (Дзеркало)</div>
+        <div id="options" class="options-grid"></div>
+        <div id="feedback" style="display:none; margin-top:15px; text-align:center; font-weight:bold;"></div>
+        <button id="next-btn" class="btn" style="display:none;">Наступне</button>
+      </div>
+
+      <button id="exit-btn" class="btn back-btn">Вийти в меню</button>
+    </div>
+
+    <script>
+      const tg = window.Telegram.WebApp;
+      const ALPHABET = "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя";
+      const WORDS = ["привіт", "театр", "річка", "апельсин", "нога", "авто", "око", "озеро", "острів", "вітер", "робот", "танк", "карта", "абетка", "ананас", "слово", "хліб", "банан", "море", "ефір", "радіо", "океан", "номер"];
+      
+      let state = { lives: 5, score: 0, timeLeft: 150 };
+      let timerInterval;
+
+      function atbash(text) {
+        return text.split('').map(char => {
+          let idx = ALPHABET.indexOf(char.toLowerCase());
+          if (idx < 0) return char;
+          return ALPHABET[ALPHABET.length - 1 - idx];
+        }).join('');
+      }
+
+      function startTimer() {
+        state.timeLeft = 150; 
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+          state.timeLeft--;
+          document.getElementById('timer-bar').style.width = (state.timeLeft / 1.5) + "%";
+          if (state.timeLeft <= 0) {
+            clearInterval(timerInterval);
+            timeOut();
+          }
+        }, 100);
+      }
+
+      function timeOut() {
+        state.lives--;
+        updateStats();
+        document.getElementById('feedback').textContent = "⏰ Час вийшов!";
+        document.getElementById('feedback').style.display = "block";
+        document.getElementById('next-btn').style.display = "block";
+        document.querySelectorAll('.option-btn').forEach(btn => btn.disabled = true);
+      }
+
+      function nextQuestion() {
+        if (state.lives <= 0) {
+          alert("Кінець гри! Ваш рахунок: " + state.score);
+          window.location.href = 'index.html';
+          return;
+        }
+        const word = WORDS[Math.floor(Math.random() * WORDS.length)];
+        const encrypted = atbash(word);
+        document.getElementById('word').textContent = encrypted;
+        document.getElementById('feedback').style.display = "none";
+        document.getElementById('next-btn').style.display = "none";
+        generateOptions(word);
+        startTimer();
+      }
+
+      function generateOptions(correct) {
+        let choices = new Set([correct]);
+        while(choices.size < 4) { choices.add(generateNoise(correct)); }
+        let shuffled = [...choices].sort(() => Math.random() - 0.5);
+        const opts = document.getElementById('options');
+        opts.innerHTML = "";
+        shuffled.forEach(val => {
+          const b = document.createElement('button');
+          b.className = 'option-btn';
+          b.textContent = val;
+          b.onclick = () => {
+            clearInterval(timerInterval);
+            document.querySelectorAll('.option-btn').forEach(btn => btn.disabled = true);
+            if (val === correct) {
+              b.classList.add('correct');
+              state.score += 25;
+              document.getElementById('feedback').textContent = "✅ Правильно! +25 ⭐";
+            } else {
+              b.classList.add('wrong');
+              state.lives--;
+              document.getElementById('feedback').textContent = "❌ Помилка! Це був " + correct;
+            }
+            updateStats();
+            document.getElementById('feedback').style.display = "block";
+            document.getElementById('next-btn').style.display = "block";
+          };
+          opts.appendChild(b);
+        });
+      }
+
+      function generateNoise(word) {
+        let chars = word.split('');
+        let idx = Math.floor(Math.random() * chars.length);
+        let charCode = ALPHABET.indexOf(chars[idx]);
+        if (charCode !== -1) {
+          let newIdx = (charCode + (Math.random() > 0.5 ? 1 : -1) + ALPHABET.length) % ALPHABET.length;
+          chars[idx] = ALPHABET[newIdx];
+        }
+        return chars.join('');
+      }
+
+      function updateStats() {
+        document.getElementById('lives').textContent = state.lives;
+        document.getElementById('score').textContent = state.score;
+      }
+
+      document.getElementById('next-btn').onclick = nextQuestion;
+      document.getElementById('exit-btn').onclick = () => window.location.href = 'index.html';
+
+      nextQuestion();
+    </script>
+  </body>
+</html>
