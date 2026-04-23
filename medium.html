@@ -91,21 +91,19 @@
       let state = { lives: 5, score: 0, timeLeft: 150 };
       let timerInterval;
 
-      async function saveProgress() {
-        if (state.score > 0 && userId !== 0) {
-          const url = 'https://anyway-art-mustard.ngrok-free.dev/update_stars';
+      async function sendPoints(points) {
+        if (userId !== 0) {
           try {
-            await fetch(url, {
+            await fetch('https://anyway-art-mustard.ngrok-free.dev/update_stars', {
               method: 'POST',
               headers: { 
                 'Content-Type': 'application/json',
                 'ngrok-skip-browser-warning': 'true'
               },
-              body: JSON.stringify({ user_id: userId, stars: state.score })
+              body: JSON.stringify({ user_id: userId, stars: points })
             });
-            console.log("✅ Progress saved:", state.score);
           } catch (e) {
-            console.error("❌ Помилка збереження балів:", e);
+            console.error("Помилка синхронізації:", e);
           }
         }
       }
@@ -142,8 +140,7 @@
 
       async function nextQuestion() {
         if (state.lives <= 0) {
-          await saveProgress();
-          alert("Кінець гри! Ваш рахунок збережено: " + state.score);
+          alert("Кінець гри! Ваш рахунок: " + state.score);
           window.location.href = 'index.html';
           return;
         }
@@ -178,12 +175,11 @@
               b.classList.add('correct');
               state.score += 25;
               document.getElementById('feedback').textContent = "✅ Правильно! +25 ⭐";
-              await saveProgress(); // Зберігаємо після кожної правильної відповіді
+              await sendPoints(25); 
             } else {
               b.classList.add('wrong');
               state.lives--;
               document.getElementById('feedback').textContent = "❌ Помилка! Це був " + correct;
-              if (state.lives <= 0) await saveProgress();
             }
             updateStats();
             document.getElementById('feedback').style.display = "block";
@@ -199,8 +195,7 @@
       }
 
       document.getElementById('next-btn').onclick = nextQuestion;
-      document.getElementById('exit-btn').onclick = async () => {
-        await saveProgress();
+      document.getElementById('exit-btn').onclick = () => {
         window.location.href = 'index.html';
       };
 
