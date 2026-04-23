@@ -2,73 +2,82 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Кріпто-тренажер</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        :root {
+            --bg-color: #1a1a2e;
+            --card-bg: #16213e;
+            --accent: #2ea6ff;
+            --text: #eee;
+        }
+        * { box-sizing: border-box; }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #0f172a;
-            color: #f8fafc;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            background-color: var(--bg-color);
+            color: var(--text);
+            font-family: -apple-system, sans-serif;
+            margin: 0; padding: 16px;
         }
+        .screen { display: none; flex-direction: column; align-items: center; gap: 16px; }
+        .active { display: flex; }
+        
         .header {
-            text-align: center;
-            margin-bottom: 30px;
+            width: 100%; text-align: center; margin-bottom: 20px;
         }
-        .stats {
-            background: #1e293b;
-            padding: 10px 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            border: 1px solid #334155;
+        .balance-card {
+            background: var(--card-bg);
+            padding: 12px 24px; border-radius: 12px;
+            border: 1px solid var(--accent);
+            display: inline-flex; align-items: center; gap: 8px;
+            font-weight: bold; font-size: 18px;
         }
-        .menu-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 15px;
-            width: 100%;
-            max-width: 400px;
-        }
+        
         .level-card {
-            background: #1e293b;
-            padding: 20px;
-            border-radius: 15px;
-            border: 1px solid #334155;
-            cursor: pointer;
-            transition: transform 0.2s, border-color 0.2s;
+            background: var(--card-bg);
+            width: 100%; max-width: 360px;
+            padding: 20px; border-radius: 20px;
+            cursor: pointer; transition: 0.2s;
+            border: 1px solid transparent;
+            text-align: left;
         }
-        .level-card:active {
-            transform: scale(0.98);
+        .level-card:active { transform: scale(0.98); background: #1f2d52; }
+        .level-card h3 { color: var(--accent); margin: 0 0 8px 0; }
+        .level-card p { margin: 0; opacity: 0.7; font-size: 14px; }
+        .locked { opacity: 0.5; cursor: default; }
+
+        /* Стилі гри Цезаря */
+        .game-card { background: var(--card-bg); padding: 20px; border-radius: 20px; width: 100%; }
+        .word-display { font-size: 28px; font-weight: bold; text-align: center; margin: 20px 0; }
+        .btn {
+            background: var(--accent); color: white; border: none;
+            padding: 14px; border-radius: 12px; width: 100%; font-size: 16px;
+            margin-top: 10px; cursor: pointer;
         }
-        .level-card.locked {
-            opacity: 0.6;
-            cursor: not-allowed;
+        .option-btn {
+            background: transparent; border: 2px solid rgba(255,255,255,0.1);
+            color: white; padding: 12px; border-radius: 12px; margin-bottom: 8px;
+            width: 100%; text-align: center; font-size: 16px;
         }
-        .level-card h3 { margin: 0 0 10px 0; color: #38bdf8; }
-        .level-card p { margin: 0; font-size: 0.9em; color: #94a3b8; }
-        .star-icon { color: #fbbf24; margin-right: 5px; }
+        .correct { border-color: #22c55e; background: rgba(34, 197, 94, 0.1); }
+        .wrong { border-color: #ef4444; background: rgba(239, 68, 68, 0.1); }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Кріпто-тренажер</h1>
-        <div class="stats">
-            <span class="star-icon">⭐</span> Зірок: <span id="star-count">0</span>
-        </div>
-    </div>
 
-    <div class="menu-grid">
-        <div class="level-card" onclick="goToLevel('easy')">
+    <!-- Головне меню -->
+    <div id="menu-screen" class="screen active">
+        <div class="header">
+            <h1>Кріпто-тренажер</h1>
+            <div class="balance-card">⭐ Зірок: <span id="total-stars">...</span></div>
+        </div>
+
+        <div class="level-card" onclick="showSubLevels()">
             <h3>Легкий: Шифр Цезаря</h3>
             <p>Вивчіть основи зсуву алфавіту</p>
         </div>
-        
-        <div class="level-card" onclick="goToLevel('medium')">
+
+        <div class="level-card" onclick="goToMedium()">
             <h3>Середній: Шифр Атбаш</h3>
             <p>Дзеркальне відображення алфавіту</p>
         </div>
@@ -79,33 +88,143 @@
         </div>
     </div>
 
+    <!-- Вибір підрівня Цезаря -->
+    <div id="sublevel-screen" class="screen">
+        <h2>Обери завдання</h2>
+        <button class="level-card" onclick="startCaesar(1)"><h3>Рівень 1</h3><p>Зашифруй слово</p></button>
+        <button class="level-card" onclick="startCaesar(2)"><h3>Рівень 2</h3><p>Відгадай ключ зсуву</p></button>
+        <button class="btn" onclick="showScreen('menu-screen')" style="background:none; border:1px solid var(--accent)">Назад</button>
+    </div>
+
+    <!-- Екран гри Цезаря -->
+    <div id="game-screen" class="screen">
+        <div class="header">
+            <span>❤️ Життя: <span id="lives">5</span></span> | 
+            <span>⭐ Поточні: <span id="score">0</span></span>
+        </div>
+        <div class="game-card">
+            <p id="task-text" style="text-align: center; opacity: 0.8;"></p>
+            <div id="word-box" class="word-display"></div>
+            <div id="options-box"></div>
+            <button id="next-btn" class="btn" style="display:none" onclick="nextQuestion()">Далі</button>
+        </div>
+        <button class="btn" onclick="exitGame()" style="background:none; border:1px solid #ef4444; color:#ef4444">Вийти</button>
+    </div>
+
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        async function fetchStars() {
+        const SERVER_URL = 'https://anyway-art-mustard.ngrok-free.dev';
+        const ALPHABET = "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя";
+        const WORDS = ["привіт", "театр", "річка", "авто", "око", "вітер", "карта", "хліб", "море", "радіо"];
+        
+        let gameState = { lives: 5, score: 0, subLevel: 1, currentAns: "" };
+
+        async function loadStars() {
+            const userId = tg.initDataUnsafe?.user?.id || 981926714;
             try {
-                const response = await fetch(`/get_stars?user_id=${tg.initDataUnsafe.user.id}`);
-                const data = await response.json();
-                document.getElementById('star-count').innerText = data.stars;
-            } catch (e) {
-                console.error("Помилка отримання зірок", e);
+                const res = await fetch(`${SERVER_URL}/get_stars?user_id=${userId}`, { headers: {'ngrok-skip-browser-warning': 'true'} });
+                const data = await res.json();
+                document.getElementById('total-stars').textContent = data.stars || 0;
+            } catch (e) { document.getElementById('total-stars').textContent = "0"; }
+        }
+
+        async function syncStars(amount) {
+            const userId = tg.initDataUnsafe?.user?.id || 981926714;
+            try {
+                await fetch(`${SERVER_URL}/update_stars`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: userId, stars: amount })
+                });
+                loadStars();
+            } catch (e) { console.error("Sync error", e); }
+        }
+
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        function showSubLevels() { showScreen('sublevel-screen'); }
+        
+        function goToMedium() {
+            window.location.href = 'medium.html?v=' + Date.now();
+        }
+
+        function startCaesar(type) {
+            gameState = { lives: 5, score: 0, subLevel: type, currentAns: "" };
+            document.getElementById('lives').textContent = "5";
+            document.getElementById('score').textContent = "0";
+            showScreen('game-screen');
+            nextQuestion();
+        }
+
+        function cipher(text, s) {
+            return text.split('').map(char => {
+                let idx = ALPHABET.indexOf(char.toLowerCase());
+                if (idx < 0) return char;
+                return ALPHABET[(idx + s + ALPHABET.length) % ALPHABET.length];
+            }).join('');
+        }
+
+        function nextQuestion() {
+            if (gameState.lives <= 0) {
+                alert("Гру завершено! Результат: " + gameState.score);
+                exitGame();
+                return;
+            }
+            
+            const word = WORDS[Math.floor(Math.random() * WORDS.length)];
+            const s = 1 + Math.floor(Math.random() * 5);
+            const box = document.getElementById('options-box');
+            box.innerHTML = "";
+            document.getElementById('next-btn').style.display = "none";
+
+            if (gameState.subLevel === 1) {
+                document.getElementById('task-text').textContent = `Зашифруй зсувом +${s}:`;
+                document.getElementById('word-box').textContent = word;
+                gameState.currentAns = cipher(word, s);
+                generateOptions(gameState.currentAns, () => cipher(WORDS[Math.floor(Math.random()*WORDS.length)], 2));
+            } else {
+                document.getElementById('task-text').textContent = `Який тут зсув?`;
+                document.getElementById('word-box').textContent = `${word} → ${cipher(word, s)}`;
+                gameState.currentAns = s;
+                generateOptions(s, () => 1 + Math.floor(Math.random()*10));
             }
         }
 
-        // Функція для переходу на рівні з униканням кешу
-        function goToLevel(level) {
-            const version = Date.now(); // Створюємо унікальний штамп часу
-            if (level === 'easy') {
-                // Якщо у вас легкий рівень окремим файлом:
-                // window.location.href = `easy.html?v=${version}`;
-                alert("Легкий рівень в розробці або вбудований");
-            } else if (level === 'medium') {
-                window.location.href = `medium.html?v=${version}`;
-            }
+        function generateOptions(correct, wrongGen) {
+            let choices = new Set([correct]);
+            while(choices.size < 3) choices.add(wrongGen());
+            [...choices].sort(() => Math.random() - 0.5).forEach(val => {
+                const b = document.createElement('button');
+                b.className = 'option-btn';
+                b.textContent = val;
+                b.onclick = () => {
+                    if (val == correct) {
+                        b.classList.add('correct');
+                        gameState.score += 15;
+                    } else {
+                        b.classList.add('wrong');
+                        gameState.lives--;
+                    }
+                    document.getElementById('lives').textContent = gameState.lives;
+                    document.getElementById('score').textContent = gameState.score;
+                    document.querySelectorAll('.option-btn').forEach(btn => btn.onclick = null);
+                    document.getElementById('next-btn').style.display = "block";
+                };
+                document.getElementById('options-box').appendChild(b);
+            });
         }
 
-        fetchStars();
+        function exitGame() {
+            if (gameState.score > 0) syncStars(gameState.score);
+            showScreen('menu-screen');
+        }
+
+        loadStars();
     </script>
 </body>
 </html>
