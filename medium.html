@@ -76,9 +76,11 @@
 
     <script>
       const tg = window.Telegram.WebApp;
+      tg.expand();
+      
+      const userId = tg.initDataUnsafe?.user?.id || 0;
       const ALPHABET = "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя";
       
-      // Довгі слова від 7 до 12 літер для середнього рівня
       const WORDS = [
         "блокчейн", "транзакція", "алгоритм", "протокол", "валідатор", 
         "депозит", "контракт", "майнінг", "ключі", "безпека", 
@@ -88,6 +90,20 @@
       
       let state = { lives: 5, score: 0, timeLeft: 150 };
       let timerInterval;
+
+      async function saveProgress() {
+        if (state.score > 0 && userId !== 0) {
+          try {
+            await fetch('/update_stars', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ user_id: userId, stars: state.score })
+            });
+          } catch (e) {
+            console.error("Помилка збереження балів:", e);
+          }
+        }
+      }
 
       function atbash(text) {
         return text.split('').map(char => {
@@ -119,9 +135,10 @@
         document.querySelectorAll('.option-btn').forEach(btn => btn.disabled = true);
       }
 
-      function nextQuestion() {
+      async function nextQuestion() {
         if (state.lives <= 0) {
-          alert("Кінець гри! Ваш рахунок: " + state.score);
+          await saveProgress();
+          alert("Кінець гри! Ваш рахунок збережено: " + state.score);
           window.location.href = 'index.html';
           return;
         }
@@ -136,7 +153,6 @@
 
       function generateOptions(correct) {
         let choices = new Set([correct]);
-        // Беремо інші слова зі списку як неправильні варіанти
         while(choices.size < 4) { 
           let randomWord = WORDS[Math.floor(Math.random() * WORDS.length)];
           choices.add(randomWord); 
@@ -150,17 +166,19 @@
           const b = document.createElement('button');
           b.className = 'option-btn';
           b.textContent = val;
-          b.onclick = () => {
+          b.onclick = async () => {
             clearInterval(timerInterval);
             document.querySelectorAll('.option-btn').forEach(btn => btn.disabled = true);
             if (val === correct) {
               b.classList.add('correct');
               state.score += 25;
               document.getElementById('feedback').textContent = "✅ Правильно! +25 ⭐";
+              await saveProgress(); // Зберігаємо після кожної правильної відповіді
             } else {
               b.classList.add('wrong');
               state.lives--;
               document.getElementById('feedback').textContent = "❌ Помилка! Це був " + correct;
+              if (state.lives <= 0) await saveProgress();
             }
             updateStats();
             document.getElementById('feedback').style.display = "block";
@@ -176,7 +194,10 @@
       }
 
       document.getElementById('next-btn').onclick = nextQuestion;
-      document.getElementById('exit-btn').onclick = () => window.location.href = 'index.html';
+      document.getElementById('exit-btn').onclick = async () => {
+        await saveProgress();
+        window.location.href = 'index.html';
+      };
 
       nextQuestion();
     </script>
