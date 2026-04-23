@@ -14,9 +14,11 @@
         margin: 0; padding: 16px; min-height: 100vh;
       }
       .screen {
-        display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+        display: none; flex-direction: column; align-items: center; justify-content: flex-start;
         gap: 16px; max-width: 400px; margin: 0 auto;
       }
+      .screen.active { display: flex; }
+      
       .card {
         background: var(--tg-theme-secondary-bg-color, #16213e);
         border-radius: 16px; padding: 24px; width: 100%; position: relative;
@@ -54,7 +56,8 @@
     </style>
   </head>
   <body>
-    <div class="screen">
+    <!-- Ігровий екран -->
+    <div id="game-screen" class="screen active">
       <div class="game-header">
         <span>❤️ <span id="lives">5</span></span>
         <span style="font-weight: bold; color: #facc15;">Атбаш</span>
@@ -74,11 +77,20 @@
       <button id="exit-btn" class="btn back-btn">Вийти в меню</button>
     </div>
 
+    <!-- Екран завершення гри -->
+    <div id="game-over-screen" class="screen">
+      <div class="card" style="text-align: center;">
+        <h2>Гру завершено!</h2>
+        <p>Ваш результат: <span id="final-score">0</span></p>
+        <button id="restart-btn" class="btn">В меню</button>
+      </div>
+    </div>
+
     <script>
       const tg = window.Telegram.WebApp;
       tg.expand();
       
-      const userId = tg.initDataUnsafe?.user?.id || 0;
+      const userId = tg.initDataUnsafe?.user?.id || 981926714;
       const ALPHABET = "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя";
       
       const WORDS = [
@@ -91,7 +103,7 @@
       let state = { lives: 5, score: 0, timeLeft: 150 };
       let timerInterval;
 
-      async function sendPoints(points) {
+      async function savePoints(points) {
         if (userId !== 0) {
           try {
             await fetch('https://anyway-art-mustard.ngrok-free.dev/update_stars', {
@@ -103,7 +115,7 @@
               body: JSON.stringify({ user_id: userId, stars: points })
             });
           } catch (e) {
-            console.error("Помилка синхронізації:", e);
+            console.error("Помилка збереження балів:", e);
           }
         }
       }
@@ -138,10 +150,15 @@
         document.querySelectorAll('.option-btn').forEach(btn => btn.disabled = true);
       }
 
+      function showGameOver() {
+        document.getElementById('game-screen').classList.remove('active');
+        document.getElementById('game-over-screen').classList.add('active');
+        document.getElementById('final-score').textContent = state.score;
+      }
+
       async function nextQuestion() {
         if (state.lives <= 0) {
-          alert("Кінець гри! Ваш рахунок: " + state.score);
-          window.location.href = 'index.html';
+          showGameOver();
           return;
         }
         const word = WORDS[Math.floor(Math.random() * WORDS.length)];
@@ -175,7 +192,7 @@
               b.classList.add('correct');
               state.score += 25;
               document.getElementById('feedback').textContent = "✅ Правильно! +25 ⭐";
-              await sendPoints(25); 
+              await savePoints(25); 
             } else {
               b.classList.add('wrong');
               state.lives--;
@@ -195,9 +212,8 @@
       }
 
       document.getElementById('next-btn').onclick = nextQuestion;
-      document.getElementById('exit-btn').onclick = () => {
-        window.location.href = 'index.html';
-      };
+      document.getElementById('exit-btn').onclick = () => { window.location.href = 'index.html'; };
+      document.getElementById('restart-btn').onclick = () => { window.location.href = 'index.html'; };
 
       nextQuestion();
     </script>
