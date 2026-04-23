@@ -93,14 +93,19 @@
 
       async function saveProgress() {
         if (state.score > 0 && userId !== 0) {
+          const url = 'https://anyway-art-mustard.ngrok-free.dev/update_stars';
           try {
-            await fetch('/update_stars', {
+            await fetch(url, {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: { 
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true'
+              },
               body: JSON.stringify({ user_id: userId, stars: state.score })
             });
+            console.log("✅ Progress saved:", state.score);
           } catch (e) {
-            console.error("Помилка збереження балів:", e);
+            console.error("❌ Помилка збереження балів:", e);
           }
         }
       }
