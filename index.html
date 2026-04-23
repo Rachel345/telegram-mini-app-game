@@ -233,8 +233,8 @@
             document.querySelectorAll('.caesar-option-btn').forEach(btn => btn.disabled = true);
             if (val == correct) {
               b.classList.add('correct');
-              state.score += 25;
-              syncStars(25);
+              state.score += 1;
+              syncStars(1);
               document.getElementById('feedback').textContent = "✅ Правильно! +25⭐";
             } else {
               b.classList.add('wrong');
