@@ -61,7 +61,12 @@
       }
       .caesar-option-btn.correct { border-color: #22c55e; background: rgba(34, 197, 94, 0.2); }
       .caesar-option-btn.wrong { border-color: #ef4444; background: rgba(239, 68, 68, 0.2); }
-      .back-btn { background: transparent; border: 1px solid #2ea6ff; color: #2ea6ff !important; margin-top: 10px; }
+      
+      .nav-buttons {
+        display: flex; gap: 10px; width: 100%; margin-top: 10px;
+      }
+      .back-btn { background: transparent; border: 1px solid #2ea6ff; color: #2ea6ff !important; }
+      .small-btn { font-size: 14px; padding: 10px; }
     </style>
   </head>
   <body>
@@ -85,7 +90,7 @@
           <button id="btn-lvl-1" class="btn">Рівень 1: Зашифруй</button>
           <button id="btn-lvl-2" class="btn">Рівень 2: Відгадай ключ</button>
           <button id="btn-lvl-3" class="btn">Рівень 3: Крипто-слова</button>
-          <button id="detail-back-btn" class="btn back-btn">Назад</button>
+          <button id="detail-back-btn" class="btn back-btn">Назад в меню</button>
         </div>
       </div>
 
@@ -102,7 +107,11 @@
           <div id="feedback" style="display:none; margin-top:15px; text-align:center; font-weight:bold;"></div>
           <button id="next-btn" class="btn" style="display:none; margin-top:15px;">Наступне</button>
         </div>
-        <button id="exit-btn" class="btn back-btn">Вийти</button>
+        
+        <div class="nav-buttons">
+          <button id="back-to-levels-btn" class="btn back-btn small-btn">До вибору рівнів</button>
+          <button id="exit-btn" class="btn back-btn small-btn">В меню</button>
+        </div>
       </div>
 
       <div id="game-over-screen" class="screen">
@@ -138,17 +147,14 @@
         }
       }
 
-      async function syncStars(starsToAdd) {
+      async function syncStars(stars) {
         const userId = tg.initDataUnsafe?.user?.id || 981926714;
         const url = `https://anyway-art-mustard.ngrok-free.dev/update_stars`;
         try {
           await fetch(url, {
             method: 'POST',
-            headers: { 
-              'Content-Type': 'application/json',
-              'ngrok-skip-browser-warning': 'true' 
-            },
-            body: JSON.stringify({ user_id: userId, stars: starsToAdd })
+            headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+            body: JSON.stringify({ user_id: userId, stars: stars })
           });
           loadStars(); 
         } catch (error) {
@@ -227,8 +233,8 @@
             if (val == correct) {
               b.classList.add('correct');
               state.score += 25;
-              document.getElementById('feedback').textContent = "✅ Правильно! +25 зірок";
-              await syncStars(25);
+              await syncStars(25); // Миттєва синхронізація +25
+              document.getElementById('feedback').textContent = "✅ Правильно!";
             } else {
               b.classList.add('wrong');
               state.lives--;
@@ -261,6 +267,12 @@
       document.getElementById('detail-back-btn').onclick = () => showScreen('menu-screen');
       document.getElementById('next-btn').onclick = nextQuestion;
       
+      // Кнопка повернення до вибору підрівнів (Рівень 1, 2, 3)
+      document.getElementById('back-to-levels-btn').onclick = () => {
+         showScreen('level-detail-screen');
+      };
+      
+      // Кнопка повного виходу в меню
       document.getElementById('exit-btn').onclick = () => {
          showScreen('menu-screen');
       };
