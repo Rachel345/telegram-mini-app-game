@@ -21,6 +21,8 @@
             border-radius: 16px; padding: 24px; width: 100%; position: relative;
         }
 
+        .menu-title { font-size: 24px; font-weight: bold; margin-bottom: 10px; text-align: center; }
+        
         .game-header {
             display: flex; align-items: center; justify-content: space-between;
             padding: 12px 16px; background: var(--tg-theme-secondary-bg-color, #16213e);
@@ -50,8 +52,9 @@
             color: var(--tg-theme-button-text-color, #fff) !important;
             border: none; border-radius: 12px; padding: 14px; width: 100%; font-size: 16px; cursor: pointer;
         }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-outline { background: transparent; border: 1px solid #2ea6ff; color: #2ea6ff !important; margin-top: 10px; }
-        .btn-exit { background: transparent; border: 1px solid #ef4444; color: #ef4444 !important; margin-top: 10px; }
+        .btn-exit { background: transparent; border: 1px solid #ef4444; color: #ef4444 !important; margin-top: 20px; }
 
         .options-grid { display: grid; grid-template-columns: 1fr; gap: 10px; width: 100%; }
         .option-btn {
@@ -60,16 +63,14 @@
         }
         .option-btn.correct { border-color: #22c55e; background: rgba(34, 197, 94, 0.2); }
         .option-btn.wrong { border-color: #ef4444; background: rgba(239, 68, 68, 0.2); }
-        
-        #feedback-area { margin-top: 15px; text-align: center; font-weight: bold; padding: 10px; border-radius: 8px; }
-        .feedback-correct { color: #22c55e; background: rgba(34, 197, 94, 0.1); }
-        .feedback-wrong { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+        .feedback-box { margin-top: 15px; text-align: center; font-weight: bold; padding: 10px; border-radius: 8px; }
     </style>
 </head>
 <body>
 
+    <!-- ЕКРАН ВИБОРУ РІВНЯ -->
     <div id="menu-screen" class="screen active">
-        <h2 style="text-align:center;">Середній рівень</h2>
+        <h2 class="menu-title">Середній рівень</h2>
         <div class="card">
             <button class="btn" onclick="initAtbash()">Рівень 1: Атбаш</button>
             <button class="btn" style="margin-top: 12px;" onclick="initVigenere()">Рівень 2: Віженер</button>
@@ -77,6 +78,7 @@
         </div>
     </div>
 
+    <!-- ЕКРАН АТБАШ -->
     <div id="atbash-screen" class="screen">
         <div class="game-header">
             <span>❤️ <span id="atbash-lives">5</span></span>
@@ -88,12 +90,13 @@
             <p style="text-align: center; opacity: 0.8;">Розшифруй слово:</p>
             <div id="atbash-word" style="font-size: 26px; font-weight: bold; text-align: center; margin: 15px 0;">---</div>
             <div id="atbash-options" class="options-grid"></div>
-            <div id="atbash-feedback" style="display:none; margin-top:15px; text-align:center; font-weight:bold; padding:10px; border-radius:8px;"></div>
-            <button id="atbash-next" class="btn" style="display:none; margin-top:10px;">Наступне слово</button>
+            <div id="atbash-feedback" class="feedback-box" style="display:none;"></div>
+            <button id="atbash-next" class="btn" style="display:none; margin-top:10px;">Наступне</button>
         </div>
         <button class="btn btn-exit" onclick="resetToMenu()">Вийти</button>
     </div>
 
+    <!-- ЕКРАН ВІЖЕНЕРА -->
     <div id="vigenere-screen" class="screen">
         <div class="game-header">
             <span>❤️ <span id="vig-lives">3</span></span>
@@ -109,46 +112,37 @@
                 <label>Ключове слово (К):</label>
                 <input type="text" id="vig-k" readonly>
             </div>
-            <div id="vig-table-area" class="vigenere-wrap" style="display:none;">
-                <table id="tabula-recta"></table>
-            </div>
+            <div id="vig-table-area" class="vigenere-wrap" style="display:none;"><table id="tabula-recta"></table></div>
             <div class="input-box">
                 <label>Ваш результат (С):</label>
                 <input type="text" id="vig-answer" placeholder="Введіть результат...">
             </div>
-            <div id="vig-feedback" style="display:none; margin-bottom:15px; text-align:center; font-weight:bold; padding:10px; border-radius:8px;"></div>
+            <div id="vig-feedback" class="feedback-box" style="display:none;"></div>
             <button id="vig-check-btn" class="btn" onclick="checkVigenere()">Перевірити результат</button>
-            <button id="vig-next-btn" class="btn" style="display:none;" onclick="initVigenere()">Наступне слово</button>
+            <button id="vig-next-btn" class="btn" style="display:none; margin-top:10px;" onclick="generateNewVigenereTask()">Наступне слово</button>
             <button class="btn btn-outline" id="hint-btn" onclick="useHint()">Підказка (Таблиця) -10с</button>
         </div>
         <button class="btn btn-exit" onclick="resetToMenu()">Вийти</button>
     </div>
 
+    <!-- ЕКРАН ЗАВЕРШЕННЯ -->
     <div id="game-over-screen" class="screen">
         <div class="card" style="text-align: center;">
-            <h2 style="font-size: 28px; margin-bottom: 10px;">Гру завершено!</h2>
-            <p style="font-size: 18px; opacity: 0.9; margin-bottom: 25px;">Ваш результат: <span id="final-score" style="font-weight:bold; color:#facc15;">0</span></p>
+            <h2>Гру завершено!</h2>
+            <p style="font-size: 18px; margin: 20px 0;">Ваш результат: <span id="final-score">0</span> ⭐</p>
             <button class="btn" onclick="resetToMenu()">До вибору рівнів</button>
-            <button class="btn btn-outline" onclick="window.location.href='index.html'">В головне меню</button>
+            <button class="btn btn-outline" onclick="window.location.href='index.html'">В меню</button>
         </div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.expand();
-        
         const ALPHABET = "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя";
-        const WORDS = ["блокчейн", "алгоритм", "крипто", "захист", "пароль", "мережа", "цифра", "сервер", "депозит", "ключі", "майнінг"];
+        const WORDS = ["блокчейн", "алгоритм", "крипто", "захист", "пароль", "мережа", "цифра", "сервер", "майнінг", "ключі", "депозит"];
         const V_KEYS = ["код", "база", "хаб", "біт", "стек"];
         
-        let state = {
-            lives: 0,
-            score: 0,
-            timer: null,
-            timeLeft: 0,
-            correctAnswer: "",
-            hintUsedThisTurn: false
-        };
+        let state = { lives: 0, score: 0, timer: null, timeLeft: 0, correctAnswer: "", hintUsed: false };
 
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -160,7 +154,7 @@
             showScreen('menu-screen');
         }
 
-        function showGameOver() {
+        function gameOver() {
             clearInterval(state.timer);
             document.getElementById('final-score').textContent = state.score;
             showScreen('game-over-screen');
@@ -177,60 +171,51 @@
             } catch (e) { console.error(e); }
         }
 
-        // ATBASH
-        function atbash(text) {
-            return text.split('').map(char => {
-                let idx = ALPHABET.indexOf(char.toLowerCase());
-                return idx < 0 ? char : ALPHABET[ALPHABET.length - 1 - idx];
-            }).join('');
-        }
-
+        // --- АТБАШ ---
         function initAtbash() {
-            state.lives = 5;
-            state.score = 0;
+            state.lives = 5; state.score = 0;
             updateAtbashStats();
             showScreen('atbash-screen');
             nextAtbashQuestion();
         }
 
         function nextAtbashQuestion() {
-            if (state.lives <= 0) { showGameOver(); return; }
+            if (state.lives <= 0) { gameOver(); return; }
             const word = WORDS[Math.floor(Math.random() * WORDS.length)];
             state.correctAnswer = word;
-            document.getElementById('atbash-word').textContent = atbash(word);
+            document.getElementById('atbash-word').textContent = word.split('').map(c => {
+                let i = ALPHABET.indexOf(c.toLowerCase());
+                return i < 0 ? c : ALPHABET[ALPHABET.length - 1 - i];
+            }).join('');
+            
             document.getElementById('atbash-feedback').style.display = "none";
             document.getElementById('atbash-next').style.display = "none";
-            
             const opts = document.getElementById('atbash-options');
             opts.innerHTML = "";
+            
             let choices = new Set([word]);
             while(choices.size < 4) choices.add(WORDS[Math.floor(Math.random()*WORDS.length)]);
-            
             [...choices].sort(() => Math.random()-0.5).forEach(val => {
                 const b = document.createElement('button');
                 b.className = 'option-btn';
                 b.textContent = val;
                 b.onclick = async () => {
+                    document.querySelectorAll('#atbash-options .option-btn').forEach(btn => btn.disabled = true);
                     clearInterval(state.timer);
-                    // Блокуємо тільки кнопки варіантів
-                    document.querySelectorAll('.option-btn').forEach(btn => btn.disabled = true);
-                    
-                    const fb = document.getElementById('atbash-feedback');
-                    fb.style.display = "block";
-                    
                     if(val === state.correctAnswer) {
                         b.classList.add('correct');
                         state.score += 3;
-                        fb.textContent = "Правильно! Ти герой! +3 ⭐";
-                        fb.className = "feedback-correct";
+                        document.getElementById('atbash-feedback').innerHTML = "✅ Правильно! +3 ⭐";
+                        document.getElementById('atbash-feedback').style.color = "#22c55e";
                         await syncStars(3);
                     } else {
                         b.classList.add('wrong');
                         state.lives--;
-                        fb.textContent = "Неправильно, спробуй ще!";
-                        fb.className = "feedback-wrong";
+                        document.getElementById('atbash-feedback').innerHTML = `❌ Неправильно! Це було: ${state.correctAnswer}`;
+                        document.getElementById('atbash-feedback').style.color = "#ef4444";
                     }
                     updateAtbashStats();
+                    document.getElementById('atbash-feedback').style.display = "block";
                     document.getElementById('atbash-next').style.display = "block";
                 };
                 opts.appendChild(b);
@@ -239,17 +224,11 @@
         }
 
         function startAtbashTimer() {
-            state.timeLeft = 150;
-            clearInterval(state.timer);
+            state.timeLeft = 150; clearInterval(state.timer);
             state.timer = setInterval(() => {
                 state.timeLeft--;
                 document.getElementById('atbash-timer-bar').style.width = (state.timeLeft / 1.5) + "%";
-                if(state.timeLeft <= 0) { 
-                    clearInterval(state.timer); 
-                    state.lives--; 
-                    updateAtbashStats(); 
-                    if(state.lives <= 0) showGameOver(); else nextAtbashQuestion();
-                }
+                if(state.timeLeft <= 0) { clearInterval(state.timer); state.lives--; updateAtbashStats(); nextAtbashQuestion(); }
             }, 100);
         }
 
@@ -259,118 +238,90 @@
         }
         document.getElementById('atbash-next').onclick = nextAtbashQuestion;
 
-        // VIGENERE
-        function vigenere(text, key) {
-            let res = "";
-            let kIdx = 0;
-            const t = text.toLowerCase();
-            const k = key.toLowerCase();
-            for(let i=0; i<t.length; i++) {
-                let cIdx = ALPHABET.indexOf(t[i]);
-                if(cIdx !== -1) {
-                    let kCharIdx = ALPHABET.indexOf(k[kIdx % k.length]);
-                    res += ALPHABET[(cIdx + kCharIdx) % ALPHABET.length];
-                    kIdx++;
-                } else res += t[i];
-            }
-            return res.toUpperCase();
-        }
-
+        // --- ВІЖЕНЕР ---
         function initVigenere() {
-            if(state.lives <= 0 && state.score > 0) { /* Перевірка для перезапуску з меню */ }
-            if(document.getElementById('vigenere-screen').classList.contains('active') === false) {
-                state.lives = 3;
-                state.score = 0;
-            }
-            state.timeLeft = 60;
-            state.hintUsedThisTurn = false;
-            
-            const m = WORDS[Math.floor(Math.random()*WORDS.length)].toUpperCase();
-            const k = V_KEYS[Math.floor(Math.random()*V_KEYS.length)].toUpperCase();
-            state.correctAnswer = vigenere(m, k);
-            
-            document.getElementById('vig-m').value = m;
-            document.getElementById('vig-k').value = k;
-            document.getElementById('vig-answer').value = "";
-            document.getElementById('vig-answer').disabled = false;
-            document.getElementById('vig-table-area').style.display = "none";
-            document.getElementById('vig-feedback').style.display = "none";
-            document.getElementById('vig-next-btn').style.display = "none";
-            document.getElementById('vig-check-btn').style.display = "block";
-            
-            buildVigenereTable();
-            updateVigStats();
+            state.lives = 3; state.score = 0; state.timeLeft = 60;
             showScreen('vigenere-screen');
-            
+            generateNewVigenereTask();
             clearInterval(state.timer);
             state.timer = setInterval(() => {
                 state.timeLeft--;
-                updateVigStats();
-                if(state.timeLeft <= 0) { 
-                    clearInterval(state.timer);
+                document.getElementById('vig-timer-text').textContent = state.timeLeft;
+                if(state.timeLeft <= 0) {
                     state.lives--;
-                    if(state.lives <= 0) showGameOver(); else initVigenere();
+                    if(state.lives <= 0) gameOver(); else generateNewVigenereTask();
                 }
             }, 1000);
         }
 
+        function generateNewVigenereTask() {
+            if(state.lives <= 0) { gameOver(); return; }
+            const m = WORDS[Math.floor(Math.random()*WORDS.length)].toUpperCase();
+            const k = V_KEYS[Math.floor(Math.random()*V_KEYS.length)].toUpperCase();
+            state.correctAnswer = "";
+            let kIdx = 0;
+            for(let i=0; i<m.length; i++) {
+                let ci = ALPHABET.indexOf(m[i].toLowerCase());
+                let ki = ALPHABET.indexOf(k[kIdx % k.length].toLowerCase());
+                state.correctAnswer += ALPHABET[(ci + ki) % ALPHABET.length].toUpperCase();
+                kIdx++;
+            }
+            document.getElementById('vig-m').value = m;
+            document.getElementById('vig-k').value = k;
+            document.getElementById('vig-answer').value = "";
+            document.getElementById('vig-answer').disabled = false;
+            document.getElementById('vig-feedback').style.display = "none";
+            document.getElementById('vig-next-btn').style.display = "none";
+            document.getElementById('vig-check-btn').style.display = "block";
+            document.getElementById('vig-table-area').style.display = "none";
+            state.hintUsed = false;
+            updateVigStats();
+        }
+
         function buildVigenereTable() {
             const table = document.getElementById('tabula-recta');
-            let html = "<tr><th></th>";
-            for(let i=0; i<ALPHABET.length; i++) html += `<th>${ALPHABET[i]}</th>`;
-            html += "</tr>";
+            let html = "<tr><th></th>" + ALPHABET.split('').map(c => `<th>${c}</th>`).join('') + "</tr>";
             for(let i=0; i<ALPHABET.length; i++) {
-                html += `<tr><th>${ALPHABET[i]}</th>`;
-                for(let j=0; j<ALPHABET.length; j++) {
-                    html += `<td id="v-${i}-${j}">${ALPHABET[(i+j)%ALPHABET.length]}</td>`;
-                }
-                html += "</tr>";
+                html += `<tr><th>${ALPHABET[i]}</th>` + ALPHABET.split('').map((_, j) => `<td id="v-${i}-${j}">${ALPHABET[(i+j)%ALPHABET.length]}</td>`).join('') + "</tr>";
             }
             table.innerHTML = html;
         }
 
         function useHint() {
-            const area = document.getElementById('vig-table-area');
-            if(area.style.display === "none") {
-                area.style.display = "block";
-                if(!state.hintUsedThisTurn) {
-                    state.timeLeft = Math.max(0, state.timeLeft - 10);
-                    state.hintUsedThisTurn = true;
-                }
-            } else {
-                area.style.display = "none";
+            if(!state.hintUsed) {
+                state.timeLeft = Math.max(0, state.timeLeft - 10);
+                state.hintUsed = true;
             }
-            updateVigStats();
+            document.getElementById('vig-table-area').style.display = 
+                document.getElementById('vig-table-area').style.display === "none" ? "block" : "none";
+            if(document.getElementById('tabula-recta').innerHTML === "") buildVigenereTable();
         }
 
         async function checkVigenere() {
             const ans = document.getElementById('vig-answer').value.trim().toUpperCase();
-            const fb = document.getElementById('vig-feedback');
-            fb.style.display = "block";
-
+            const feedback = document.getElementById('vig-feedback');
+            feedback.style.display = "block";
+            
             if(ans === state.correctAnswer) {
-                clearInterval(state.timer);
                 state.score += 5;
-                fb.textContent = "Правильно! Ти герой! +5 ⭐";
-                fb.className = "feedback-correct";
+                feedback.innerHTML = "✅ Правильно! Ти герой! +5 ⭐";
+                feedback.style.color = "#22c55e";
                 document.getElementById('vig-answer').disabled = true;
                 document.getElementById('vig-check-btn').style.display = "none";
                 document.getElementById('vig-next-btn').style.display = "block";
                 await syncStars(5);
             } else {
                 state.lives--;
-                fb.textContent = "Неправильно, спробуй ще!";
-                fb.className = "feedback-wrong";
-                if(state.lives <= 0) {
-                    setTimeout(showGameOver, 500);
-                }
+                feedback.innerHTML = "❌ Неправильно, спробуй нове слово!";
+                feedback.style.color = "#ef4444";
+                updateVigStats();
+                if(state.lives <= 0) { setTimeout(gameOver, 1000); } 
+                else { setTimeout(generateNewVigenereTask, 1500); }
             }
-            updateVigStats();
         }
 
         function updateVigStats() {
             document.getElementById('vig-lives').textContent = state.lives;
-            document.getElementById('vig-timer-text').textContent = state.timeLeft;
         }
     </script>
 </body>
