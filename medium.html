@@ -240,32 +240,33 @@
 
         // --- ВІЖЕНЕР ---
         function initVigenere() {
-            state.lives = 3; state.score = 0; state.timeLeft = 60;
+            clearInterval(state.timer);
+            state.lives = 3; 
+            state.score = 0; 
+            state.timeLeft = 60;
             showScreen('vigenere-screen');
             generateNewVigenereTask();
-            clearInterval(state.timer);
-            state.timer = setInterval(() => {
-                state.timeLeft--;
-                document.getElementById('vig-timer-text').textContent = state.timeLeft;
-                if(state.timeLeft <= 0) {
-                    state.lives--;
-                    if(state.lives <= 0) gameOver(); else generateNewVigenereTask();
-                }
-            }, 1000);
         }
 
         function generateNewVigenereTask() {
             if(state.lives <= 0) { gameOver(); return; }
+            
             const m = WORDS[Math.floor(Math.random()*WORDS.length)].toUpperCase();
             const k = V_KEYS[Math.floor(Math.random()*V_KEYS.length)].toUpperCase();
+            
             state.correctAnswer = "";
             let kIdx = 0;
             for(let i=0; i<m.length; i++) {
                 let ci = ALPHABET.indexOf(m[i].toLowerCase());
                 let ki = ALPHABET.indexOf(k[kIdx % k.length].toLowerCase());
-                state.correctAnswer += ALPHABET[(ci + ki) % ALPHABET.length].toUpperCase();
-                kIdx++;
+                if (ci !== -1) {
+                    state.correctAnswer += ALPHABET[(ci + ki) % ALPHABET.length].toUpperCase();
+                    kIdx++;
+                } else {
+                    state.correctAnswer += m[i];
+                }
             }
+
             document.getElementById('vig-m').value = m;
             document.getElementById('vig-k').value = k;
             document.getElementById('vig-answer').value = "";
@@ -274,8 +275,35 @@
             document.getElementById('vig-next-btn').style.display = "none";
             document.getElementById('vig-check-btn').style.display = "block";
             document.getElementById('vig-table-area').style.display = "none";
+            
             state.hintUsed = false;
+            state.timeLeft = 60;
             updateVigStats();
+            startVigenereTimer();
+        }
+
+        function startVigenereTimer() {
+            clearInterval(state.timer);
+            state.timer = setInterval(() => {
+                state.timeLeft--;
+                if (state.timeLeft < 0) state.timeLeft = 0;
+                document.getElementById('vig-timer-text').textContent = state.timeLeft;
+                
+                if(state.timeLeft <= 0) {
+                    clearInterval(state.timer);
+                    state.lives--;
+                    updateVigStats();
+                    if(state.lives <= 0) {
+                        gameOver();
+                    } else {
+                        generateNewVigenereTask();
+                        const feedback = document.getElementById('vig-feedback');
+                        feedback.style.display = "block";
+                        feedback.innerHTML = "⏰ Час вийшов! Нове слово";
+                        feedback.style.color = "#facc15";
+                    }
+                }
+            }, 1000);
         }
 
         function buildVigenereTable() {
@@ -300,11 +328,12 @@
         async function checkVigenere() {
             const ans = document.getElementById('vig-answer').value.trim().toUpperCase();
             const feedback = document.getElementById('vig-feedback');
-            feedback.style.display = "block";
             
             if(ans === state.correctAnswer) {
+                clearInterval(state.timer);
                 state.score += 5;
-                feedback.innerHTML = "✅ Правильно! Ти герой! +5 ⭐";
+                feedback.style.display = "block";
+                feedback.innerHTML = "✅ Правильно! +5 ⭐";
                 feedback.style.color = "#22c55e";
                 document.getElementById('vig-answer').disabled = true;
                 document.getElementById('vig-check-btn').style.display = "none";
@@ -312,11 +341,17 @@
                 await syncStars(5);
             } else {
                 state.lives--;
-                feedback.innerHTML = "❌ Неправильно, спробуй нове слово!";
-                feedback.style.color = "#ef4444";
                 updateVigStats();
-                if(state.lives <= 0) { setTimeout(gameOver, 1000); } 
-                else { setTimeout(generateNewVigenereTask, 1500); }
+                tg.HapticFeedback?.notificationOccurred?.('error');
+                
+                if(state.lives <= 0) { 
+                    gameOver(); 
+                } else {
+                    generateNewVigenereTask();
+                    feedback.style.display = "block";
+                    feedback.innerHTML = "❌ Неправильно, ось нове слово!";
+                    feedback.style.color = "#ef4444";
+                }
             }
         }
 
