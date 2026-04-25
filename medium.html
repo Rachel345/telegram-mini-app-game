@@ -18,7 +18,7 @@
         
         .card {
             background: var(--tg-theme-secondary-bg-color, #16213e);
-            border-radius: 16px; padding: 20px; width: 100%; position: relative;
+            border-radius: 16px; padding: 24px; width: 100%; position: relative;
         }
 
         .menu-title { font-size: 24px; font-weight: bold; margin-bottom: 10px; text-align: center; }
@@ -34,41 +34,41 @@
         }
         .timer-bar { width: 100%; height: 100%; background: #ef4444; transition: width 0.1s linear; }
 
-        .vigenere-wrap { width: 100%; overflow-x: auto; margin: 15px 0; border-radius: 8px; background: #0f172a; border: 1px solid #2ea6ff; max-height: 200px; }
-        table { border-collapse: collapse; font-size: 10px; color: #94a3b8; width: 100%; }
-        td, th { min-width: 22px; height: 22px; text-align: center; border: 1px solid #1e293b; text-transform: uppercase; }
-        th { background: #1e293b; color: #2ea6ff; position: sticky; top: 0; }
+        .vigenere-wrap { width: 100%; overflow-x: auto; margin: 15px 0; border-radius: 8px; background: #0f172a; border: 1px solid #2ea6ff; }
+        table { border-collapse: collapse; font-size: 9px; color: #94a3b8; width: 100%; }
+        td, th { width: 18px; height: 18px; text-align: center; border: 1px solid #1e293b; text-transform: uppercase; }
+        th { background: #1e293b; color: #2ea6ff; }
         .h-cell { background: #2ea6ff !important; color: white !important; font-weight: bold; }
 
         .input-box { width: 100%; margin-bottom: 15px; }
         .input-box label { display: block; font-size: 12px; color: #2ea6ff; margin-bottom: 5px; }
         .input-box input {
             width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1);
-            color: #fff; padding: 12px; border-radius: 10px; font-size: 16px; outline: none;
+            color: #fff; padding: 12px; border-radius: 10px; font-size: 16px;
         }
 
         .btn {
             background: var(--tg-theme-button-color, #2ea6ff);
             color: var(--tg-theme-button-text-color, #fff) !important;
-            border: none; border-radius: 12px; padding: 14px; width: 100%; font-size: 16px; cursor: pointer; transition: 0.2s;
+            border: none; border-radius: 12px; padding: 14px; width: 100%; font-size: 16px; cursor: pointer;
         }
-        .btn:active { transform: scale(0.98); opacity: 0.9; }
         .btn-outline { background: transparent; border: 1px solid #2ea6ff; color: #2ea6ff !important; margin-top: 10px; }
-        .btn-exit { background: transparent; border: 1px solid #ef4444; color: #ef4444 !important; margin-top: 20px; }
-        .btn-secondary { background: rgba(255,255,255,0.1); color: #fff !important; margin-top: 10px; }
+        .btn-exit { background: transparent; border: 1px solid #ef4444; color: #ef4444 !important; margin-top: 20px; width: 100%; }
+        .btn-secondary { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white !important; }
 
         .options-grid { display: grid; grid-template-columns: 1fr; gap: 10px; width: 100%; }
         .option-btn {
             background: rgba(255,255,255,0.05); color: inherit; border: 2px solid rgba(255,255,255,0.1);
-            border-radius: 12px; padding: 14px; font-size: 16px; cursor: pointer; transition: 0.2s; text-align: center;
+            border-radius: 12px; padding: 14px; font-size: 16px; cursor: pointer;
         }
-        .option-btn:disabled { cursor: default; }
         .option-btn.correct { border-color: #22c55e; background: rgba(34, 197, 94, 0.2); }
         .option-btn.wrong { border-color: #ef4444; background: rgba(239, 68, 68, 0.2); }
 
-        .feedback-msg { margin-top: 15px; text-align: center; font-weight: bold; padding: 10px; border-radius: 8px; }
-        .feedback-correct { color: #22c55e; background: rgba(34, 197, 94, 0.1); }
-        .feedback-wrong { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+        .feedback-box {
+            padding: 12px; border-radius: 10px; text-align: center; margin: 15px 0; font-weight: bold; display: none;
+        }
+        .feedback-success { background: rgba(34, 197, 94, 0.2); color: #22c55e; border: 1px solid #22c55e; }
+        .feedback-error { background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid #ef4444; }
     </style>
 </head>
 <body>
@@ -79,7 +79,7 @@
         <div class="card">
             <button class="btn" onclick="initAtbash()">Рівень 1: Атбаш</button>
             <button class="btn" style="margin-top: 12px;" onclick="initVigenere()">Рівень 2: Віженер</button>
-            <button class="btn btn-exit" onclick="window.location.href='index.html'">Назад в меню</button>
+            <button class="btn btn-exit" onclick="window.location.href='index.html'">Назад</button>
         </div>
     </div>
 
@@ -92,11 +92,11 @@
         </div>
         <div class="card">
             <div class="timer-container"><div id="atbash-timer-bar" class="timer-bar"></div></div>
-            <p style="text-align: center; opacity: 0.8; margin-top: 0;">Розшифруй слово:</p>
+            <p style="text-align: center; opacity: 0.8;">Розшифруй слово:</p>
             <div id="atbash-word" style="font-size: 26px; font-weight: bold; text-align: center; margin: 15px 0;">---</div>
             <div id="atbash-options" class="options-grid"></div>
-            <div id="atbash-feedback" class="feedback-msg" style="display:none;"></div>
-            <button id="atbash-next" class="btn" style="display:none; margin-top:15px;">Наступне питання</button>
+            <div id="atbash-feedback" class="feedback-box"></div>
+            <button id="atbash-next" class="btn" style="display:none; margin-top:10px;">Наступне слово</button>
         </div>
         <button class="btn btn-exit" onclick="resetToMenu()">Вийти</button>
     </div>
@@ -124,13 +124,13 @@
 
             <div class="input-box">
                 <label>Ваш результат (С):</label>
-                <input type="text" id="vig-answer" placeholder="Введіть відповідь...">
+                <input type="text" id="vig-answer" placeholder="Введіть зашифроване слово...">
             </div>
 
-            <div id="vig-feedback" class="feedback-msg" style="display:none; margin-bottom: 10px;"></div>
-            
+            <div id="vig-feedback" class="feedback-box"></div>
+
             <button id="vig-check-btn" class="btn" onclick="checkVigenere()">Перевірити результат</button>
-            <button id="vig-next-btn" class="btn" style="display:none;" onclick="nextVigenereQuestion()">Наступне питання</button>
+            <button id="vig-next-btn" class="btn" style="display:none;" onclick="setupVigenereQuestion()">Наступне слово</button>
             <button class="btn btn-outline" id="hint-btn" onclick="useHint()">Підказка (Таблиця) -10с</button>
         </div>
         <button class="btn btn-exit" onclick="resetToMenu()">Вийти</button>
@@ -138,12 +138,11 @@
 
     <!-- ЕКРАН ЗАВЕРШЕННЯ ГРИ -->
     <div id="game-over-screen" class="screen">
-        <div class="card" style="text-align: center; padding: 40px 20px;">
+        <div class="card" style="text-align: center;">
             <h2 style="font-size: 28px; margin-bottom: 10px;">Гру завершено!</h2>
-            <p style="font-size: 18px; opacity: 0.8; margin-bottom: 30px;">Ваш результат: <span id="final-score" style="color: #facc15; font-weight: bold;">0</span> ⭐</p>
-            
-            <button class="btn" onclick="showScreen('menu-screen')" style="margin-bottom: 12px;">До вибору рівнів</button>
-            <button class="btn btn-outline" onclick="window.location.href='index.html'">В головне меню</button>
+            <p style="font-size: 18px; opacity: 0.9; margin-bottom: 25px;">Ваш результат: <span id="final-score" style="color: #facc15; font-weight: bold;">0</span> ⭐</p>
+            <button class="btn" onclick="resetToMenu()">До вибору рівнів</button>
+            <button class="btn btn-secondary" style="margin-top: 12px;" onclick="window.location.href='index.html'">В головне меню</button>
         </div>
     </div>
 
@@ -152,17 +151,17 @@
         tg.expand();
         
         const ALPHABET = "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя";
-        const WORDS = ["блокчейн", "алгоритм", "крипто", "захист", "пароль", "мережа", "цифра", "сервер", "токен", "майнінг"];
-        const V_KEYS = ["код", "база", "хаб", "біт", "ключ"];
+        const WORDS = ["блокчейн", "алгоритм", "крипто", "захист", "пароль", "мережа", "цифра", "сервер", "майнінг", "ключі", "токен", "захист"];
+        const V_KEYS = ["код", "база", "хаб", "біт", "ключ", "стек"];
         
         let state = {
-            currentMode: '', 
-            lives: 5,
+            currentMode: '',
+            lives: 0,
             score: 0,
             timer: null,
             timeLeft: 0,
             correctAnswer: "",
-            hintUsedThisRound: false
+            hintUsedThisQuestion: false
         };
 
         function showScreen(id) {
@@ -175,7 +174,7 @@
             showScreen('menu-screen');
         }
 
-        function gameOver() {
+        function showGameOver() {
             clearInterval(state.timer);
             document.getElementById('final-score').textContent = state.score;
             showScreen('game-over-screen');
@@ -210,12 +209,14 @@
         }
 
         function nextAtbashQuestion() {
-            if (state.lives <= 0) { gameOver(); return; }
+            if (state.lives <= 0) { showGameOver(); return; }
             
             const word = WORDS[Math.floor(Math.random() * WORDS.length)];
             state.correctAnswer = word;
             document.getElementById('atbash-word').textContent = atbash(word);
-            document.getElementById('atbash-feedback').style.display = "none";
+            
+            const feedback = document.getElementById('atbash-feedback');
+            feedback.style.display = "none";
             document.getElementById('atbash-next').style.display = "none";
             
             const opts = document.getElementById('atbash-options');
@@ -223,31 +224,34 @@
             let choices = new Set([word]);
             while(choices.size < 4) choices.add(WORDS[Math.floor(Math.random()*WORDS.length)]);
             
-            let shuffled = [...choices].sort(() => Math.random()-0.5);
-            shuffled.forEach(val => {
+            [...choices].sort(() => Math.random()-0.5).forEach(val => {
                 const b = document.createElement('button');
                 b.className = 'option-btn';
                 b.textContent = val;
                 b.onclick = async () => {
+                    if (document.getElementById('atbash-next').style.display === "block") return;
+                    
                     clearInterval(state.timer);
-                    // Блокуємо всі кнопки
-                    document.querySelectorAll('.option-btn').forEach(btn => btn.disabled = true);
-                    
-                    const feedback = document.getElementById('atbash-feedback');
-                    feedback.style.display = "block";
-                    
+                    document.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.style.opacity = "0.5";
+                        btn.style.cursor = "default";
+                    });
+
                     if(val === state.correctAnswer) {
                         b.classList.add('correct');
+                        b.style.opacity = "1";
                         state.score += 3;
                         feedback.textContent = "Правильно! Ти герой! +3 ⭐";
-                        feedback.className = "feedback-msg feedback-correct";
+                        feedback.className = "feedback-box feedback-success";
                         await syncStars(3);
                     } else {
                         b.classList.add('wrong');
+                        b.style.opacity = "1";
                         state.lives--;
-                        feedback.textContent = `Неправильно, спробуй ще! Це було: ${state.correctAnswer}`;
-                        feedback.className = "feedback-msg feedback-wrong";
+                        feedback.textContent = "Неправильно, спробуй ще!";
+                        feedback.className = "feedback-box feedback-error";
                     }
+                    feedback.style.display = "block";
                     updateAtbashStats();
                     document.getElementById('atbash-next').style.display = "block";
                 };
@@ -266,7 +270,7 @@
                     clearInterval(state.timer); 
                     state.lives--; 
                     updateAtbashStats();
-                    if(state.lives <= 0) gameOver(); else nextAtbashQuestion();
+                    if (state.lives > 0) nextAtbashQuestion(); else showGameOver();
                 }
             }, 100);
         }
@@ -276,10 +280,8 @@
             document.getElementById('atbash-score').textContent = state.score;
         }
 
-        document.getElementById('atbash-next').onclick = nextAtbashQuestion;
-
         // --- ВІЖЕНЕР ---
-        function vigenereEncrypt(text, key) {
+        function vigenere(text, key) {
             let res = "";
             let kIdx = 0;
             const t = text.toLowerCase();
@@ -299,31 +301,10 @@
             state.currentMode = 'vigenere';
             state.lives = 3;
             state.score = 0;
-            buildVigenereTable();
-            showScreen('vigenere-screen');
-            nextVigenereQuestion();
-        }
-
-        function nextVigenereQuestion() {
-            if (state.lives <= 0) { gameOver(); return; }
-            
             state.timeLeft = 60;
-            state.hintUsedThisRound = false;
-            
-            const m = WORDS[Math.floor(Math.random()*WORDS.length)].toUpperCase();
-            const k = V_KEYS[Math.floor(Math.random()*V_KEYS.length)].toUpperCase();
-            state.correctAnswer = vigenereEncrypt(m, k);
-            
-            document.getElementById('vig-m').value = m;
-            document.getElementById('vig-k').value = k;
-            document.getElementById('vig-answer').value = "";
-            document.getElementById('vig-answer').disabled = false;
-            document.getElementById('vig-table-area').style.display = "none";
-            document.getElementById('vig-feedback').style.display = "none";
-            document.getElementById('vig-next-btn').style.display = "none";
-            document.getElementById('vig-check-btn').style.display = "block";
-            
-            updateVigStats();
+            buildVigenereTable();
+            setupVigenereQuestion();
+            showScreen('vigenere-screen');
             
             clearInterval(state.timer);
             state.timer = setInterval(() => {
@@ -331,10 +312,30 @@
                 updateVigStats();
                 if(state.timeLeft <= 0) { 
                     state.lives--;
-                    updateVigStats();
-                    if(state.lives <= 0) gameOver(); else nextVigenereQuestion();
+                    if(state.lives <= 0) showGameOver(); else setupVigenereQuestion();
                 }
             }, 1000);
+        }
+
+        function setupVigenereQuestion() {
+            if (state.lives <= 0) { showGameOver(); return; }
+            
+            const m = WORDS[Math.floor(Math.random()*WORDS.length)].toUpperCase();
+            const k = V_KEYS[Math.floor(Math.random()*V_KEYS.length)].toUpperCase();
+            state.correctAnswer = vigenere(m, k);
+            state.hintUsedThisQuestion = false;
+            
+            document.getElementById('vig-m').value = m;
+            document.getElementById('vig-k').value = k;
+            document.getElementById('vig-answer').value = "";
+            document.getElementById('vig-answer').readOnly = false;
+            document.getElementById('vig-table-area').style.display = "none";
+            document.getElementById('vig-feedback').style.display = "none";
+            document.getElementById('vig-next-btn').style.display = "none";
+            document.getElementById('vig-check-btn').style.display = "block";
+            
+            document.querySelectorAll('.h-cell').forEach(el => el.classList.remove('h-cell'));
+            updateVigStats();
         }
 
         function buildVigenereTable() {
@@ -354,11 +355,11 @@
 
         function useHint() {
             const area = document.getElementById('vig-table-area');
-            if(area.style.display === "none") {
+            if (area.style.display === "none") {
                 area.style.display = "block";
-                if(!state.hintUsedThisRound) {
+                if (!state.hintUsedThisQuestion) {
                     state.timeLeft = Math.max(0, state.timeLeft - 10);
-                    state.hintUsedThisRound = true;
+                    state.hintUsedThisQuestion = true;
                     updateVigStats();
                 }
             } else {
@@ -369,30 +370,30 @@
         async function checkVigenere() {
             const ans = document.getElementById('vig-answer').value.trim().toUpperCase();
             const feedback = document.getElementById('vig-feedback');
-            feedback.style.display = "block";
             
             if(ans === state.correctAnswer) {
-                clearInterval(state.timer);
-                state.score += 5;
                 feedback.textContent = "Правильно! Ти герой! +5 ⭐";
-                feedback.className = "feedback-msg feedback-correct";
+                feedback.className = "feedback-box feedback-success";
+                feedback.style.display = "block";
+                state.score += 5;
+                document.getElementById('vig-answer').readOnly = true;
                 document.getElementById('vig-check-btn').style.display = "none";
                 document.getElementById('vig-next-btn').style.display = "block";
-                document.getElementById('vig-answer').disabled = true;
                 tg.HapticFeedback.notificationOccurred('success');
                 await syncStars(5);
             } else {
                 state.lives--;
                 feedback.textContent = "Неправильно, спробуй ще!";
-                feedback.className = "feedback-msg feedback-wrong";
+                feedback.className = "feedback-box feedback-error";
+                feedback.style.display = "block";
                 updateVigStats();
                 tg.HapticFeedback.notificationOccurred('error');
-                if(state.lives <= 0) gameOver();
+                if(state.lives <= 0) showGameOver();
             }
         }
 
         function updateVigStats() {
-            document.getElementById('vig-lives-display').textContent = "❤️".repeat(state.lives);
+            document.getElementById('vig-lives-display').textContent = "❤️".repeat(Math.max(0, state.lives));
             document.getElementById('vig-timer-text').textContent = state.timeLeft;
         }
     </script>
