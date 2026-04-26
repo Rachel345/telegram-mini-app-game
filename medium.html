@@ -216,7 +216,7 @@
                     } else {
                         b.classList.add('wrong');
                         state.lives--;
-                        document.getElementById('atbash-feedback').innerHTML = `❌ Неправильно! Це було: ${state.correctAnswer}`;
+                        document.getElementById('atbash-feedback').innerHTML = `❌ Неправильно! Відповідь: ${state.correctAnswer}`;
                         document.getElementById('atbash-feedback').style.color = "#ef4444";
                     }
                     updateAtbashStats();
@@ -307,7 +307,7 @@
                     
                     const feedback = document.getElementById('vig-feedback');
                     feedback.style.display = "block";
-                    feedback.innerHTML = "⏰ Час вийшов! Спробуй нове слово або подивись відповідь.";
+                    feedback.innerHTML = "⏰ Час вийшов! Уважно переглянь відповідь.";
                     feedback.style.color = "#facc15";
                     
                     document.getElementById('vig-check-btn').style.display = "none";
@@ -358,7 +358,7 @@
                 tg.HapticFeedback?.notificationOccurred?.('error');
                 
                 feedback.style.display = "block";
-                feedback.innerHTML = "❌ Неправильно! Спробуй ще раз або подивись відповідь.";
+                feedback.innerHTML = "❌ Неправильно! Уважно переглянь відповідь.";
                 feedback.style.color = "#ef4444";
                 
                 document.getElementById('vig-check-btn').style.display = "none";
