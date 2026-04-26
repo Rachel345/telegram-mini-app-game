@@ -118,9 +118,11 @@
                 <input type="text" id="vig-answer" placeholder="Введіть результат...">
             </div>
             <div id="vig-feedback" class="feedback-box" style="display:none;"></div>
+            
             <button id="vig-check-btn" class="btn" onclick="checkVigenere()">Перевірити результат</button>
-            <button id="vig-show-ans-btn" class="btn" style="display:none; background: #ef4444;" onclick="showVigenereCorrectAnswer()">Показати правильну відповідь</button>
+            <button id="vig-show-ans-btn" class="btn" style="display:none; background: #ef4444;" onclick="showVigenereSolution()">Показати правильну відповідь</button>
             <button id="vig-next-btn" class="btn" style="display:none; margin-top:10px;" onclick="generateNewVigenereTask()">Наступне слово</button>
+            
             <button class="btn btn-outline" id="hint-btn" onclick="useHint()">Підказка (Таблиця) -10с</button>
         </div>
         <button class="btn btn-exit" onclick="resetToMenu()">Вийти</button>
@@ -244,12 +246,12 @@
             clearInterval(state.timer);
             state.lives = 3; 
             state.score = 0; 
-            state.timeLeft = 60;
             showScreen('vigenere-screen');
             generateNewVigenereTask();
         }
 
         function generateNewVigenereTask() {
+            // Перевірка життів ТУТ (перед новим завданням)
             if(state.lives <= 0) { gameOver(); return; }
             
             const m = WORDS[Math.floor(Math.random()*WORDS.length)].toUpperCase();
@@ -273,10 +275,10 @@
             document.getElementById('vig-answer').value = "";
             document.getElementById('vig-answer').disabled = false;
             document.getElementById('vig-feedback').style.display = "none";
-            document.getElementById('vig-next-btn').style.display = "none";
-            document.getElementById('vig-show-ans-btn').style.display = "none";
+            
             document.getElementById('vig-check-btn').style.display = "block";
-            document.getElementById('vig-check-btn').style.background = ""; // скидаємо колір
+            document.getElementById('vig-show-ans-btn').style.display = "none";
+            document.getElementById('vig-next-btn').style.display = "none";
             document.getElementById('vig-table-area').style.display = "none";
             
             state.hintUsed = false;
@@ -296,24 +298,24 @@
                     clearInterval(state.timer);
                     state.lives--;
                     updateVigStats();
-                    if(state.lives <= 0) {
-                        gameOver();
-                    } else {
-                        generateNewVigenereTask();
-                        const feedback = document.getElementById('vig-feedback');
-                        feedback.style.display = "block";
-                        feedback.innerHTML = "⏰ Час вийшов! Нове слово";
-                        feedback.style.color = "#facc15";
-                    }
+                    
+                    const feedback = document.getElementById('vig-feedback');
+                    feedback.style.display = "block";
+                    feedback.innerHTML = "⏰ Час вийшов! Подивись правильну відповідь.";
+                    feedback.style.color = "#facc15";
+                    
+                    document.getElementById('vig-check-btn').style.display = "none";
+                    document.getElementById('vig-show-ans-btn').style.display = "block";
                 }
             }, 1000);
         }
 
         function buildVigenereTable() {
             const table = document.getElementById('tabula-recta');
-            let html = "<tr><th></th>" + ALPHABET.split('').map(c => `<th>${c}</th>`).join('') + "</tr>";
+            let html = "<tr><th></th>" + ALPHABET.split('').map((c, j) => `<th id="col-h-${j}">${c}</th>`).join('') + "</tr>";
             for(let i=0; i<ALPHABET.length; i++) {
-                html += `<tr><th>${ALPHABET[i]}</th>` + ALPHABET.split('').map((_, j) => `<td id="v-${i}-${j}">${ALPHABET[(i+j)%ALPHABET.length]}</td>`).join('') + "</tr>";
+                html += `<tr><th id="row-h-${i}">${ALPHABET[i]}</th>` + 
+                        ALPHABET.split('').map((_, j) => `<td id="v-${i}-${j}">${ALPHABET[(i+j)%ALPHABET.length]}</td>`).join('') + "</tr>";
             }
             table.innerHTML = html;
         }
@@ -347,48 +349,42 @@
                 updateVigStats();
                 tg.HapticFeedback?.notificationOccurred?.('error');
                 
-                if(state.lives <= 0) { 
-                    gameOver(); 
-                } else {
-                    feedback.style.display = "block";
-                    feedback.innerHTML = "❌ Неправильно! Спробуй ще раз або подивись правильну відповідь.";
-                    feedback.style.color = "#ef4444";
-                    
-                    // Змінюємо кнопку на "Показати правильну відповідь"
-                    document.getElementById('vig-check-btn').style.display = "none";
-                    document.getElementById('vig-show-ans-btn').style.display = "block";
-                }
+                feedback.style.display = "block";
+                feedback.innerHTML = "❌ Неправильно! Спробуй ще раз або подивись правильну відповідь.";
+                feedback.style.color = "#ef4444";
+                
+                document.getElementById('vig-check-btn').style.display = "none";
+                document.getElementById('vig-show-ans-btn').style.display = "block";
             }
         }
 
-        function showVigenereCorrectAnswer() {
+        function showVigenereSolution() {
             clearInterval(state.timer);
-            const feedback = document.getElementById('vig-feedback');
+            const m = document.getElementById('vig-m').value;
+            const k = document.getElementById('vig-k').value;
             
-            // Відображаємо правильну відповідь у полі
             document.getElementById('vig-answer').value = state.correctAnswer;
             document.getElementById('vig-answer').disabled = true;
             
-            // Відкриваємо таблицю
             document.getElementById('vig-table-area').style.display = "block";
             if(document.getElementById('tabula-recta').innerHTML === "") buildVigenereTable();
             
-            // Підсвічуємо перетин (перша літера тексту та ключа)
-            const rowChar = document.getElementById('vig-k').value[0].toLowerCase();
-            const colChar = document.getElementById('vig-m').value[0].toLowerCase();
-            const rowIdx = ALPHABET.indexOf(rowChar);
-            const colIdx = ALPHABET.indexOf(colChar);
+            document.querySelectorAll('.h-cell').forEach(el => el.classList.remove('h-cell'));
             
-            // Скидаємо попередню підсвітку
-            document.querySelectorAll('.h-cell').forEach(td => td.classList.remove('h-cell'));
-            const targetCell = document.getElementById(`v-${rowIdx}-${colIdx}`);
-            if(targetCell) targetCell.classList.add('h-cell');
-
-            // Змінюємо кнопки
+            const rowIdx = ALPHABET.indexOf(m[0].toLowerCase());
+            const colIdx = ALPHABET.indexOf(k[0].toLowerCase());
+            
+            if(rowIdx !== -1 && colIdx !== -1) {
+                document.getElementById(`row-h-${rowIdx}`)?.classList.add('h-cell');
+                document.getElementById(`col-h-${colIdx}`)?.classList.add('h-cell');
+                document.getElementById(`v-${rowIdx}-${colIdx}`)?.classList.add('h-cell');
+            }
+            
             document.getElementById('vig-show-ans-btn').style.display = "none";
             document.getElementById('vig-next-btn').style.display = "block";
             
-            feedback.innerHTML = "Ось правильна відповідь. Вивчайте таблицю!";
+            const feedback = document.getElementById('vig-feedback');
+            feedback.innerHTML = "💡 Вивчіть таблицю та натисніть 'Наступне слово'";
             feedback.style.color = "#2ea6ff";
         }
 
