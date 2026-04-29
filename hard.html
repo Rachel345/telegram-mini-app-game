@@ -59,25 +59,24 @@
             color: #fff; padding: 12px; border-radius: 8px; font-size: 16px; outline: none;
         }
         input[type="text"]:focus { border-color: var(--accent); }
-
-        .slider-wrap { display: flex; align-items: center; gap: 15px; }
-        input[type="range"] { flex: 1; accent-color: var(--accent); }
-        .shift-val { font-weight: bold; color: var(--accent); min-width: 30px; }
+        input[type="text"]:disabled { opacity: 0.5; cursor: not-allowed; }
 
         .btn {
             background: var(--accent); color: #fff; border: none;
             border-radius: 10px; padding: 12px; width: 100%;
             font-weight: bold; cursor: pointer; transition: 0.2s;
+            margin-top: 10px;
         }
         .btn:active { transform: scale(0.98); }
+        .btn:disabled { background: #475569; cursor: not-allowed; }
         .btn-secondary { background: #334155; margin-top: 8px; }
         .btn-check { background: var(--success); font-size: 18px; padding: 16px; margin-top: 20px; }
         
-        .result-preview {
-            background: rgba(0,0,0,0.2); border: 1px dashed #334155;
-            padding: 10px; border-radius: 8px; margin-top: 10px;
-            word-break: break-all; font-family: monospace; font-size: 14px; min-height: 40px;
+        .validation-msg {
+            font-size: 12px; margin-top: 5px; font-weight: bold; min-height: 18px;
         }
+        .text-success { color: var(--success); }
+        .text-error { color: var(--error); }
 
         #timer { font-weight: bold; color: var(--accent); }
         .lives { color: var(--error); font-weight: bold; }
@@ -100,44 +99,43 @@
             <span>⏱️ <span id="timer">02:00</span></span>
         </div>
 
-        <div id="mission-text" class="mission-box">
-            Завантаження місії...
-        </div>
+        <div id="mission-text" class="mission-box">Завантаження місії...</div>
 
         <div class="card">
             <h2 id="mission-title">Місія X</h2>
             
             <div class="input-group">
                 <label>Зашифроване повідомлення:</label>
-                <div id="cipher-text" style="font-size: 18px; font-weight: bold; letter-spacing: 2px; text-align: center; margin: 10px 0;">---</div>
+                <div id="cipher-text" style="font-size: 18px; font-weight: bold; letter-spacing: 2px; text-align: center; margin: 10px 0; color: var(--accent);">---</div>
             </div>
 
             <!-- КРОК 1 -->
             <div id="step-1-ui" class="step-container">
                 <div class="step-title">Крок 1: <span id="step1-name">Шифр</span></div>
-                <div id="step1-controls">
-                    <!-- Сюди динамічно додаються елементи (ключ або слайдер) -->
+                <div id="step1-controls"></div>
+                <div class="input-group">
+                    <label>Ваш результат кроку 1:</label>
+                    <input type="text" id="step1-input" placeholder="Впишіть розшифровку...">
                 </div>
-                <button class="btn" onclick="applyStep(1)">Застосувати крок 1</button>
-                <div id="step1-result" class="result-preview">Очікування...</div>
+                <button id="step1-btn" class="btn" onclick="validateStep(1)">Перевірити крок 1</button>
+                <div id="step1-msg" class="validation-msg"></div>
             </div>
 
             <!-- КРОК 2 -->
             <div id="step-2-ui" class="step-container" style="opacity: 0.5; pointer-events: none;">
                 <div class="step-title">Крок 2: <span id="step2-name">Шифр</span></div>
                 <div id="step2-controls"></div>
-                <button class="btn" onclick="applyStep(2)">Застосувати крок 2</button>
-                <div id="step2-result" class="result-preview">Заблоковано</div>
-            </div>
-
-            <div class="input-group">
-                <label>Фінальна відповідь:</label>
-                <input type="text" id="final-answer" placeholder="Введіть результат...">
+                <div class="input-group">
+                    <label>Ваш результат кроку 2:</label>
+                    <input type="text" id="step2-input" placeholder="Впишіть розшифровку...">
+                </div>
+                <button id="step2-btn" class="btn" onclick="validateStep(2)">Перевірити крок 2</button>
+                <div id="step2-msg" class="validation-msg"></div>
             </div>
 
             <div id="feedback" class="feedback"></div>
 
-            <button id="check-btn" class="btn btn-check" onclick="checkFinalResult()">ПЕРЕВІРИТИ РЕЗУЛЬТАТ</button>
+            <button id="check-btn" class="btn btn-check" style="display:none;" onclick="completeMission()">ЗАВЕРШИТИ МІСІЮ</button>
             <button id="next-btn" class="btn btn-check" style="display:none;" onclick="startNewMission()">НАСТУПНА МІСІЯ</button>
             
             <button class="btn btn-secondary" onclick="window.location.href='index.html'">В МЕНЮ</button>
@@ -164,9 +162,10 @@
             timer: null,
             originalWord: "",
             cipheredWord: "",
-            step1Data: "",
-            step2Data: "",
-            currentStep: 1
+            correctStep1: "",
+            correctStep2: "",
+            step1Passed: false,
+            step2Passed: false
         };
 
         const MISSIONS = [
@@ -184,15 +183,10 @@
             },
             {
                 title: "Місія 3: Віженер -> Цезар",
-                text: "Операція 'Тінь': Найвищий рівень секретності! Використай ключ 'ТРИЗУБ', а потім посунь результат вперед.",
+                text: "Операція 'Тінь': Найвищий рівень секретності! Використай ключ 'ТРИЗУБ', а потім посунь результат назад.",
                 steps: ["vigenere", "caesar"],
                 key: "ТРИЗУБ",
-                shift: 3
-            },
-            {
-                title: "Місія 4: Атбаш -> Атбаш",
-                text: "Схоже, вони хотіли нас заплутати довгим реченням і подвійним віддзеркаленням. Розшифруй це!",
-                steps: ["atbash", "atbash"]
+                shift: -3
             }
         ];
 
@@ -234,144 +228,136 @@
 
         // --- ГРА ---
         function startNewMission() {
-    if (gameState.currentMissionIdx >= MISSIONS.length) {
-        alert("Вітаємо! Ви пройшли всі місії!");
-        window.location.href = 'index.html';
-        return;
-    }
+            if (gameState.currentMissionIdx >= MISSIONS.length) {
+                alert("Вітаємо! Ви пройшли всі місії!");
+                window.location.href = 'index.html';
+                return;
+            }
 
-    const m = MISSIONS[gameState.currentMissionIdx];
-    gameState.originalWord = WORDS[Math.floor(Math.random() * WORDS.length)].toUpperCase();
-    
-    let temp = gameState.originalWord;
-    
-    // Крок 2 (зворотний порядок для шифрування)
-    if (m.steps[1] === "vigenere") temp = runVigenere(temp, m.key, false);
-    if (m.steps[1] === "caesar") temp = runCaesar(temp, m.shift);
-    if (m.steps[1] === "atbash") temp = runAtbash(temp);
+            const m = MISSIONS[gameState.currentMissionIdx];
+            gameState.originalWord = WORDS[Math.floor(Math.random() * WORDS.length)].toUpperCase();
+            
+            // ГЕНЕРУЄМО ПРАВИЛЬНІ ВІДПОВІДІ (Шлях дешифрування)
+            // Спочатку створюємо зашифроване слово (шлях шифрування 0 -> 1)
+            let encrypted = gameState.originalWord;
+            // Крок 2
+            if (m.steps[1] === "vigenere") encrypted = runVigenere(encrypted, m.key, false);
+            if (m.steps[1] === "caesar") encrypted = runCaesar(encrypted, m.shift);
+            if (m.steps[1] === "atbash") encrypted = runAtbash(encrypted);
+            // Крок 1
+            if (m.steps[0] === "vigenere") encrypted = runVigenere(encrypted, m.key, false);
+            if (m.steps[0] === "caesar") encrypted = runCaesar(encrypted, m.shift);
+            if (m.steps[0] === "atbash") encrypted = runAtbash(encrypted);
 
-    // Крок 1
-    if (m.steps[0] === "vigenere") temp = runVigenere(temp, m.key, false);
-    if (m.steps[0] === "caesar") temp = runCaesar(temp, m.shift);
-    if (m.steps[0] === "atbash") temp = runAtbash(temp);
+            gameState.cipheredWord = encrypted;
 
-    gameState.cipheredWord = temp;
-    gameState.currentStep = 1;
+            // Тепер проміжні відповіді для розшифрування
+            // Правильний крок 1 (дешифруємо крок 1)
+            let s1 = encrypted;
+            if (m.steps[0] === "vigenere") s1 = runVigenere(s1, m.key, true);
+            if (m.steps[0] === "caesar") s1 = runCaesar(s1, -m.shift); // зворотний зсув
+            if (m.steps[0] === "atbash") s1 = runAtbash(s1);
+            gameState.correctStep1 = s1;
 
-    document.getElementById('mission-title').textContent = m.title;
-    
-    // Відображаємо ключ у тексті, якщо він є в місії
-    let displayMsg = m.text;
-    if (m.key) displayMsg = displayMsg.replace("ключем", `ключем "${m.key}"`);
-    document.getElementById('mission-text').textContent = displayMsg;
+            gameState.correctStep2 = gameState.originalWord;
 
-    document.getElementById('cipher-text').textContent = gameState.cipheredWord;
-    document.getElementById('step1-name').textContent = m.steps[0].toUpperCase();
-    document.getElementById('step2-name').textContent = m.steps[1].toUpperCase();
-    
-    setupStepUI(1, m.steps[0]);
-    setupStepUI(2, m.steps[1]);
+            // UI
+            gameState.step1Passed = false;
+            gameState.step2Passed = false;
+            
+            document.getElementById('mission-title').textContent = m.title;
+            let displayMsg = m.text;
+            if (m.key) displayMsg = displayMsg.replace("ключем", `ключем "${m.key}"`);
+            if (m.shift) displayMsg += ` (Зсув: ${m.shift})`;
+            document.getElementById('mission-text').textContent = displayMsg;
+            document.getElementById('cipher-text').textContent = gameState.cipheredWord;
+            
+            document.getElementById('step1-name').textContent = m.steps[0].toUpperCase();
+            document.getElementById('step2-name').textContent = m.steps[1].toUpperCase();
+            
+            setupStepUI(1, m.steps[0]);
+            setupStepUI(2, m.steps[1]);
 
-    document.getElementById('step-2-ui').style.opacity = "0.5";
-    document.getElementById('step-2-ui').style.pointerEvents = "none";
-    document.getElementById('step1-result').textContent = "Очікування...";
-    document.getElementById('step2-result').textContent = "Заблоковано";
-    document.getElementById('final-answer').value = "";
-    document.getElementById('feedback').style.display = "none";
-    document.getElementById('next-btn').style.display = "none";
-    document.getElementById('check-btn').style.display = "block";
+            // Скидання полів
+            document.getElementById('step1-input').value = "";
+            document.getElementById('step1-input').disabled = false;
+            document.getElementById('step1-btn').disabled = false;
+            document.getElementById('step1-msg').textContent = "";
+            
+            document.getElementById('step-2-ui').style.opacity = "0.5";
+            document.getElementById('step-2-ui').style.pointerEvents = "none";
+            document.getElementById('step2-input').value = "";
+            document.getElementById('step2-msg').textContent = "";
+            
+            document.getElementById('check-btn').style.display = "none";
+            document.getElementById('next-btn').style.display = "none";
+            document.getElementById('feedback').style.display = "none";
 
-    resetTimer();
-}
-function setupStepUI(stepNum, type) {
-    const container = document.getElementById(`step${stepNum}-controls`);
-    container.innerHTML = ""; 
+            resetTimer();
+        }
 
-    if (type === "vigenere") {
-        container.innerHTML = `
-            <div class="input-group" style="margin-top: 10px;">
-                <label>Ключ:</label>
-                <input type="text" id="step${stepNum}-key" placeholder="Введіть ключ..." 
-                    style="width:100%; background:rgba(0,0,0,0.3); border:1px solid #334155; color:#fff; padding:12px; border-radius:8px;">
-            </div>`;
-    } else if (type === "caesar") {
-        container.innerHTML = `
-            <label>Зсув:</label>
-            <div class="slider-wrap">
-                <input type="range" id="step${stepNum}-shift" min="-10" max="10" value="0" 
-                    oninput="document.getElementById('s${stepNum}-val').textContent = (this.value > 0 ? '+' : '') + this.value">
-                <span class="shift-val" id="s${stepNum}-val">0</span>
-            </div>`;
-    } else {
-        container.innerHTML = `<p style="font-size:12px; opacity:0.6; margin-bottom: 10px;">Шифр Атбаш не потребує ключів</p>`;
-    }
-}
+        function setupStepUI(stepNum, type) {
+            const container = document.getElementById(`step${stepNum}-controls`);
+            container.innerHTML = "";
+            if (type === "vigenere") {
+                container.innerHTML = `<label>Підказка: Ключ вказано в описі місії.</label>`;
+            } else if (type === "caesar") {
+                container.innerHTML = `<label>Підказка: Зсув вказано в описі місії.</label>`;
+            } else {
+                container.innerHTML = `<p style="font-size:12px; opacity:0.6;">Атбаш: А->Я, Б->Ю...</p>`;
+            }
+        }
 
-function applyStep(stepNum) {
-    const m = MISSIONS[gameState.currentMissionIdx];
-    const type = m.steps[stepNum - 1];
-    let inputContent = (stepNum === 1) ? gameState.cipheredWord : gameState.step1Data;
-    let result = "";
+        function validateStep(stepNum) {
+            const userVal = document.getElementById(`step${stepNum}-input`).value.trim().toUpperCase();
+            const msg = document.getElementById(`step${stepNum}-msg`);
+            const target = (stepNum === 1) ? gameState.correctStep1 : gameState.correctStep2;
 
-    if (type === "atbash") {
-        result = runAtbash(inputContent);
-    } else if (type === "caesar") {
-        let s = parseInt(document.getElementById(`step${stepNum}-shift`).value);
-        result = runCaesar(inputContent, s);
-    } else if (type === "vigenere") {
-        let k = document.getElementById(`step${stepNum}-key`).value;
-        if (!k) { alert("Введіть ключ!"); return; }
-        // ЗАВЖДИ РОЗШИФРОВУЄМО ТУТ
-        result = runVigenere(inputContent, k, true); 
-    }
-
-    document.getElementById(`step${stepNum}-result`).textContent = result;
-    
-    if (stepNum === 1) {
-        gameState.step1Data = result;
-        document.getElementById('step-2-ui').style.opacity = "1";
-        document.getElementById('step-2-ui').style.pointerEvents = "all";
-    } else {
-        gameState.step2Data = result;
-        document.getElementById('final-answer').value = result;
-    }
-}
-
-        function checkFinalResult() {
-            const userAns = document.getElementById('final-answer').value.trim().toUpperCase();
-            const feedback = document.getElementById('feedback');
-            feedback.style.display = "block";
-
-            if (userAns === gameState.originalWord) {
-                clearInterval(gameState.timer);
-                feedback.textContent = "✅ МІСІЯ ВИКОНАНА! +10 ⭐";
-                feedback.style.background = "rgba(34, 197, 94, 0.2)";
-                feedback.style.color = "var(--success)";
-                document.getElementById('check-btn').style.display = "none";
-                document.getElementById('next-btn').style.display = "block";
-                gameState.currentMissionIdx++;
+            if (userVal === target) {
+                msg.textContent = "✅ Правильно!";
+                msg.className = "validation-msg text-success";
+                document.getElementById(`step${stepNum}-input`).disabled = true;
+                document.getElementById(`step${stepNum}-btn`).disabled = true;
+                
+                if (stepNum === 1) {
+                    gameState.step1Passed = true;
+                    document.getElementById('step-2-ui').style.opacity = "1";
+                    document.getElementById('step-2-ui').style.pointerEvents = "all";
+                } else {
+                    gameState.step2Passed = true;
+                    document.getElementById('check-btn').style.display = "block";
+                }
             } else {
                 gameState.lives--;
                 document.getElementById('lives-count').textContent = gameState.lives;
-                feedback.textContent = "❌ ПОМИЛКА! Текст не збігається.";
-                feedback.style.background = "rgba(239, 68, 68, 0.2)";
-                feedback.style.color = "var(--error)";
+                msg.textContent = "❌ Неправильно. Спробуйте ще раз!";
+                msg.className = "validation-msg text-error";
                 if (gameState.lives <= 0) gameOver();
             }
         }
 
+        function completeMission() {
+            clearInterval(gameState.timer);
+            const feedback = document.getElementById('feedback');
+            feedback.style.display = "block";
+            feedback.textContent = "✅ МІСІЯ ЗАВЕРШЕНА! +10 ⭐";
+            feedback.style.background = "rgba(34, 197, 94, 0.2)";
+            feedback.style.color = "var(--success)";
+            
+            document.getElementById('check-btn').style.display = "none";
+            document.getElementById('next-btn').style.display = "block";
+            gameState.currentMissionIdx++;
+        }
+
         function resetTimer() {
             clearInterval(gameState.timer);
-            gameState.timeLeft = 120;
+            gameState.timeLeft = 180; // Збільшив до 3 хв, бо вводити вручну довше
             gameState.timer = setInterval(() => {
                 gameState.timeLeft--;
                 let m = Math.floor(gameState.timeLeft / 60);
                 let s = gameState.timeLeft % 60;
                 document.getElementById('timer').textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-                if (gameState.timeLeft <= 0) {
-                    clearInterval(gameState.timer);
-                    gameOver();
-                }
+                if (gameState.timeLeft <= 0) gameOver();
             }, 1000);
         }
 
@@ -382,7 +368,6 @@ function applyStep(stepNum) {
             document.getElementById('final-mission').textContent = gameState.currentMissionIdx + 1;
         }
 
-        // Початок гри
         startNewMission();
     </script>
 </body>
