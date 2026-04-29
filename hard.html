@@ -283,6 +283,29 @@
 
     resetTimer();
 }
+function setupStepUI(stepNum, type) {
+    const container = document.getElementById(`step${stepNum}-controls`);
+    container.innerHTML = ""; 
+
+    if (type === "vigenere") {
+        container.innerHTML = `
+            <div class="input-group" style="margin-top: 10px;">
+                <label>Ключ:</label>
+                <input type="text" id="step${stepNum}-key" placeholder="Введіть ключ..." 
+                    style="width:100%; background:rgba(0,0,0,0.3); border:1px solid #334155; color:#fff; padding:12px; border-radius:8px;">
+            </div>`;
+    } else if (type === "caesar") {
+        container.innerHTML = `
+            <label>Зсув:</label>
+            <div class="slider-wrap">
+                <input type="range" id="step${stepNum}-shift" min="-10" max="10" value="0" 
+                    oninput="document.getElementById('s${stepNum}-val').textContent = (this.value > 0 ? '+' : '') + this.value">
+                <span class="shift-val" id="s${stepNum}-val">0</span>
+            </div>`;
+    } else {
+        container.innerHTML = `<p style="font-size:12px; opacity:0.6; margin-bottom: 10px;">Шифр Атбаш не потребує ключів</p>`;
+    }
+}
 
 function applyStep(stepNum) {
     const m = MISSIONS[gameState.currentMissionIdx];
