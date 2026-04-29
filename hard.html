@@ -234,97 +234,85 @@
 
         // --- ГРА ---
         function startNewMission() {
-            if (gameState.currentMissionIdx >= MISSIONS.length) {
-                alert("Вітаємо! Ви пройшли всі місії!");
-                window.location.href = 'index.html';
-                return;
-            }
+    if (gameState.currentMissionIdx >= MISSIONS.length) {
+        alert("Вітаємо! Ви пройшли всі місії!");
+        window.location.href = 'index.html';
+        return;
+    }
 
-            const m = MISSIONS[gameState.currentMissionIdx];
-            gameState.originalWord = WORDS[Math.floor(Math.random() * WORDS.length)].toUpperCase();
-            
-            // Створюємо зашифроване слово (зворотний процес)
-            let temp = gameState.originalWord;
-            // Місії виконуються Step 1 -> Step 2. Шифрування було Step 2 -> Step 1.
-            if (m.steps[1] === "vigenere") temp = runVigenere(temp, m.key);
-            if (m.steps[1] === "caesar") temp = runCaesar(temp, m.shift);
-            if (m.steps[1] === "atbash") temp = runAtbash(temp);
+    const m = MISSIONS[gameState.currentMissionIdx];
+    gameState.originalWord = WORDS[Math.floor(Math.random() * WORDS.length)].toUpperCase();
+    
+    let temp = gameState.originalWord;
+    
+    // Крок 2 (зворотний порядок для шифрування)
+    if (m.steps[1] === "vigenere") temp = runVigenere(temp, m.key, false);
+    if (m.steps[1] === "caesar") temp = runCaesar(temp, m.shift);
+    if (m.steps[1] === "atbash") temp = runAtbash(temp);
 
-            if (m.steps[0] === "vigenere") temp = runVigenere(temp, m.key);
-            if (m.steps[0] === "caesar") temp = runCaesar(temp, m.shift);
-            if (m.steps[0] === "atbash") temp = runAtbash(temp);
+    // Крок 1
+    if (m.steps[0] === "vigenere") temp = runVigenere(temp, m.key, false);
+    if (m.steps[0] === "caesar") temp = runCaesar(temp, m.shift);
+    if (m.steps[0] === "atbash") temp = runAtbash(temp);
 
-            gameState.cipheredWord = temp;
-            gameState.currentStep = 1;
+    gameState.cipheredWord = temp;
+    gameState.currentStep = 1;
 
-            // Оновлення UI
-            document.getElementById('mission-title').textContent = m.title;
-            document.getElementById('mission-text').textContent = m.text;
-            document.getElementById('cipher-text').textContent = gameState.cipheredWord;
-            document.getElementById('step1-name').textContent = m.steps[0].toUpperCase();
-            document.getElementById('step2-name').textContent = m.steps[1].toUpperCase();
-            
-            setupStepUI(1, m.steps[0]);
-            setupStepUI(2, m.steps[1]);
+    document.getElementById('mission-title').textContent = m.title;
+    
+    // Відображаємо ключ у тексті, якщо він є в місії
+    let displayMsg = m.text;
+    if (m.key) displayMsg = displayMsg.replace("ключем", `ключем "${m.key}"`);
+    document.getElementById('mission-text').textContent = displayMsg;
 
-            // Скидання кроків
-            document.getElementById('step-2-ui').style.opacity = "0.5";
-            document.getElementById('step-2-ui').style.pointerEvents = "none";
-            document.getElementById('step1-result').textContent = "Очікування...";
-            document.getElementById('step2-result').textContent = "Заблоковано";
-            document.getElementById('final-answer').value = "";
-            document.getElementById('feedback').style.display = "none";
-            document.getElementById('next-btn').style.display = "none";
-            document.getElementById('check-btn').style.display = "block";
+    document.getElementById('cipher-text').textContent = gameState.cipheredWord;
+    document.getElementById('step1-name').textContent = m.steps[0].toUpperCase();
+    document.getElementById('step2-name').textContent = m.steps[1].toUpperCase();
+    
+    setupStepUI(1, m.steps[0]);
+    setupStepUI(2, m.steps[1]);
 
-            resetTimer();
-        }
+    document.getElementById('step-2-ui').style.opacity = "0.5";
+    document.getElementById('step-2-ui').style.pointerEvents = "none";
+    document.getElementById('step1-result').textContent = "Очікування...";
+    document.getElementById('step2-result').textContent = "Заблоковано";
+    document.getElementById('final-answer').value = "";
+    document.getElementById('feedback').style.display = "none";
+    document.getElementById('next-btn').style.display = "none";
+    document.getElementById('check-btn').style.display = "block";
 
-        function setupStepUI(stepNum, type) {
-            const container = document.getElementById(`step${stepNum}-controls`);
-            container.innerHTML = "";
-            if (type === "vigenere") {
-                container.innerHTML = `<label>Ключ:</label><input type="text" id="step${stepNum}-key" placeholder="Введіть ключ...">`;
-            } else if (type === "caesar") {
-                container.innerHTML = `
-                    <label>Зсув:</label>
-                    <div class="slider-wrap">
-                        <input type="range" id="step${stepNum}-shift" min="-10" max="10" value="0" oninput="document.getElementById('s${stepNum}-val').textContent = (this.value > 0 ? '+' : '') + this.value">
-                        <span class="shift-val" id="s${stepNum}-val">0</span>
-                    </div>`;
-            } else {
-                container.innerHTML = `<p style="font-size:12px; opacity:0.6;">Шифр Атбаш не потребує ключів</p>`;
-            }
-        }
+    resetTimer();
+}
 
-        function applyStep(stepNum) {
-            const m = MISSIONS[gameState.currentMissionIdx];
-            const type = m.steps[stepNum - 1];
-            let inputContent = (stepNum === 1) ? gameState.cipheredWord : gameState.step1Data;
-            let result = "";
+function applyStep(stepNum) {
+    const m = MISSIONS[gameState.currentMissionIdx];
+    const type = m.steps[stepNum - 1];
+    let inputContent = (stepNum === 1) ? gameState.cipheredWord : gameState.step1Data;
+    let result = "";
 
-            if (type === "atbash") {
-                result = runAtbash(inputContent);
-            } else if (type === "caesar") {
-                let s = parseInt(document.getElementById(`step${stepNum}-shift`).value);
-                result = runCaesar(inputContent, s);
-            } else if (type === "vigenere") {
-                let k = document.getElementById(`step${stepNum}-key`).value;
-                if (!k) { alert("Введіть ключ!"); return; }
-                result = runVigenere(inputContent, k, true); // Дешифруємо
-            }
+    if (type === "atbash") {
+        result = runAtbash(inputContent);
+    } else if (type === "caesar") {
+        let s = parseInt(document.getElementById(`step${stepNum}-shift`).value);
+        result = runCaesar(inputContent, s);
+    } else if (type === "vigenere") {
+        let k = document.getElementById(`step${stepNum}-key`).value;
+        if (!k) { alert("Введіть ключ!"); return; }
+        // ЗАВЖДИ РОЗШИФРОВУЄМО ТУТ
+        result = runVigenere(inputContent, k, true); 
+    }
 
-            document.getElementById(`step${stepNum}-result`).textContent = result;
-            
-            if (stepNum === 1) {
-                gameState.step1Data = result;
-                document.getElementById('step-2-ui').style.opacity = "1";
-                document.getElementById('step-2-ui').style.pointerEvents = "all";
-            } else {
-                gameState.step2Data = result;
-                document.getElementById('final-answer').value = result;
-            }
-        }
+    document.getElementById(`step${stepNum}-result`).textContent = result;
+    
+    if (stepNum === 1) {
+        gameState.step1Data = result;
+        document.getElementById('step-2-ui').style.opacity = "1";
+        document.getElementById('step-2-ui').style.pointerEvents = "all";
+    } else {
+        gameState.step2Data = result;
+        document.getElementById('final-answer').value = result;
+    }
+}
 
         function checkFinalResult() {
             const userAns = document.getElementById('final-answer').value.trim().toUpperCase();
