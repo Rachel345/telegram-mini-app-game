@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Складний рівень - Кріпто-тренажер</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent: #38bdf8;
+            --accent-dark: #0369a1;
+            --text: #f1f5f9;
+            --success: #22c55e;
+            --error: #ef4444;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0; padding: 16px; min-height: 100vh;
+        }
+
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px; padding: 10px; background: var(--card-bg); border-radius: 12px;
+        }
+
+        .mission-box {
+            background: rgba(56, 189, 248, 0.1);
+            border: 1px solid var(--accent);
+            border-radius: 12px; padding: 16px; margin-bottom: 20px;
+            font-style: italic; line-height: 1.4; font-size: 14px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px; padding: 20px; width: 100%;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        h2 { text-align: center; color: var(--accent); margin-top: 0; font-size: 20px; }
+
+        .step-container {
+            border-left: 2px solid var(--accent);
+            padding-left: 15px; margin-bottom: 20px; position: relative;
+        }
+
+        .step-title { font-size: 14px; font-weight: bold; color: var(--accent); margin-bottom: 8px; text-transform: uppercase; }
+
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; font-size: 12px; opacity: 0.7; margin-bottom: 5px; }
+        
+        input[type="text"] {
+            width: 100%; background: rgba(0,0,0,0.3); border: 1px solid #334155;
+            color: #fff; padding: 12px; border-radius: 8px; font-size: 16px; outline: none;
+        }
+        input[type="text"]:focus { border-color: var(--accent); }
+
+        .slider-wrap { display: flex; align-items: center; gap: 15px; }
+        input[type="range"] { flex: 1; accent-color: var(--accent); }
+        .shift-val { font-weight: bold; color: var(--accent); min-width: 30px; }
+
+        .btn {
+            background: var(--accent); color: #fff; border: none;
+            border-radius: 10px; padding: 12px; width: 100%;
+            font-weight: bold; cursor: pointer; transition: 0.2s;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn-secondary { background: #334155; margin-top: 8px; }
+        .btn-check { background: var(--success); font-size: 18px; padding: 16px; margin-top: 20px; }
+        
+        .result-preview {
+            background: rgba(0,0,0,0.2); border: 1px dashed #334155;
+            padding: 10px; border-radius: 8px; margin-top: 10px;
+            word-break: break-all; font-family: monospace; font-size: 14px; min-height: 40px;
+        }
+
+        #timer { font-weight: bold; color: var(--accent); }
+        .lives { color: var(--error); font-weight: bold; }
+
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        .feedback {
+            text-align: center; font-weight: bold; margin-top: 15px;
+            padding: 10px; border-radius: 8px; display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-screen" class="screen active">
+        <div class="header">
+            <span class="lives">❤️ <span id="lives-count">3</span></span>
+            <span style="font-weight: bold;">Складний рівень</span>
+            <span>⏱️ <span id="timer">02:00</span></span>
+        </div>
+
+        <div id="mission-text" class="mission-box">
+            Завантаження місії...
+        </div>
+
+        <div class="card">
+            <h2 id="mission-title">Місія X</h2>
+            
+            <div class="input-group">
+                <label>Зашифроване повідомлення:</label>
+                <div id="cipher-text" style="font-size: 18px; font-weight: bold; letter-spacing: 2px; text-align: center; margin: 10px 0;">---</div>
+            </div>
+
+            <!-- КРОК 1 -->
+            <div id="step-1-ui" class="step-container">
+                <div class="step-title">Крок 1: <span id="step1-name">Шифр</span></div>
+                <div id="step1-controls">
+                    <!-- Сюди динамічно додаються елементи (ключ або слайдер) -->
+                </div>
+                <button class="btn" onclick="applyStep(1)">Застосувати крок 1</button>
+                <div id="step1-result" class="result-preview">Очікування...</div>
+            </div>
+
+            <!-- КРОК 2 -->
+            <div id="step-2-ui" class="step-container" style="opacity: 0.5; pointer-events: none;">
+                <div class="step-title">Крок 2: <span id="step2-name">Шифр</span></div>
+                <div id="step2-controls"></div>
+                <button class="btn" onclick="applyStep(2)">Застосувати крок 2</button>
+                <div id="step2-result" class="result-preview">Заблоковано</div>
+            </div>
+
+            <div class="input-group">
+                <label>Фінальна відповідь:</label>
+                <input type="text" id="final-answer" placeholder="Введіть результат...">
+            </div>
+
+            <div id="feedback" class="feedback"></div>
+
+            <button id="check-btn" class="btn btn-check" onclick="checkFinalResult()">ПЕРЕВІРИТИ РЕЗУЛЬТАТ</button>
+            <button id="next-btn" class="btn btn-check" style="display:none;" onclick="startNewMission()">НАСТУПНА МІСІЯ</button>
+            
+            <button class="btn btn-secondary" onclick="window.location.href='index.html'">В МЕНЮ</button>
+        </div>
+    </div>
+
+    <div id="game-over-screen" class="screen">
+        <div class="card" style="text-align: center;">
+            <h1 style="color: var(--error);">ГРУ ЗАВЕРШЕНО</h1>
+            <p>Ви дійшли до місії: <span id="final-mission">1</span></p>
+            <button class="btn" onclick="location.reload()">СПРОБУВАТИ ЗНОВУ</button>
+            <button class="btn btn-secondary" onclick="window.location.href='index.html'">В МЕНЮ</button>
+        </div>
+    </div>
+
+    <script>
+        const ALPHABET = "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя";
+        const WORDS = ["блокчейн", "кібербезпека", "алгоритми", "шифрування", "протокол", "дешифратор", "технології"];
+        
+        let gameState = {
+            currentMissionIdx: 0,
+            lives: 3,
+            timeLeft: 120,
+            timer: null,
+            originalWord: "",
+            cipheredWord: "",
+            step1Data: "",
+            step2Data: "",
+            currentStep: 1
+        };
+
+        const MISSIONS = [
+            {
+                title: "Місія 1: Атбаш -> Віженер",
+                text: "Перехоплено наказ! Повідомлення віддзеркалено і заблоковано ключем. Поверни текст у норму!",
+                steps: ["atbash", "vigenere"],
+                key: "КОД"
+            },
+            {
+                title: "Місія 2: Цезар -> Атбаш",
+                text: "Ворог хитрий: спочатку вони використали зсув Цезаря, а потім віддзеркалили результат. Знайди істину!",
+                steps: ["caesar", "atbash"],
+                shift: 5
+            },
+            {
+                title: "Місія 3: Віженер -> Цезар",
+                text: "Операція 'Тінь': Найвищий рівень секретності! Використай ключ 'ТРИЗУБ', а потім посунь результат вперед.",
+                steps: ["vigenere", "caesar"],
+                key: "ТРИЗУБ",
+                shift: 3
+            },
+            {
+                title: "Місія 4: Атбаш -> Атбаш",
+                text: "Схоже, вони хотіли нас заплутати довгим реченням і подвійним віддзеркаленням. Розшифруй це!",
+                steps: ["atbash", "atbash"]
+            }
+        ];
+
+        // --- ЛОГІКА ШИФРІВ ---
+        function runAtbash(text) {
+            return text.toLowerCase().split('').map(c => {
+                let i = ALPHABET.indexOf(c);
+                return i < 0 ? c : ALPHABET[ALPHABET.length - 1 - i];
+            }).join('').toUpperCase();
+        }
+
+        function runCaesar(text, shift) {
+            return text.toLowerCase().split('').map(c => {
+                let i = ALPHABET.indexOf(c);
+                if (i < 0) return c;
+                let newIdx = (i + shift) % ALPHABET.length;
+                if (newIdx < 0) newIdx += ALPHABET.length;
+                return ALPHABET[newIdx];
+            }).join('').toUpperCase();
+        }
+
+        function runVigenere(text, key, decrypt = false) {
+            let result = "";
+            let kIdx = 0;
+            const t = text.toLowerCase();
+            const k = key.toLowerCase();
+            for (let i = 0; i < t.length; i++) {
+                let ti = ALPHABET.indexOf(t[i]);
+                if (ti < 0) { result += t[i]; continue; }
+                let ki = ALPHABET.indexOf(k[kIdx % k.length]);
+                let ni = decrypt ? (ti - ki) : (ti + ki);
+                ni = ni % ALPHABET.length;
+                if (ni < 0) ni += ALPHABET.length;
+                result += ALPHABET[ni];
+                kIdx++;
+            }
+            return result.toUpperCase();
+        }
+
+        // --- ГРА ---
+        function startNewMission() {
+            if (gameState.currentMissionIdx >= MISSIONS.length) {
+                alert("Вітаємо! Ви пройшли всі місії!");
+                window.location.href = 'index.html';
+                return;
+            }
+
+            const m = MISSIONS[gameState.currentMissionIdx];
+            gameState.originalWord = WORDS[Math.floor(Math.random() * WORDS.length)].toUpperCase();
+            
+            // Створюємо зашифроване слово (зворотний процес)
+            let temp = gameState.originalWord;
+            // Місії виконуються Step 1 -> Step 2. Шифрування було Step 2 -> Step 1.
+            if (m.steps[1] === "vigenere") temp = runVigenere(temp, m.key);
+            if (m.steps[1] === "caesar") temp = runCaesar(temp, m.shift);
+            if (m.steps[1] === "atbash") temp = runAtbash(temp);
+
+            if (m.steps[0] === "vigenere") temp = runVigenere(temp, m.key);
+            if (m.steps[0] === "caesar") temp = runCaesar(temp, m.shift);
+            if (m.steps[0] === "atbash") temp = runAtbash(temp);
+
+            gameState.cipheredWord = temp;
+            gameState.currentStep = 1;
+
+            // Оновлення UI
+            document.getElementById('mission-title').textContent = m.title;
+            document.getElementById('mission-text').textContent = m.text;
+            document.getElementById('cipher-text').textContent = gameState.cipheredWord;
+            document.getElementById('step1-name').textContent = m.steps[0].toUpperCase();
+            document.getElementById('step2-name').textContent = m.steps[1].toUpperCase();
+            
+            setupStepUI(1, m.steps[0]);
+            setupStepUI(2, m.steps[1]);
+
+            // Скидання кроків
+            document.getElementById('step-2-ui').style.opacity = "0.5";
+            document.getElementById('step-2-ui').style.pointerEvents = "none";
+            document.getElementById('step1-result').textContent = "Очікування...";
+            document.getElementById('step2-result').textContent = "Заблоковано";
+            document.getElementById('final-answer').value = "";
+            document.getElementById('feedback').style.display = "none";
+            document.getElementById('next-btn').style.display = "none";
+            document.getElementById('check-btn').style.display = "block";
+
+            resetTimer();
+        }
+
+        function setupStepUI(stepNum, type) {
+            const container = document.getElementById(`step${stepNum}-controls`);
+            container.innerHTML = "";
+            if (type === "vigenere") {
+                container.innerHTML = `<label>Ключ:</label><input type="text" id="step${stepNum}-key" placeholder="Введіть ключ...">`;
+            } else if (type === "caesar") {
+                container.innerHTML = `
+                    <label>Зсув:</label>
+                    <div class="slider-wrap">
+                        <input type="range" id="step${stepNum}-shift" min="-10" max="10" value="0" oninput="document.getElementById('s${stepNum}-val').textContent = (this.value > 0 ? '+' : '') + this.value">
+                        <span class="shift-val" id="s${stepNum}-val">0</span>
+                    </div>`;
+            } else {
+                container.innerHTML = `<p style="font-size:12px; opacity:0.6;">Шифр Атбаш не потребує ключів</p>`;
+            }
+        }
+
+        function applyStep(stepNum) {
+            const m = MISSIONS[gameState.currentMissionIdx];
+            const type = m.steps[stepNum - 1];
+            let inputContent = (stepNum === 1) ? gameState.cipheredWord : gameState.step1Data;
+            let result = "";
+
+            if (type === "atbash") {
+                result = runAtbash(inputContent);
+            } else if (type === "caesar") {
+                let s = parseInt(document.getElementById(`step${stepNum}-shift`).value);
+                result = runCaesar(inputContent, s);
+            } else if (type === "vigenere") {
+                let k = document.getElementById(`step${stepNum}-key`).value;
+                if (!k) { alert("Введіть ключ!"); return; }
+                result = runVigenere(inputContent, k, true); // Дешифруємо
+            }
+
+            document.getElementById(`step${stepNum}-result`).textContent = result;
+            
+            if (stepNum === 1) {
+                gameState.step1Data = result;
+                document.getElementById('step-2-ui').style.opacity = "1";
+                document.getElementById('step-2-ui').style.pointerEvents = "all";
+            } else {
+                gameState.step2Data = result;
+                document.getElementById('final-answer').value = result;
+            }
+        }
+
+        function checkFinalResult() {
+            const userAns = document.getElementById('final-answer').value.trim().toUpperCase();
+            const feedback = document.getElementById('feedback');
+            feedback.style.display = "block";
+
+            if (userAns === gameState.originalWord) {
+                clearInterval(gameState.timer);
+                feedback.textContent = "✅ МІСІЯ ВИКОНАНА! +10 ⭐";
+                feedback.style.background = "rgba(34, 197, 94, 0.2)";
+                feedback.style.color = "var(--success)";
+                document.getElementById('check-btn').style.display = "none";
+                document.getElementById('next-btn').style.display = "block";
+                gameState.currentMissionIdx++;
+            } else {
+                gameState.lives--;
+                document.getElementById('lives-count').textContent = gameState.lives;
+                feedback.textContent = "❌ ПОМИЛКА! Текст не збігається.";
+                feedback.style.background = "rgba(239, 68, 68, 0.2)";
+                feedback.style.color = "var(--error)";
+                if (gameState.lives <= 0) gameOver();
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(gameState.timer);
+            gameState.timeLeft = 120;
+            gameState.timer = setInterval(() => {
+                gameState.timeLeft--;
+                let m = Math.floor(gameState.timeLeft / 60);
+                let s = gameState.timeLeft % 60;
+                document.getElementById('timer').textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                if (gameState.timeLeft <= 0) {
+                    clearInterval(gameState.timer);
+                    gameOver();
+                }
+            }, 1000);
+        }
+
+        function gameOver() {
+            clearInterval(gameState.timer);
+            document.getElementById('game-screen').classList.remove('active');
+            document.getElementById('game-over-screen').classList.add('active');
+            document.getElementById('final-mission').textContent = gameState.currentMissionIdx + 1;
+        }
+
+        // Початок гри
+        startNewMission();
+    </script>
+</body>
+</html>
