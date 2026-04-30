@@ -96,7 +96,7 @@
         <div class="header">
             <span class="lives">❤️ <span id="lives-count">3</span></span>
             <span style="font-weight: bold;">Складний рівень</span>
-            <span>⏱️ <span id="timer">02:00</span></span>
+            <span>⏱️ <span id="timer">03:00</span></span>
         </div>
 
         <div id="mission-text" class="mission-box">Завантаження місії...</div>
@@ -127,9 +127,9 @@
                 <div id="step2-controls"></div>
                 <div class="input-group">
                     <label>Ваш результат кроку 2:</label>
-                    <input type="text" id="step2-input" placeholder="Впишіть розшифровку...">
+                    <input type="text" id="step2-input" placeholder="Впишіть розшифровку..." disabled>
                 </div>
-                <button id="step2-btn" class="btn" onclick="validateStep(2)">Перевірити крок 2</button>
+                <button id="step2-btn" class="btn" onclick="validateStep(2)" disabled>Перевірити крок 2</button>
                 <div id="step2-msg" class="validation-msg"></div>
             </div>
 
@@ -158,7 +158,7 @@
         let gameState = {
             currentMissionIdx: 0,
             lives: 3,
-            timeLeft: 120,
+            timeLeft: 180,
             timer: null,
             originalWord: "",
             cipheredWord: "",
@@ -190,7 +190,6 @@
             }
         ];
 
-        // --- ЛОГІКА ШИФРІВ ---
         function runAtbash(text) {
             return text.toLowerCase().split('').map(c => {
                 let i = ALPHABET.indexOf(c);
@@ -226,7 +225,6 @@
             return result.toUpperCase();
         }
 
-        // --- ГРА ---
         function startNewMission() {
             if (gameState.currentMissionIdx >= MISSIONS.length) {
                 alert("Вітаємо! Ви пройшли всі місії!");
@@ -237,31 +235,25 @@
             const m = MISSIONS[gameState.currentMissionIdx];
             gameState.originalWord = WORDS[Math.floor(Math.random() * WORDS.length)].toUpperCase();
             
-            // ГЕНЕРУЄМО ПРАВИЛЬНІ ВІДПОВІДІ (Шлях дешифрування)
-            // Спочатку створюємо зашифроване слово (шлях шифрування 0 -> 1)
             let encrypted = gameState.originalWord;
-            // Крок 2
             if (m.steps[1] === "vigenere") encrypted = runVigenere(encrypted, m.key, false);
             if (m.steps[1] === "caesar") encrypted = runCaesar(encrypted, m.shift);
             if (m.steps[1] === "atbash") encrypted = runAtbash(encrypted);
-            // Крок 1
+            
             if (m.steps[0] === "vigenere") encrypted = runVigenere(encrypted, m.key, false);
             if (m.steps[0] === "caesar") encrypted = runCaesar(encrypted, m.shift);
             if (m.steps[0] === "atbash") encrypted = runAtbash(encrypted);
 
             gameState.cipheredWord = encrypted;
 
-            // Тепер проміжні відповіді для розшифрування
-            // Правильний крок 1 (дешифруємо крок 1)
             let s1 = encrypted;
             if (m.steps[0] === "vigenere") s1 = runVigenere(s1, m.key, true);
-            if (m.steps[0] === "caesar") s1 = runCaesar(s1, -m.shift); // зворотний зсув
+            if (m.steps[0] === "caesar") s1 = runCaesar(s1, -m.shift);
             if (m.steps[0] === "atbash") s1 = runAtbash(s1);
             gameState.correctStep1 = s1;
 
             gameState.correctStep2 = gameState.originalWord;
 
-            // UI
             gameState.step1Passed = false;
             gameState.step2Passed = false;
             
@@ -278,7 +270,6 @@
             setupStepUI(1, m.steps[0]);
             setupStepUI(2, m.steps[1]);
 
-            // Скидання полів
             document.getElementById('step1-input').value = "";
             document.getElementById('step1-input').disabled = false;
             document.getElementById('step1-btn').disabled = false;
@@ -287,6 +278,8 @@
             document.getElementById('step-2-ui').style.opacity = "0.5";
             document.getElementById('step-2-ui').style.pointerEvents = "none";
             document.getElementById('step2-input').value = "";
+            document.getElementById('step2-input').disabled = true;
+            document.getElementById('step2-btn').disabled = true;
             document.getElementById('step2-msg').textContent = "";
             
             document.getElementById('check-btn').style.display = "none";
@@ -321,8 +314,11 @@
                 
                 if (stepNum === 1) {
                     gameState.step1Passed = true;
-                    document.getElementById('step-2-ui').style.opacity = "1";
-                    document.getElementById('step-2-ui').style.pointerEvents = "all";
+                    const step2UI = document.getElementById('step-2-ui');
+                    step2UI.style.opacity = "1";
+                    step2UI.style.pointerEvents = "all";
+                    document.getElementById('step2-input').disabled = false;
+                    document.getElementById('step2-btn').disabled = false;
                 } else {
                     gameState.step2Passed = true;
                     document.getElementById('check-btn').style.display = "block";
@@ -351,7 +347,7 @@
 
         function resetTimer() {
             clearInterval(gameState.timer);
-            gameState.timeLeft = 180; // Збільшив до 3 хв, бо вводити вручну довше
+            gameState.timeLeft = 180;
             gameState.timer = setInterval(() => {
                 gameState.timeLeft--;
                 let m = Math.floor(gameState.timeLeft / 60);
