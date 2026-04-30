@@ -176,15 +176,15 @@
                 key: "КОД"
             },
             {
-                title: "Місія 2: Цезар -> Атбаш",
+                title: "Місія 2: Атбаш -> Цезар",
                 text: "Ворог хитрий: спочатку вони використали зсув Цезаря, а потім віддзеркалили результат. Знайди істину!",
-                steps: ["caesar", "atbash"],
+                steps: ["atbash", "caesar"],
                 shift: 5
             },
             {
-                title: "Місія 3: Віженер -> Цезар",
+                title: "Місія 3: Цезар -> Віженер",
                 text: "Операція 'Тінь': Найвищий рівень секретності! Використай ключ 'ТРИЗУБ', а потім посунь результат назад.",
-                steps: ["vigenere", "caesar"],
+                steps: ["caesar", "vigenere"],
                 key: "ТРИЗУБ",
                 shift: -3
             }
@@ -260,7 +260,7 @@
             gameState.correctStep1 = s1;
 
             gameState.correctStep2 = gameState.originalWord;
-
+            
             // UI
             gameState.step1Passed = false;
             gameState.step2Passed = false;
