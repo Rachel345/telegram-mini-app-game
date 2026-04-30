@@ -88,12 +88,9 @@
             text-align: center; font-weight: bold; margin-top: 15px;
             padding: 10px; border-radius: 8px; display: none;
         }
-        
-        .result-value {
-            font-size: 24px;
-            color: var(--accent);
-            font-weight: bold;
-            margin: 10px 0;
+
+        .final-stars {
+            font-size: 24px; color: #fbbf24; font-weight: bold; margin: 15px 0;
         }
     </style>
 </head>
@@ -116,7 +113,6 @@
                 <div id="cipher-text" style="font-size: 18px; font-weight: bold; letter-spacing: 2px; text-align: center; margin: 10px 0; color: var(--accent);">---</div>
             </div>
 
-            <!-- КРОК 1 -->
             <div id="step-1-ui" class="step-container">
                 <div class="step-title">Крок 1: <span id="step1-name">Шифр</span></div>
                 <div id="step1-controls"></div>
@@ -128,7 +124,6 @@
                 <div id="step1-msg" class="validation-msg"></div>
             </div>
 
-            <!-- КРОК 2 -->
             <div id="step-2-ui" class="step-container" style="opacity: 0.5; pointer-events: none;">
                 <div class="step-title">Крок 2: <span id="step2-name">Шифр</span></div>
                 <div id="step2-controls"></div>
@@ -151,15 +146,18 @@
 
     <div id="game-over-screen" class="screen">
         <div class="card" style="text-align: center;">
-            <h1 id="end-title" style="color: var(--error);">ГРУ ЗАВЕРШЕНО</h1>
-            <p id="end-status">Ви дійшли до місії: <span id="final-mission">1</span></p>
-            <div class="result-value">Ваш результат: <span id="final-stars">0</span> ⭐</div>
+            <h1 id="final-title" style="color: var(--error);">ГРУ ЗАВЕРШЕНО</h1>
+            <p>Ви дійшли до місії: <span id="final-mission">1</span></p>
+            <div class="final-stars">⭐ +<span id="earned-stars">0</span></div>
             <button class="btn" onclick="location.reload()">СПРОБУВАТИ ЗНОВУ</button>
             <button class="btn btn-secondary" onclick="window.location.href='index.html'">В МЕНЮ</button>
         </div>
     </div>
 
     <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+
         const ALPHABET = "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя";
         const WORDS = ["блокчейн", "кібербезпека", "алгоритми", "шифрування", "протокол", "дешифратор", "технології"];
         
@@ -168,13 +166,13 @@
             lives: 3,
             timeLeft: 180,
             timer: null,
-            stars: 0,
             originalWord: "",
             cipheredWord: "",
             correctStep1: "",
             correctStep2: "",
             step1Passed: false,
-            step2Passed: false
+            step2Passed: false,
+            totalEarnedStars: 0
         };
 
         const MISSIONS = [
@@ -192,12 +190,26 @@
             },
             {
                 title: "Місія 3: Цезар -> Віженер",
-                text: "Операція 'Тінь': Найвищий рівень секретності! Повідомлення було зашифровано у два етапи. Крок 1: зміщено літери на 3 позиції назад — поверни їх на місце (+3). Крок 2: використано ключ 'ТРИЗУБ' — дешифруй отриманий результат.",
+                text: "Операція 'Тінь': Повідомлення було зашифровано у два етапи. Крок 1: зміщено літери на 3 позиції назад — поверни їх на місце (+3). Крок 2: використано ключ 'ТРИЗУБ' — дешифруй отриманий результат.",
                 steps: ["caesar", "vigenere"],
                 key: "ТРИЗУБ",
                 shift: -3
             }
         ];
+
+        async function syncStars(stars) {
+            const userId = tg.initDataUnsafe?.user?.id || 981926714;
+            const url = `https://anyway-art-mustard.ngrok-free.dev/update_stars`;
+            try {
+                await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                    body: JSON.stringify({ user_id: userId, stars: stars })
+                });
+            } catch (error) {
+                console.error('Помилка синхронізації:', error);
+            }
+        }
 
         function runAtbash(text) {
             return text.toLowerCase().split('').map(c => {
@@ -236,7 +248,7 @@
 
         function startNewMission() {
             if (gameState.currentMissionIdx >= MISSIONS.length) {
-                showEndScreen(true);
+                finishGame(true);
                 return;
             }
 
@@ -266,7 +278,10 @@
             gameState.step2Passed = false;
             
             document.getElementById('mission-title').textContent = m.title;
-            document.getElementById('mission-text').textContent = m.text;
+            let displayMsg = m.text;
+            if (m.key) displayMsg = displayMsg.replace("ключем", `ключем "${m.key}"`);
+            if (m.shift && !displayMsg.includes("(+")) displayMsg += ` (Зсув: ${m.shift})`;
+            document.getElementById('mission-text').textContent = displayMsg;
             document.getElementById('cipher-text').textContent = gameState.cipheredWord;
             
             document.getElementById('step1-name').textContent = m.steps[0].toUpperCase();
@@ -333,18 +348,20 @@
                 document.getElementById('lives-count').textContent = gameState.lives;
                 msg.textContent = "❌ Неправильно. Спробуйте ще раз!";
                 msg.className = "validation-msg text-error";
-                if (gameState.lives <= 0) showEndScreen(false);
+                if (gameState.lives <= 0) finishGame(false);
             }
         }
 
         function completeMission() {
             clearInterval(gameState.timer);
-            gameState.stars += 10;
             const feedback = document.getElementById('feedback');
             feedback.style.display = "block";
             feedback.textContent = "✅ МІСІЯ ЗАВЕРШЕНА! +10 ⭐";
             feedback.style.background = "rgba(34, 197, 94, 0.2)";
             feedback.style.color = "var(--success)";
+            
+            gameState.totalEarnedStars += 10;
+            syncStars(10);
             
             document.getElementById('check-btn').style.display = "none";
             document.getElementById('next-btn').style.display = "block";
@@ -359,31 +376,26 @@
                 let m = Math.floor(gameState.timeLeft / 60);
                 let s = gameState.timeLeft % 60;
                 document.getElementById('timer').textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-                if (gameState.timeLeft <= 0) showEndScreen(false);
+                if (gameState.timeLeft <= 0) finishGame(false);
             }, 1000);
         }
 
-        function showEndScreen(isVictory) {
+        function finishGame(victory) {
             clearInterval(gameState.timer);
             document.getElementById('game-screen').classList.remove('active');
             document.getElementById('game-over-screen').classList.add('active');
             
-            const title = document.getElementById('end-title');
-            const status = document.getElementById('end-status');
-            const starsDisplay = document.getElementById('final-stars');
-            const finalMission = document.getElementById('final-mission');
-
-            starsDisplay.textContent = gameState.stars;
-            
-            if (isVictory) {
-                title.textContent = "ВІТАЄМО! ГРУ ЗАВЕРШЕНО";
+            const title = document.getElementById('final-title');
+            if (victory) {
+                title.textContent = "ПЕРЕМОГА!";
                 title.style.color = "var(--success)";
-                status.textContent = "Ви успішно пройшли всі випробування!";
+                document.getElementById('final-mission').textContent = "Всі пройдені!";
             } else {
                 title.textContent = "ГРУ ЗАВЕРШЕНО";
                 title.style.color = "var(--error)";
-                finalMission.textContent = gameState.currentMissionIdx + 1;
+                document.getElementById('final-mission').textContent = gameState.currentMissionIdx + 1;
             }
+            document.getElementById('earned-stars').textContent = gameState.totalEarnedStars;
         }
 
         startNewMission();
