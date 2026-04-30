@@ -88,6 +88,13 @@
             text-align: center; font-weight: bold; margin-top: 15px;
             padding: 10px; border-radius: 8px; display: none;
         }
+        
+        .result-value {
+            font-size: 24px;
+            color: var(--accent);
+            font-weight: bold;
+            margin: 10px 0;
+        }
     </style>
 </head>
 <body>
@@ -144,8 +151,9 @@
 
     <div id="game-over-screen" class="screen">
         <div class="card" style="text-align: center;">
-            <h1 style="color: var(--error);">ГРУ ЗАВЕРШЕНО</h1>
-            <p>Ви дійшли до місії: <span id="final-mission">1</span></p>
+            <h1 id="end-title" style="color: var(--error);">ГРУ ЗАВЕРШЕНО</h1>
+            <p id="end-status">Ви дійшли до місії: <span id="final-mission">1</span></p>
+            <div class="result-value">Ваш результат: <span id="final-stars">0</span> ⭐</div>
             <button class="btn" onclick="location.reload()">СПРОБУВАТИ ЗНОВУ</button>
             <button class="btn btn-secondary" onclick="window.location.href='index.html'">В МЕНЮ</button>
         </div>
@@ -160,6 +168,7 @@
             lives: 3,
             timeLeft: 180,
             timer: null,
+            stars: 0,
             originalWord: "",
             cipheredWord: "",
             correctStep1: "",
@@ -227,8 +236,7 @@
 
         function startNewMission() {
             if (gameState.currentMissionIdx >= MISSIONS.length) {
-                alert("Вітаємо! Ви пройшли всі місії!");
-                window.location.href = 'index.html';
+                showEndScreen(true);
                 return;
             }
 
@@ -258,10 +266,7 @@
             gameState.step2Passed = false;
             
             document.getElementById('mission-title').textContent = m.title;
-            let displayMsg = m.text;
-            if (m.key) displayMsg = displayMsg.replace("ключем", `ключем "${m.key}"`);
-            if (m.shift) displayMsg += ` (Зсув: ${m.shift})`;
-            document.getElementById('mission-text').textContent = displayMsg;
+            document.getElementById('mission-text').textContent = m.text;
             document.getElementById('cipher-text').textContent = gameState.cipheredWord;
             
             document.getElementById('step1-name').textContent = m.steps[0].toUpperCase();
@@ -328,12 +333,13 @@
                 document.getElementById('lives-count').textContent = gameState.lives;
                 msg.textContent = "❌ Неправильно. Спробуйте ще раз!";
                 msg.className = "validation-msg text-error";
-                if (gameState.lives <= 0) gameOver();
+                if (gameState.lives <= 0) showEndScreen(false);
             }
         }
 
         function completeMission() {
             clearInterval(gameState.timer);
+            gameState.stars += 10;
             const feedback = document.getElementById('feedback');
             feedback.style.display = "block";
             feedback.textContent = "✅ МІСІЯ ЗАВЕРШЕНА! +10 ⭐";
@@ -353,15 +359,31 @@
                 let m = Math.floor(gameState.timeLeft / 60);
                 let s = gameState.timeLeft % 60;
                 document.getElementById('timer').textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-                if (gameState.timeLeft <= 0) gameOver();
+                if (gameState.timeLeft <= 0) showEndScreen(false);
             }, 1000);
         }
 
-        function gameOver() {
+        function showEndScreen(isVictory) {
             clearInterval(gameState.timer);
             document.getElementById('game-screen').classList.remove('active');
             document.getElementById('game-over-screen').classList.add('active');
-            document.getElementById('final-mission').textContent = gameState.currentMissionIdx + 1;
+            
+            const title = document.getElementById('end-title');
+            const status = document.getElementById('end-status');
+            const starsDisplay = document.getElementById('final-stars');
+            const finalMission = document.getElementById('final-mission');
+
+            starsDisplay.textContent = gameState.stars;
+            
+            if (isVictory) {
+                title.textContent = "ВІТАЄМО! ГРУ ЗАВЕРШЕНО";
+                title.style.color = "var(--success)";
+                status.textContent = "Ви успішно пройшли всі випробування!";
+            } else {
+                title.textContent = "ГРУ ЗАВЕРШЕНО";
+                title.style.color = "var(--error)";
+                finalMission.textContent = gameState.currentMissionIdx + 1;
+            }
         }
 
         startNewMission();
