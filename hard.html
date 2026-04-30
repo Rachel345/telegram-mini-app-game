@@ -170,9 +170,9 @@
 
         const MISSIONS = [
             {
-                title: "Місія 1: Атбаш -> Віженер",
+                title: "Місія 1: Віженер -> Атбаш",
                 text: "Перехоплено наказ! Повідомлення віддзеркалено і заблоковано ключем. Поверни текст у норму!",
-                steps: ["atbash", "vigenere"],
+                steps: ["vigenere", "atbash"],
                 key: "КОД"
             },
             {
@@ -260,7 +260,7 @@
             gameState.correctStep1 = s1;
 
             gameState.correctStep2 = gameState.originalWord;
-            
+
             // UI
             gameState.step1Passed = false;
             gameState.step2Passed = false;
