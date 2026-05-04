@@ -68,9 +68,9 @@ app.router.add_route('*', '/get_stars', handle_get_stars)
 @dp.message(CommandStart())
 async def cmd_start(message: Message):
     user_id = message.from_user.id
-    username = message.from_user.username or message.from_user.full_name or "Кріптограф"
+    username = message.from_user.username or message.from_user.full_name or "Агент"
 
-    # Перевіряємо/додаємо користувача
+    # Отримуємо актуальні зірки з бази
     stats = get_user_stats(user_id)
     if not stats:
         add_user(user_id, username)
@@ -78,18 +78,29 @@ async def cmd_start(message: Message):
     else:
         stars = stats.get('stars', 0)
 
-    # Посилання на вашу гру (GitHub Pages)
+    # Ваше посилання на Mini App (GitHub Pages)
     web_app_url = f"https://rachel345.github.io/telegram-mini-app-game/index.html?user_id={user_id}&stars={stars}"
     
+    # Створюємо клавіатуру з двома кнопками
     markup = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🔐 ЗАПУСТИТИ ТРЕНАЖЕР", web_app=WebAppInfo(url=web_app_url))]
+        [InlineKeyboardButton(text="🚀 ЗАПУСТИТИ ГРУ", web_app=WebAppInfo(url=web_app_url))],
+        [InlineKeyboardButton(text="🆘 ПІДТРИМКА", url="https://t.me/ra4elll")]
     ])
 
-    await message.answer(
-        f"Вітаю, {username}!\nВаш поточний баланс: {stars} ⭐\n\nГотові до дешифрування?",
-        reply_markup=markup
+    # Текст привітання
+    welcome_text = (
+        f"Привіт, {username}! Я твій **Крипто-тренажер**. 🕵️‍♂️\n\n"
+        f"Тут ти опануєш мистецтво шифрування. Щоб почати навчання та ігри, "
+        f"натисни кнопку нижче. \n\n"
+        f"Твій поточний баланс: `{stars}` ⭐\n\n"
+        f"Якщо виникнуть питання — звертайся до підтримки."
     )
 
+    await message.answer(
+        welcome_text,
+        reply_markup=markup,
+        parse_mode="Markdown" # Це дозволяє робити текст жирним або курсивом
+    )
 async def main():
     # Запуск бота
     bot_task = asyncio.create_task(dp.start_polling(bot))
