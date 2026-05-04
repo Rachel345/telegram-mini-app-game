@@ -1,334 +1,412 @@
 <!DOCTYPE html>
 <html lang="uk">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Кріпто-тренажер</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* ГЛОБАЛЬНІ СТИЛІ (CYBERPUNK DARK) */
-        * { box-sizing: border-box; }
-        body {
-            background-color: #0a0a0c !important;
-            color: #f1f5f9 !important;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            margin: 0; padding: 16px; min-height: 100vh;
-            overflow-x: hidden;
-        }
-        .screen {
-            display: none; flex-direction: column; align-items: center; justify-content: center;
-            gap: 16px; max-width: 400px; margin: 0 auto; min-height: 90vh;
-        }
-        .screen.active { display: flex; }
-        
-        .card {
-            background: rgba(20, 20, 25, 0.8);
-            border-radius: 16px; padding: 24px; width: 100%;
-            border: 2px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-        }
+      /* ПОВНИЙ ІГНОР ТЕМИ ТЕЛЕГРАМ - ТІЛЬКИ HEX */
+      * { box-sizing: border-box; }
+      body {
+        background-color: #0a0a0c !important;
+        color: #f1f5f9 !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        margin: 0; padding: 16px; min-height: 100vh;
+      }
+      .screen {
+        display: none; flex-direction: column; align-items: center; justify-content: flex-start;
+        gap: 16px; max-width: 400px; margin: 0 auto; min-height: calc(100vh - 32px);
+      }
+      .screen.active { display: flex; }
+      #menu-screen, #level-detail-screen { justify-content: center; }
+      
+      .card {
+        background: rgba(30, 41, 59, 0.4);
+        border-radius: 16px; padding: 24px; width: 100%; max-width: 360px;
+        border: 2px solid rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+      }
+      
+      .balance-badge {
+        background: rgba(168, 85, 247, 0.1);
+        border: 2px solid #a855f7;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #f1f5f9;
+        box-shadow: 0 0 10px rgba(168, 85, 247, 0.3);
+      }
 
-        .balance-badge {
-            background: rgba(168, 85, 247, 0.1);
-            border: 2px solid #a855f7;
-            padding: 10px 20px; border-radius: 20px;
-            font-weight: bold; color: #a855f7;
-            margin-bottom: 20px; box-shadow: 0 0 10px rgba(168, 85, 247, 0.3);
-        }
+      .level-select-card { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+      
+      /* Базовий стиль неонових кнопок */
+      .btn {
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 12px; padding: 14px 20px; font-size: 16px; width: 100%; cursor: pointer;
+        text-align: center; text-decoration: none;
+        transition: all 0.2s;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      
+      /* Кольорові коди для рівнів */
+      #btn-easy, .btn-easy-style { 
+        border: 2px solid #22c55e; color: #22c55e !important; 
+        box-shadow: 0 0 10px rgba(34, 197, 94, 0.2); 
+      }
+      #btn-medium { 
+        border: 2px solid #facc15; color: #facc15 !important; 
+        box-shadow: 0 0 10px rgba(250, 204, 21, 0.2); 
+      }
+      #btn-hard { 
+        border: 2px solid #38bdf8; color: #38bdf8 !important; 
+        box-shadow: 0 0 10px rgba(56, 189, 248, 0.2); 
+      }
+      #btn-open-academy { 
+        border: 2px solid #a855f7; color: #a855f7 !important; 
+        box-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
+        margin-top: 10px;
+      }
 
-        /* УНІВЕРСАЛЬНІ КНОПКИ */
-        .btn {
-            background: rgba(0, 0, 0, 0.3);
-            color: #fff; border: 2px solid;
-            border-radius: 12px; padding: 16px; font-size: 16px; width: 100%; 
-            cursor: pointer; text-align: center; transition: all 0.2s;
-            margin-bottom: 12px; font-weight: 600;
-        }
-        .btn:active { transform: scale(0.96); }
+      .btn:active { transform: scale(0.96); opacity: 0.8; }
+      
+      .game-header {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 12px 16px; background: rgba(30, 41, 59, 0.6);
+        border-radius: 12px; width: 100%; margin-bottom: 16px;
+        border: 2px solid #22c55e;
+      }
 
-        /* Кольори для кнопок меню */
-        .btn-green { border-color: #22c55e; color: #22c55e; box-shadow: 0 0 10px rgba(34, 197, 94, 0.2); }
-        .btn-blue { border-color: #38bdf8; color: #38bdf8; box-shadow: 0 0 10px rgba(56, 189, 248, 0.2); }
-        .btn-purple { border-color: #a855f7; color: #a855f7; box-shadow: 0 0 10px rgba(168, 85, 247, 0.2); }
-        
-        /* Кнопка Академії */
-        .btn-academy { 
-            background: #a855f7 !important; color: #fff !important; border: none;
-            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4); margin-top: 10px;
-        }
+      .caesar-word {
+        font-size: 24px; font-weight: bold; margin: 12px 0; text-align: center;
+        background: rgba(0, 0, 0, 0.5); padding: 15px; border-radius: 12px;
+        border: 1px solid rgba(34, 197, 94, 0.3);
+        color: #22c55e;
+      }
 
-        /* ЛЕГКИЙ РІВЕНЬ (ІГРОВИЙ ЕКРАН) */
-        .game-header {
-            display: flex; justify-content: space-between; width: 100%;
-            padding: 12px; background: rgba(34, 197, 94, 0.1);
-            border: 1px solid #22c55e; border-radius: 12px; margin-bottom: 10px;
-        }
-        .caesar-word {
-            font-size: 28px; font-weight: bold; text-align: center;
-            padding: 20px; background: rgba(0,0,0,0.4); border-radius: 12px;
-            border: 1px solid rgba(34, 197, 94, 0.3); color: #22c55e; margin: 15px 0;
-        }
-        .caesar-shift { color: #22c55e; text-align: center; font-weight: bold; margin-bottom: 15px; }
-        
-        .option-btn {
-            background: rgba(255,255,255,0.03); border: 1px solid rgba(34, 197, 94, 0.3);
-            color: #fff; padding: 14px; border-radius: 10px; margin-bottom: 8px;
-            width: 100%; cursor: pointer; font-size: 16px;
-        }
-        .option-btn.correct { border-color: #22c55e; background: rgba(34, 197, 94, 0.2); color: #22c55e; }
-        .option-btn.wrong { border-color: #ef4444; background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+      .caesar-shift { font-size: 18px; color: #22c55e; font-weight: bold; text-align: center; margin-bottom: 15px; }
+      .caesar-options { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+      
+      .caesar-option-btn {
+        background: rgba(0, 0, 0, 0.4); color: #f1f5f9; border: 1px solid rgba(34, 197, 94, 0.4);
+        border-radius: 12px; padding: 14px; font-size: 16px; cursor: pointer;
+      }
+      .caesar-option-btn.correct { border-color: #22c55e; background: rgba(34, 197, 94, 0.2); color: #fff; box-shadow: 0 0 10px #22c55e; }
+      .caesar-option-btn.wrong { border-color: #ef4444; background: rgba(239, 68, 68, 0.2); color: #fff; }
+      
+      .back-btn { background: transparent !important; border: 2px solid #22c55e !important; color: #22c55e !important; margin-top: 10px; }
+      
+      .btn-container { display: flex; gap: 10px; width: 100%; margin-top: 10px; }
+      .btn-half { flex: 1; padding: 10px 5px; font-size: 14px; }
 
-        /* ОВЕРЛЕЙ АКАДЕМІЇ */
-        .overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #0a0a0c; z-index: 1000; padding: 20px; flex-direction: column;
-        }
-        .tabs { display: flex; gap: 8px; margin-bottom: 15px; }
-        .tab-btn {
-            flex: 1; padding: 10px; background: transparent; border: 1px solid #a855f7;
-            color: #a855f7; border-radius: 8px; cursor: pointer; font-size: 12px;
-        }
-        .tab-btn.active { background: #a855f7; color: #fff; }
-        .tab-content {
-            background: rgba(255,255,255,0.03); border: 1px solid rgba(168, 85, 247, 0.3);
-            border-radius: 12px; padding: 20px; flex-grow: 1; overflow-y: auto; margin-bottom: 15px;
-        }
-        .formula {
-            font-family: monospace; background: #000; padding: 10px;
-            border-radius: 8px; color: #a855f7; text-align: center; margin: 10px 0;
-            border: 1px dashed rgba(168, 85, 247, 0.5);
-        }
-
-        .back-link { background: transparent !important; border: 1px solid #64748b !important; color: #64748b !important; }
+      /* Стилі для Оверлею Академії (Фіолетовий неон) */
+      .overlay {
+        display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background-color: #0a0a0c; z-index: 9999; padding: 20px; flex-direction: column;
+      }
+      .academy-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+      .tab-link {
+        flex: 1; background: transparent; border: 1px solid #a855f7; color: #a855f7;
+        padding: 10px 5px; border-radius: 10px; font-size: 13px; cursor: pointer;
+        transition: all 0.3s;
+      }
+      .tab-link.active { background: #a855f7; color: #0a0a0c; font-weight: bold; box-shadow: 0 0 15px #a855f7; }
+      
+      .tab-content {
+        background: rgba(20, 20, 25, 0.8); border-radius: 15px; padding: 20px; flex-grow: 1;
+        overflow-y: auto; margin-bottom: 20px; border: 2px solid #a855f7;
+        box-shadow: inset 0 0 15px rgba(168, 85, 247, 0.2);
+      }
+      .tab-content h3 { color: #a855f7; margin-top: 0; text-transform: uppercase; letter-spacing: 1px; }
+      .tab-content p, .tab-content li { color: #cbd5e1; line-height: 1.5; font-size: 14px; }
+      
+      .cipher-example {
+        background: rgba(0, 0, 0, 0.6); padding: 12px; border-radius: 10px;
+        font-family: 'Courier New', monospace; margin: 15px 0; text-align: left; color: #a855f7;
+        border: 1px dashed #a855f7; font-size: 13px;
+      }
+      .btn-academy-close {
+        background: #000 !important; color: #a855f7 !important; border: 2px solid #a855f7 !important; 
+        font-weight: bold; box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);
+      }
     </style>
-</head>
-<body>
-
-    <!-- ГОЛОВНЕ МЕНЮ -->
-    <div id="menu-screen" class="screen active">
-        <div class="balance-badge">⭐ Баланс: <span id="total-stars">0</span></div>
-        <div class="card">
-            <h2 style="text-align: center; margin-bottom: 24px;">Кріпто-тренажер</h2>
-            <button class="btn btn-green" onclick="showScreen('level-detail-screen')">ЛЕГКИЙ РІВЕНЬ</button>
-            <button class="btn btn-blue" onclick="window.location.href='medium.html'">СЕРЕДНІЙ РІВЕНЬ</button>
-            <button class="btn btn-purple" onclick="window.location.href='hard.html'">СКЛАДНИЙ РІВЕНЬ</button>
-            <button class="btn btn-academy" onclick="toggleAcademy(true)">📖 АКАДЕМІЯ ШИФРІВ</button>
-        </div>
-    </div>
-
-    <!-- ВИБІР ПІДРІВНЯ (ЛЕГКИЙ) -->
-    <div id="level-detail-screen" class="screen">
-        <div class="card">
-            <h2 style="text-align: center; color: #22c55e;">Легкий рівень</h2>
-            <button class="btn btn-green" onclick="startLevel(1)">Рівень 1: Зашифруй</button>
-            <button class="btn btn-green" onclick="startLevel(2)">Рівень 2: Відгадай ключ</button>
-            <button class="btn btn-green" onclick="startLevel(3)">Рівень 3: Крипто-слова</button>
-            <button class="btn back-link" onclick="showScreen('menu-screen')">Назад в меню</button>
-        </div>
-    </div>
-
-    <!-- ІГРОВИЙ ЕКРАН (ЦЕЗАР) -->
-    <div id="game-screen" class="screen">
-        <div class="game-header">
-            <span>❤️ <span id="lives">5</span></span>
-            <span style="color: #22c55e; font-weight: bold;">Цезар</span>
-            <span>⭐ <span id="score">0</span></span>
-        </div>
-        <div class="card">
-            <p id="instr" style="text-align: center; opacity: 0.8; font-size: 14px;"></p>
-            <div id="word-display" class="caesar-word">---</div>
-            <div id="shift-info" class="caesar-shift"></div>
-            <div id="options-grid"></div>
-            <div id="feedback" style="display:none; text-align:center; margin: 15px 0; font-weight: bold;"></div>
-            <button id="next-btn" class="btn btn-green" style="display:none;" onclick="nextQuestion()">Наступне</button>
-        </div>
-        <button class="btn back-link" onclick="showScreen('level-detail-screen')">Здатися</button>
-    </div>
-
-    <!-- ГЕЙМ ОВЕР -->
-    <div id="game-over-screen" class="screen">
-        <div class="card" style="text-align: center;">
-            <h2 id="result-title">Гру завершено!</h2>
-            <p style="font-size: 20px;">Ваш результат: <span id="final-score">0</span> ⭐</p>
-            <button class="btn btn-green" onclick="showScreen('level-detail-screen')">До рівнів</button>
-            <button class="btn back-link" onclick="showScreen('menu-screen')">В меню</button>
-        </div>
-    </div>
-
-    <!-- АКАДЕМІЯ -->
-    <div id="academy-overlay" class="overlay">
-        <h2 style="text-align: center; color: #a855f7;">Академія шифрів</h2>
-        <div class="tabs">
-            <button class="tab-btn active" onclick="openTab(event, 'tab-atbash')">Атбаш</button>
-            <button class="tab-btn" onclick="openTab(event, 'tab-caesar')">Цезар</button>
-            <button class="tab-btn" onclick="openTab(event, 'tab-vigenere')">Віженер</button>
+  </head>
+  <body>
+    <div id="app">
+      <div id="menu-screen" class="screen active">
+        <div class="balance-badge">
+            ⭐ БАЛАНС: <span id="total-stars">...</span>
         </div>
         
-        <div id="tab-atbash" class="tab-content">
-            <h3>Шифр Атбаш</h3>
-            <p>Стародавній шифр підстановки, що походить з Давнього Ізраїлю.</p>
-            <div class="formula">Формула: 32 - i</div>
-            <p><strong>Суть:</strong> Алфавіт просто "віддзеркалюється". Перша літера стає останньою, а остання — першою.</p>
-            <div class="formula">А ↔ Я | Б ↔ Ю | В ↔ Ь</div>
+        <div class="card level-select-card">
+          <h2 style="margin: 0 0 10px 0; color: #f1f5f9;">КРІПТО-КОНСОЛЬ</h2>
+          <button id="btn-easy" class="btn">ЛЕГКИЙ РІВЕНЬ</button>
+          <button id="btn-medium" class="btn">СЕРЕДНІЙ РІВЕНЬ</button>
+          <button id="btn-hard" class="btn">СКЛАДНИЙ РІВЕНЬ</button>
+          <button id="btn-open-academy" class="btn">📖 АКАДЕМІЯ ШИФРІВ</button>
         </div>
-
-        <div id="tab-caesar" class="tab-content" style="display:none">
-            <h3>Шифр Цезаря</h3>
-            <p>Циклічний зсув кожної літери на певну кількість кроків.</p>
-            <div class="formula">(x + k) mod 33</div>
-            <p><strong>Суть:</strong> Якщо ключ (k) = 3, то А стане Г, Б стане Ґ. Це циклічний шифр: після "Я" знову йде "А".</p>
+      </div>
+     
+      <div id="level-detail-screen" class="screen">
+        <div class="card level-select-card">
+          <h2 style="color: #22c55e;">ЛЕГКИЙ РІВЕНЬ</h2>
+          <button id="btn-lvl-1" class="btn btn-easy-style">1: ЗАШИФРУЙ</button>
+          <button id="btn-lvl-2" class="btn btn-easy-style">2: ВІДГАДАЙ КЛЮЧ</button>
+          <button id="btn-lvl-3" class="btn btn-easy-style">3: КРИПТО-СЛОВА</button>
+          <button id="detail-back-btn" class="btn back-btn">НАЗАД</button>
         </div>
+      </div>
 
-        <div id="tab-vigenere" class="tab-content" style="display:none">
-            <h3>Шифр Віженера</h3>
-            <p>Поліалфавітний шифр, де кожна літера слова має свій зсув, визначений ключовим словом.</p>
-            <div class="formula">C = (M + K) mod 33</div>
-            <p><strong>Суть:</strong> Ключ повторюється під словом. Індекси літер додаються. <br>Приклад: <br>С Л О В О (текст)<br>К О Д К О (ключ)</p>
+      <div id="caesar-screen" class="screen">
+        <div class="game-header">
+          <span>❤️ <span id="lives">5</span></span>
+          <span style="font-weight: bold; color: #22c55e;">ЦЕЗАР</span>
+          <span>⭐ <span id="score">0</span></span>
         </div>
+        <div class="card">
+          <p id="instr" style="text-align: center; font-size: 14px; min-height: 40px; color: #94a3b8;"></p>
+          <div id="word" class="caesar-word"></div>
+          <div id="shift-info" class="caesar-shift"></div>
+          <div id="options" class="caesar-options"></div>
+          <div id="feedback" style="display:none; margin-top:15px; text-align:center; font-weight:bold;"></div>
+          <button id="next-btn" class="btn btn-easy-style" style="display:none; margin-top:15px;">НАСТУПНЕ</button>
+        </div>
+        <div class="btn-container">
+          <button id="exit-to-levels-btn" class="btn back-btn btn-half">ДО РІВНІВ</button>
+          <button id="exit-to-menu-btn" class="btn back-btn btn-half">В МЕНЮ</button>
+        </div>
+      </div>
 
-        <button class="btn btn-academy" onclick="toggleAcademy(false)">ЗРОЗУМІВ</button>
+      <div id="game-over-screen" class="screen">
+        <div class="card" style="text-align: center; display: flex; flex-direction: column; gap: 12px; border-color: #ef4444;">
+          <h2 style="color: #ef4444;">ГРУ ЗАВЕРШЕНО!</h2>
+          <p>Ваш результат: <span id="final-score" style="color: #facc15; font-size: 24px; font-weight: bold;">0</span> ⭐</p>
+          <button id="restart-to-levels-btn" class="btn btn-easy-style">ДО РІВНІВ</button>
+          <button id="restart-to-menu-btn" class="btn back-btn">В ГОЛОВНЕ МЕНЮ</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Оверлей навчання -->
+    <div id="academy-overlay" class="overlay">
+      <h2 style="text-align: center; margin-top: 0; color: #a855f7;">АКАДЕМІЯ ШИФРІВ</h2>
+      
+      <div class="academy-tabs">
+        <button class="tab-link active" onclick="openTab(event, 'atbash')">АТБАШ</button>
+        <button class="tab-link" onclick="openTab(event, 'caesar')">ЦЕЗАР</button>
+        <button class="tab-link" onclick="openTab(event, 'vigenere')">ВІЖЕНЕР</button>
+      </div>
+
+      <div id="atbash" class="tab-content" style="display: block;">
+        <h3>Дзеркальний шифр</h3>
+        <p>Атбаш походить із Давнього Ізраїлю. Це шифр підстановки, де алфавіт просто віддзеркалюється.</p>
+        <p><strong>Формула: f(i) = 32 - i</strong>, де i — індекс літери (0-32).</p>
+        <ul style="padding-left: 20px;">
+          <li>А(0) ↔ Я(32)</li>
+          <li>Б(1) ↔ Ю(31)</li>
+          <li>В(2) ↔ Ь(30)</li>
+        </ul>
+        <div class="cipher-example">
+          Порада: Дзеркально відображай абетку. Остання стає першою, передостання — другою.
+        </div>
+      </div>
+
+      <div id="caesar" class="tab-content" style="display: none;">
+        <h3>Модульна арифметика</h3>
+        <p>Шифр Цезаря зміщує кожну літеру на сталу кількість кроків (k).</p>
+        <p><strong>Формула: (x + k) mod 33</strong></p>
+        <ul style="padding-left: 20px;">
+          <li>Це циклічний зсув: якщо ми виходимо за межі "Я", то повертаємось на початок.</li>
+          <li>Приклад: Я(32) + 1 зсув = А(0).</li>
+          <li>Приклад: Я(32) + 2 зсуви = Б(1).</li>
+        </ul>
+        <div class="cipher-example">
+          Слово: А(0), Ключ: 3<br>
+          0 + 3 = 3 -> Г
+        </div>
+      </div>
+
+      <div id="vigenere" class="tab-content" style="display: none;">
+        <h3>Накладання ключів</h3>
+        <p>У Віженері кожна літера слова отримує свій зсув, залежно від літери ключа.</p>
+        <p><strong>Формула: (Слово[i] + Ключ[i]) mod 33</strong></p>
+        <div class="cipher-example" style="line-height: 1.6;">
+          Математичний приклад:<br>
+          Слово: П (інд. 19)<br>
+          Ключ:  К (інд. 14)<br>
+          Розрахунок: 19 + 14 = 33<br>
+          Результат: 33 mod 33 = 0 (Літера А)
+        </div>
+        <p>Якщо ключ коротший за слово, він повторюється: СЛОВО + КЛЮЧКЛ.</p>
+      </div>
+
+      <button class="btn btn-academy-close" onclick="toggleAcademy(false)">ЗРОЗУМІВ</button>
     </div>
 
     <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand();
+      const tg = window.Telegram.WebApp;
+      tg.expand();
 
-        const ALPHABET = "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя";
-        const WORDS = ["блокчейн", "біткоїн", "пароль", "захист", "сервер", "крипто", "ключі", "майнінг", "мережа", "цифра", "хакер"];
-        
-        let state = { lives: 5, score: 0, subLevel: 1, currentAns: "" };
+      const ALPHABET = "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя";
+      const WORDS = ["привіт", "театр", "річка", "апельсин", "нога", "авто", "око", "озеро", "острів", "вітер", "робот", "танк", "карта", "абетка", "ананас", "слово", "хліб", "банан", "море", "ефір", "радіо", "океан", "номер"];
+      
+      let state = { lives: 5, score: 0, subLevel: 1, currentAns: "" };
 
-        function showScreen(id) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
+      function toggleAcademy(show) {
+        document.getElementById('academy-overlay').style.display = show ? 'flex' : 'none';
+      }
+
+      function openTab(evt, tabName) {
+        const contents = document.getElementsByClassName("tab-content");
+        for (let i = 0; i < contents.length; i++) contents[i].style.display = "none";
+        const tabs = document.getElementsByClassName("tab-link");
+        for (let i = 0; i < tabs.length; i++) tabs[i].classList.remove("active");
+        document.getElementById(tabName).style.display = "block";
+        evt.currentTarget.classList.add("active");
+      }
+
+      document.getElementById('btn-open-academy').onclick = () => toggleAcademy(true);
+
+      async function loadStars() {
+        const userId = tg.initDataUnsafe?.user?.id || 981926714;
+        const url = `https://anyway-art-mustard.ngrok-free.dev/get_stars?user_id=${userId}`;
+        try {
+          const response = await fetch(url, { headers: { 'ngrok-skip-browser-warning': 'true' } });
+          const data = await response.json();
+          if (data.stars !== undefined) {
+            document.getElementById('total-stars').textContent = data.stars;
+          }
+        } catch (error) {
+          console.error('Помилка:', error);
+          document.getElementById('total-stars').textContent = "0";
         }
+      }
 
-        function toggleAcademy(show) {
-            document.getElementById('academy-overlay').style.display = show ? 'flex' : 'none';
+      async function syncStars(stars) {
+        const userId = tg.initDataUnsafe?.user?.id || 981926714;
+        const url = `https://anyway-art-mustard.ngrok-free.dev/update_stars`;
+        try {
+          await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+            body: JSON.stringify({ user_id: userId, stars: stars })
+          });
+          loadStars(); 
+        } catch (error) {
+          console.error('Помилка синхронізації:', error);
         }
+      }
 
-        function openTab(evt, tabName) {
-            document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(tabName).style.display = 'block';
-            evt.currentTarget.classList.add('active');
+      function cipher(text, s) {
+        return text.split('').map(char => {
+          let idx = ALPHABET.indexOf(char.toLowerCase());
+          if (idx < 0) return char;
+          return ALPHABET[(idx + s + ALPHABET.length) % ALPHABET.length];
+        }).join('');
+      }
+
+      function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+      }
+
+      function nextQuestion() {
+        if (state.lives <= 0) {
+          document.getElementById('final-score').textContent = state.score;
+          showScreen('game-over-screen');
+          return;
         }
-
-        async function syncStars(points) {
-            const userId = tg.initDataUnsafe?.user?.id || 981926714;
-            try {
-                await fetch('https://anyway-art-mustard.ngrok-free.dev/update_stars', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-                    body: JSON.stringify({ user_id: userId, stars: points })
-                });
-                loadStars();
-            } catch (e) { console.error(e); }
+        const word = WORDS[Math.floor(Math.random() * WORDS.length)];
+        const s = 1 + Math.floor(Math.random() * 5);
+        const opts = document.getElementById('options');
+        const fback = document.getElementById('feedback');
+        const nbtn = document.getElementById('next-btn');
+        opts.innerHTML = "";
+        fback.style.display = "none";
+        nbtn.style.display = "none";
+        if (state.subLevel === 1) {
+          document.getElementById('instr').textContent = "Зашифруй слово:";
+          document.getElementById('word').textContent = word;
+          document.getElementById('shift-info').textContent = "Зсув: " + s;
+          state.currentAns = cipher(word, s);
+          generateOptions(state.currentAns, () => cipher(WORDS[Math.floor(Math.random()*WORDS.length)], 1+Math.floor(Math.random()*5)));
+        } else if (state.subLevel === 2) {
+          document.getElementById('instr').textContent = "Який тут зсув?";
+          document.getElementById('word').textContent = word + " → " + cipher(word, s);
+          document.getElementById('shift-info').textContent = "Знайди ключ";
+          state.currentAns = s;
+          generateOptions(s, () => 1 + Math.floor(Math.random()*10));
+        } else {
+          const encrypted = cipher(word, s);
+          const lastChar = word.slice(-1).toLowerCase();
+          document.getElementById('instr').textContent = "Розшифруй в умі. Яке слово починається на останню літеру?";
+          document.getElementById('word').textContent = encrypted;
+          document.getElementById('shift-info').textContent = "Зсув: -" + s;
+          const possible = WORDS.filter(w => w[0].toLowerCase() === lastChar && w !== word);
+          state.currentAns = possible.length > 0 ? possible[Math.floor(Math.random()*possible.length)] : "абетка";
+          generateOptions(state.currentAns, () => {
+            const wrong = WORDS.filter(w => w[0].toLowerCase() !== lastChar);
+            return wrong[Math.floor(Math.random()*wrong.length)];
+          });
         }
+      }
 
-        async function loadStars() {
-            const userId = tg.initDataUnsafe?.user?.id || 981926714;
-            try {
-                const res = await fetch(`https://anyway-art-mustard.ngrok-free.dev/get_stars?user_id=${userId}`, {
-                    headers: { 'ngrok-skip-browser-warning': 'true' }
-                });
-                const data = await res.json();
-                document.getElementById('total-stars').textContent = data.stars || 0;
-            } catch (e) { console.error(e); }
-        }
-
-        function cipher(text, s) {
-            return text.split('').map(char => {
-                let idx = ALPHABET.indexOf(char.toLowerCase());
-                if (idx < 0) return char;
-                return ALPHABET[(idx + s + ALPHABET.length) % ALPHABET.length];
-            }).join('');
-        }
-
-        function startLevel(sl) {
-            state.subLevel = sl;
-            state.lives = 5;
-            state.score = 0;
-            updateStats();
-            showScreen('game-screen');
-            nextQuestion();
-        }
-
-        function updateStats() {
+      function generateOptions(correct, wrongGen) {
+        let choices = new Set([correct]);
+        while(choices.size < 4) choices.add(wrongGen());
+        [...choices].sort(() => Math.random() - 0.5).forEach(val => {
+          const b = document.createElement('button');
+          b.className = 'caesar-option-btn';
+          b.textContent = val;
+          b.onclick = () => {
+            document.querySelectorAll('.caesar-option-btn').forEach(btn => btn.disabled = true);
+            if (val == correct) {
+              b.classList.add('correct');
+              state.score += 1;
+              syncStars(1);
+              document.getElementById('feedback').textContent = "✅ Правильно! +1⭐";
+            } else {
+              b.classList.add('wrong');
+              state.lives--;
+              document.getElementById('feedback').textContent = "❌ Ні. Відповідь: " + correct;
+            }
             document.getElementById('lives').textContent = state.lives;
             document.getElementById('score').textContent = state.score;
-        }
+            document.getElementById('feedback').style.display = "block";
+            document.getElementById('next-btn').style.display = "block";
+          };
+          document.getElementById('options').appendChild(b);
+        });
+      }
 
-        function nextQuestion() {
-            if (state.lives <= 0) {
-                document.getElementById('final-score').textContent = state.score;
-                showScreen('game-over-screen');
-                return;
-            }
+      function start() {
+        state.lives = 5; state.score = 0;
+        document.getElementById('lives').textContent = state.lives;
+        document.getElementById('score').textContent = state.score;
+        showScreen('caesar-screen');
+        nextQuestion();
+      }
 
-            const word = WORDS[Math.floor(Math.random() * WORDS.length)];
-            const s = 1 + Math.floor(Math.random() * 5);
-            const grid = document.getElementById('options-grid');
-            grid.innerHTML = "";
-            document.getElementById('feedback').style.display = "none";
-            document.getElementById('next-btn').style.display = "none";
+      document.getElementById('btn-easy').onclick = () => showScreen('level-detail-screen');
+      document.getElementById('btn-medium').onclick = () => { window.location.href = 'medium.html?v=' + Date.now(); };
+      document.getElementById('btn-hard').onclick = () => { window.location.href = 'hard.html?v=' + Date.now(); };
+      document.getElementById('btn-lvl-1').onclick = () => { state.subLevel = 1; start(); };
+      document.getElementById('btn-lvl-2').onclick = () => { state.subLevel = 2; start(); };
+      document.getElementById('btn-lvl-3').onclick = () => { state.subLevel = 3; start(); };
+      document.getElementById('detail-back-btn').onclick = () => showScreen('menu-screen');
+      document.getElementById('next-btn').onclick = nextQuestion;
+      document.getElementById('exit-to-levels-btn').onclick = () => showScreen('level-detail-screen');
+      document.getElementById('exit-to-menu-btn').onclick = () => showScreen('menu-screen');
+      document.getElementById('restart-to-levels-btn').onclick = () => showScreen('level-detail-screen');
+      document.getElementById('restart-to-menu-btn').onclick = () => showScreen('menu-screen');
 
-            if (state.subLevel === 1) {
-                document.getElementById('instr').textContent = "Зашифруй слово:";
-                document.getElementById('word-display').textContent = word;
-                document.getElementById('shift-info').textContent = "Зсув: +" + s;
-                state.currentAns = cipher(word, s);
-                genOptions(state.currentAns, () => cipher(WORDS[Math.floor(Math.random()*WORDS.length)], s));
-            } else if (state.subLevel === 2) {
-                document.getElementById('instr').textContent = "Який ключ зсуву?";
-                document.getElementById('word-display').textContent = word + " → " + cipher(word, s);
-                document.getElementById('shift-info').textContent = "Знайди число";
-                state.currentAns = s;
-                genOptions(s, () => 1 + Math.floor(Math.random()*10));
-            } else {
-                const encrypted = cipher(word, s);
-                document.getElementById('instr').textContent = "Розшифруй (зсув -" + s + "):";
-                document.getElementById('word-display').textContent = encrypted;
-                document.getElementById('shift-info').textContent = "Обери оригінал";
-                state.currentAns = word;
-                genOptions(word, () => WORDS[Math.floor(Math.random()*WORDS.length)]);
-            }
-        }
-
-        function genOptions(correct, wrongGen) {
-            let choices = new Set([correct]);
-            while(choices.size < 4) {
-                let w = wrongGen();
-                if (w !== correct) choices.add(w);
-            }
-            [...choices].sort(() => Math.random() - 0.5).forEach(val => {
-                const b = document.createElement('button');
-                b.className = 'option-btn';
-                b.textContent = val;
-                b.onclick = async () => {
-                    document.querySelectorAll('.option-btn').forEach(btn => btn.disabled = true);
-                    const fb = document.getElementById('feedback');
-                    fb.style.display = "block";
-                    if (val == correct) {
-                        b.classList.add('correct');
-                        state.score += 1;
-                        fb.textContent = "✅ ПРАВИЛЬНО! +1⭐";
-                        fb.style.color = "#22c55e";
-                        await syncStars(1);
-                    } else {
-                        b.classList.add('wrong');
-                        state.lives--;
-                        fb.textContent = "❌ ПОМИЛКА! Це був: " + correct;
-                        fb.style.color = "#ef4444";
-                    }
-                    updateStats();
-                    document.getElementById('next-btn').style.display = "block";
-                };
-                document.getElementById('options-grid').appendChild(b);
-            });
-        }
-
-        loadStars();
+      loadStars();
     </script>
-</body>
+  </body>
 </html>
