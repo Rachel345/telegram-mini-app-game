@@ -21,21 +21,21 @@
         /* КАРТКИ */
         .card {
             background: rgba(30, 41, 59, 0.2);
-            border: 1px solid rgba(34, 197, 94, 0.3); /* Зелена напівпрозора рамка */
+            border: 1px solid rgba(250, 204, 21, 0.3); /* Жовта напівпрозора рамка */
             border-radius: 16px; padding: 24px; width: 100%; position: relative;
-            box-shadow: 0 0 15px rgba(34, 197, 94, 0.1);
+            box-shadow: 0 0 15px rgba(250, 204, 21, 0.1);
         }
 
         .menu-title { 
             font-size: 24px; font-weight: bold; margin-bottom: 20px; text-align: center; 
-            color: #22c55e; text-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+            color: #facc15; text-shadow: 0 0 10px rgba(250, 204, 21, 0.5);
         }
         
         /* ХЕДЕР ГРИ */
         .game-header {
             display: flex; align-items: center; justify-content: space-between;
             padding: 12px 16px; background: rgba(0,0,0,0.5);
-            border: 1px solid #22c55e; border-radius: 12px; width: 100%; margin-bottom: 8px;
+            border: 1px solid #facc15; border-radius: 12px; width: 100%; margin-bottom: 8px;
             color: #fff;
         }
 
@@ -43,55 +43,55 @@
         .timer-container {
             width: 100%; height: 6px; background: rgba(255,255,255,0.05);
             border-radius: 3px; margin-bottom: 20px; overflow: hidden;
-            border: 1px solid rgba(34, 197, 94, 0.2);
+            border: 1px solid rgba(250, 204, 21, 0.2);
         }
-        .timer-bar { width: 100%; height: 100%; background: #22c55e; box-shadow: 0 0 10px #22c55e; transition: width 0.1s linear; }
+        .timer-bar { width: 100%; height: 100%; background: #facc15; box-shadow: 0 0 10px #facc15; transition: width 0.1s linear; }
 
         /* ТАБЛИЦЯ ВІЖЕНЕРА */
         .vigenere-wrap { 
             width: 100%; overflow-x: auto; margin: 15px 0; border-radius: 8px; 
-            background: #000; border: 1px solid #22c55e; 
+            background: #000; border: 1px solid #facc15; 
         }
         table { border-collapse: collapse; font-size: 9px; color: #94a3b8; width: 100%; }
         td, th { width: 18px; height: 18px; text-align: center; border: 1px solid #1e293b; text-transform: uppercase; }
-        th { background: #111; color: #22c55e; }
-        .h-cell { background: #22c55e !important; color: #000 !important; font-weight: bold; box-shadow: inset 0 0 5px #000; }
+        th { background: #111; color: #facc15; }
+        .h-cell { background: #facc15 !important; color: #000 !important; font-weight: bold; box-shadow: inset 0 0 5px #000; }
 
         /* ІНПУТИ */
         .input-box { width: 100%; margin-bottom: 15px; }
-        .input-box label { display: block; font-size: 12px; color: #22c55e; margin-bottom: 5px; text-transform: uppercase; }
+        .input-box label { display: block; font-size: 12px; color: #facc15; margin-bottom: 5px; text-transform: uppercase; }
         .input-box input {
-            width: 100%; background: #000; border: 1px solid #22c55e;
+            width: 100%; background: #000; border: 1px solid #facc15;
             color: #fff; padding: 12px; border-radius: 10px; font-size: 16px;
-            box-shadow: inset 0 0 5px rgba(34, 197, 94, 0.2);
+            box-shadow: inset 0 0 5px rgba(250, 204, 21, 0.2);
         }
-        .input-box input:focus { outline: none; box-shadow: 0 0 10px rgba(34, 197, 94, 0.4); }
+        .input-box input:focus { outline: none; box-shadow: 0 0 10px rgba(250, 204, 21, 0.4); }
 
         /* КНОПКИ (УНІВЕРСАЛЬНИЙ СТИЛЬ) */
         .btn {
             background: rgba(0, 0, 0, 0.6);
-            color: #22c55e !important;
-            border: 2px solid #22c55e;
+            color: #facc15 !important;
+            border: 2px solid #facc15;
             border-radius: 12px; padding: 14px; width: 100%; font-size: 16px; cursor: pointer;
             font-weight: bold; text-transform: uppercase;
-            box-shadow: 0 0 10px rgba(34, 197, 94, 0.2);
+            box-shadow: 0 0 10px rgba(250, 204, 21, 0.2);
             transition: all 0.2s ease;
         }
-        .btn:active { transform: scale(0.95); box-shadow: 0 0 20px rgba(34, 197, 94, 0.4); }
+        .btn:active { transform: scale(0.95); box-shadow: 0 0 20px rgba(250, 204, 21, 0.4); }
         .btn:disabled { opacity: 0.3; border-color: #444; color: #444 !important; box-shadow: none; }
         
-        .btn-outline { border-color: rgba(34, 197, 94, 0.5); color: rgba(34, 197, 94, 0.8) !important; }
+        .btn-outline { border-color: rgba(250, 204, 21, 0.5); color: rgba(250, 204, 21, 0.8) !important; }
         .btn-exit { border-color: #ef4444; color: #ef4444 !important; box-shadow: 0 0 10px rgba(239, 68, 68, 0.2); }
         .btn-danger { background: rgba(239, 68, 68, 0.1) !important; border-color: #ef4444 !important; color: #ef4444 !important; }
 
         /* ВАРІАНТИ ВІДПОВІДЕЙ */
         .options-grid { display: grid; grid-template-columns: 1fr; gap: 10px; width: 100%; }
         .option-btn {
-            background: rgba(0, 0, 0, 0.6); color: #fff; border: 1px solid rgba(34, 197, 94, 0.3);
+            background: rgba(0, 0, 0, 0.6); color: #fff; border: 1px solid rgba(250, 204, 21, 0.3);
             border-radius: 12px; padding: 14px; font-size: 16px; cursor: pointer;
             transition: 0.2s;
         }
-        .option-btn.correct { border-color: #22c55e; background: rgba(34, 197, 94, 0.1); color: #22c55e; box-shadow: 0 0 15px rgba(34, 197, 94, 0.3); }
+        .option-btn.correct { border-color: #facc15; background: rgba(250, 204, 21, 0.1); color: #facc15; box-shadow: 0 0 15px rgba(250, 204, 21, 0.3); }
         .option-btn.wrong { border-color: #ef4444; background: rgba(239, 68, 68, 0.1); color: #ef4444; box-shadow: 0 0 15px rgba(239, 68, 68, 0.3); }
         
         .feedback-box { margin-top: 15px; text-align: center; font-weight: bold; padding: 10px; border-radius: 8px; border: 1px dashed; }
@@ -113,7 +113,7 @@
     <div id="atbash-screen" class="screen">
         <div class="game-header">
             <span>❤️ <span id="atbash-lives">5</span></span>
-            <span style="font-weight: bold; color: #22c55e;">АТБАШ</span>
+            <span style="font-weight: bold; color: #facc15;">АТБАШ</span>
             <span>⭐ <span id="atbash-score">0</span></span>
         </div>
         <div class="card">
@@ -131,7 +131,7 @@
     <div id="vigenere-screen" class="screen">
         <div class="game-header">
             <span>❤️ <span id="vig-lives">3</span></span>
-            <span style="font-weight: bold; color: #22c55e;">ВІЖЕНЕР</span>
+            <span style="font-weight: bold; color: #facc15;">ВІЖЕНЕР</span>
             <span>⏱️ <span id="vig-timer-text">60</span>с</span>
         </div>
         <div class="card">
@@ -240,7 +240,7 @@
                         b.classList.add('correct');
                         state.score += 3;
                         document.getElementById('atbash-feedback').innerHTML = "ВЕРИФІКАЦІЯ УСПІШНА +3 ⭐";
-                        document.getElementById('atbash-feedback').style.color = "#22c55e";
+                        document.getElementById('atbash-feedback').style.color = "#facc15";
                         await syncStars(3);
                     } else {
                         b.classList.add('wrong');
@@ -376,7 +376,7 @@
                 state.score += 5;
                 feedback.style.display = "block";
                 feedback.innerHTML = "СИНХРОНІЗАЦІЯ ЗАВЕРШЕНА +5 ⭐";
-                feedback.style.color = "#22c55e";
+                feedback.style.color = "#facc15";
                 document.getElementById('vig-check-btn').style.display = "none";
                 document.getElementById('vig-next-btn').style.display = "block";
                 await syncStars(5);
