@@ -60,13 +60,6 @@
         border: 2px solid #22c55e; color: #22c55e !important; 
         box-shadow: 0 0 10px rgba(34, 197, 94, 0.2); 
       }
-      
-      /* Червоний стиль для кнопок виходу/назад */
-      .btn-danger-style {
-        border: 2px solid #ef4444 !important; color: #ef4444 !important;
-        box-shadow: 0 0 10px rgba(239, 68, 68, 0.2) !important;
-      }
-
       #btn-medium { 
         border: 2px solid #facc15; color: #facc15 !important; 
         box-shadow: 0 0 10px rgba(250, 204, 21, 0.2); 
@@ -106,6 +99,13 @@
       }
       .caesar-option-btn.correct { border-color: #22c55e; background: rgba(34, 197, 94, 0.2); color: #fff; box-shadow: 0 0 10px #22c55e; }
       .caesar-option-btn.wrong { border-color: #ef4444; background: rgba(239, 68, 68, 0.2); color: #fff; }
+      
+      /* Стиль для небезпечних/червоних кнопок */
+      .btn-danger-style { 
+        border: 2px solid #ef4444 !important; 
+        color: #ef4444 !important; 
+        box-shadow: 0 0 10px rgba(239, 68, 68, 0.2) !important;
+      }
       
       .back-btn { background: transparent !important; border: 2px solid #22c55e !important; color: #22c55e !important; margin-top: 10px; }
       
@@ -283,10 +283,10 @@
       async function loadStars() {
         const urlParams = new URLSearchParams(window.location.search);
         const starsFromUrl = urlParams.get('stars');
-        
-        // Спочатку виводимо те, що прийшло в посиланні від бота
-        if (starsFromUrl !== null) {
-            document.getElementById('total-stars').textContent = starsFromUrl;
+        const totalStarsElem = document.getElementById('total-stars');
+
+        if (starsFromUrl !== null && totalStarsElem.textContent === "...") {
+          totalStarsElem.textContent = starsFromUrl;
         }
 
         const userId = tg.initDataUnsafe?.user?.id || urlParams.get('user_id') || 981926714;
@@ -296,13 +296,11 @@
           const response = await fetch(url, { headers: { 'ngrok-skip-browser-warning': 'true' } });
           const data = await response.json();
           if (data.stars !== undefined) {
-            document.getElementById('total-stars').textContent = data.stars;
+            totalStarsElem.textContent = data.stars;
           }
         } catch (error) {
-          console.error('Помилка:', error);
-          if (starsFromUrl === null) {
-            document.getElementById('total-stars').textContent = "0";
-          }
+          console.error('Помилка сервера, залишаємо локальні дані:', error);
+          if (totalStarsElem.textContent === "...") totalStarsElem.textContent = "0";
         }
       }
 
