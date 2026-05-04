@@ -6,10 +6,11 @@
     <title>Кріпто-тренажер</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+      /* ПОВНИЙ ІГНОР ТЕМИ ТЕЛЕГРАМ - ТІЛЬКИ HEX */
       * { box-sizing: border-box; }
       body {
-        background-color: var(--tg-theme-bg-color, #1a1a2e) !important;
-        color: var(--tg-theme-text-color, #eee) !important;
+        background-color: #0f172a !important;
+        color: #f1f5f9 !important;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         margin: 0; padding: 16px; min-height: 100vh;
       }
@@ -20,13 +21,14 @@
       .screen.active { display: flex; }
       #menu-screen, #level-detail-screen { justify-content: center; }
       .card {
-        background: var(--tg-theme-secondary-bg-color, #16213e);
+        background: #1e293b;
         border-radius: 16px; padding: 24px; width: 100%; max-width: 360px;
+        border: 1px solid rgba(56, 189, 248, 0.1);
       }
       
       .balance-badge {
-        background: rgba(46, 166, 255, 0.2);
-        border: 1px solid #2ea6ff;
+        background: rgba(56, 189, 248, 0.15);
+        border: 1px solid #38bdf8;
         padding: 8px 16px;
         border-radius: 20px;
         font-weight: bold;
@@ -34,69 +36,84 @@
         display: flex;
         align-items: center;
         gap: 8px;
+        color: #38bdf8;
       }
 
       .level-select-card { display: flex; flex-direction: column; align-items: center; gap: 20px; }
-      .btn {
-        background: var(--tg-theme-button-color, #2ea6ff);
-        color: var(--tg-theme-button-text-color, #fff) !important;
-        border: none; border-radius: 12px; padding: 14px 20px; font-size: 16px; width: 100%; cursor: pointer;
-        text-align: center; text-decoration: none;
-      }
-      .btn:active { transform: scale(0.98); }
       
-      /* Новий стиль кнопки Академії */
-      .academy-btn {
-        background: transparent !important;
-        border: 2px solid #38bdf8 !important;
+      /* Кнопки рівнів (Темно-сірі з неоновою обводкою) */
+      .btn {
+        background: #1e293b;
         color: #38bdf8 !important;
+        border: 1px solid #38bdf8;
+        border-radius: 12px; padding: 14px 20px; font-size: 16px; width: 100%; cursor: pointer;
+        text-align: center; text-decoration: none;
+        box-shadow: 0 0 10px rgba(56, 189, 248, 0.1);
+        transition: transform 0.1s;
+      }
+      .btn:active { transform: scale(0.98); background: rgba(56, 189, 248, 0.1); }
+      
+      /* Кнопка Академії (Суцільна синя, білий текст) */
+      .academy-btn {
+        background: #38bdf8 !important;
+        border: none !important;
+        color: #ffffff !important;
+        font-weight: bold;
         margin-top: 5px;
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 8px;
+        box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
       }
 
       .game-header {
         display: flex; align-items: center; justify-content: space-between;
-        padding: 12px 16px; background: var(--tg-theme-secondary-bg-color, #16213e);
+        padding: 12px 16px; background: #1e293b;
         border-radius: 12px; width: 100%; margin-bottom: 16px;
+        border: 1px solid rgba(56, 189, 248, 0.2);
       }
       .caesar-word {
         font-size: 24px; font-weight: bold; margin: 12px 0; text-align: center;
-        background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 12px;
+        background: rgba(15, 23, 42, 0.6); padding: 15px; border-radius: 12px;
+        border: 1px solid rgba(56, 189, 248, 0.1);
       }
-      .caesar-shift { font-size: 18px; color: #2ea6ff; font-weight: bold; text-align: center; margin-bottom: 15px; }
+      .caesar-shift { font-size: 18px; color: #38bdf8; font-weight: bold; text-align: center; margin-bottom: 15px; }
       .caesar-options { display: flex; flex-direction: column; gap: 10px; width: 100%; }
       .caesar-option-btn {
-        background: transparent; color: inherit; border: 2px solid rgba(255,255,255,0.2);
+        background: #1e293b; color: #f1f5f9; border: 1px solid rgba(56, 189, 248, 0.3);
         border-radius: 12px; padding: 14px; font-size: 16px; cursor: pointer;
       }
-      .caesar-option-btn.correct { border-color: #22c55e; background: rgba(34, 197, 94, 0.2); }
-      .caesar-option-btn.wrong { border-color: #ef4444; background: rgba(239, 68, 68, 0.2); }
-      .back-btn { background: transparent; border: 1px solid #2ea6ff; color: #2ea6ff !important; margin-top: 10px; }
+      .caesar-option-btn.correct { border-color: #22c55e; background: rgba(34, 197, 94, 0.1); color: #22c55e; }
+      .caesar-option-btn.wrong { border-color: #ef4444; background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+      .back-btn { background: transparent !important; border: 1px solid #38bdf8 !important; color: #38bdf8 !important; margin-top: 10px; }
       
       .btn-container { display: flex; gap: 10px; width: 100%; margin-top: 10px; }
       .btn-half { flex: 1; padding: 10px 5px; font-size: 14px; }
 
-      /* Стилі для Оверлею Академії */
+      /* Стилі для Оверлею Академії (Фіксований неоновий стиль) */
       .overlay {
         display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background-color: #1a1a2e; z-index: 9999; padding: 20px; flex-direction: column;
+        background-color: #0f172a; z-index: 9999; padding: 20px; flex-direction: column;
       }
       .academy-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
-      .tab-btn {
-        flex: 1; background: #16213e; border: 1px solid #38bdf8; color: white;
+      .tab-link {
+        flex: 1; background: transparent; border: 1px solid #38bdf8; color: #38bdf8;
         padding: 10px 5px; border-radius: 10px; font-size: 13px; cursor: pointer;
       }
-      .tab-btn.active { background: #38bdf8; color: #1e293b; }
+      .tab-link.active { background: #38bdf8; color: #0f172a; font-weight: bold; }
       .tab-content {
-        background: #16213e; border-radius: 15px; padding: 20px; flex-grow: 1;
+        background: #1e293b; border-radius: 15px; padding: 20px; flex-grow: 1;
         overflow-y: auto; margin-bottom: 20px; border: 1px solid rgba(56, 189, 248, 0.2);
       }
+      .tab-content h3 { color: #38bdf8; margin-top: 0; }
       .cipher-example {
-        background: rgba(56, 189, 248, 0.1); padding: 12px; border-radius: 10px;
+        background: rgba(15, 23, 42, 0.8); padding: 12px; border-radius: 10px;
         font-family: monospace; margin: 15px 0; text-align: center; color: #38bdf8;
+        border: 1px dashed #38bdf8;
+      }
+      .btn-academy-close {
+        background: #38bdf8 !important; color: #0f172a !important; border: none !important; font-weight: bold;
       }
     </style>
   </head>
@@ -112,8 +129,6 @@
           <button id="btn-easy" class="btn">Легкий</button>
           <button id="btn-medium" class="btn">Середній</button>
           <button id="btn-hard" class="btn">Складний</button>
-          
-          <!-- Та сама кнопка під рівнями -->
           <button id="btn-open-academy" class="btn academy-btn">📖 Академія шифрів</button>
         </div>
       </div>
@@ -169,36 +184,49 @@
 
       <div id="atbash" class="tab-content" style="display: block;">
         <h3>Дзеркальний шифр</h3>
-        <p>Атбаш — це найдавніший шифр, де алфавіт просто розгортається навпаки.</p>
+        <p>Атбаш — це один із найдавніших шифрів, що походить із Давнього Ізраїлю.</p>
+        <ul style="padding-left: 20px; color: #cbd5e1;">
+          <li>Просто віддзеркалюй алфавіт.</li>
+          <li>Перша літера міняється з останньою (А ↔ Я).</li>
+          <li>Друга міняється з передостанньою (Б ↔ Ю).</li>
+        </ul>
         <div class="cipher-example">
-          А Б В Г Ґ Д ...<br>
-          ↓ ↓ ↓ ↓ ↓ ↓<br>
-          Я Ю Ь Щ Ш Ч ...
+          А Б В Г Ґ ...<br>
+          ↓ ↓ ↓ ↓ ↓<br>
+          Я Ю Ь Щ Ш ...
         </div>
-        <p>Наприклад: "АБ" стане "ЯЮ".</p>
       </div>
 
       <div id="caesar" class="tab-content" style="display: none;">
         <h3>Циклічний зсув</h3>
-        <p>Шифр Цезаря зміщує кожну літеру на вказану кількість кроків по колу.</p>
+        <p>Цезар зміщує літери по колу. Математична формула: <strong>(x + k) mod 33</strong>.</p>
+        <ul style="padding-left: 20px; color: #cbd5e1;">
+          <li>Це циклічний шифр: після "Я" знову йде "А".</li>
+          <li>Порада: якщо ключ +2, просто відлічи дві літери вперед по алфавіту.</li>
+        </ul>
         <div class="cipher-example">
           Ключ +2:<br>
-          А → В, Б → Г, В → Ґ...
+          А(0) + 2 = В(2)<br>
+          Я(32) + 2 = Б(1)
         </div>
-        <p>Якщо алфавіт закінчився, ми повертаємося на початок.</p>
       </div>
 
       <div id="vigenere" class="tab-content" style="display: none;">
-        <h3>Багатоалфавітний шифр</h3>
-        <p>Кожна літера шифрується своїм зсувом, який ми беремо з ключового слова.</p>
+        <h3>Накладання ключа</h3>
+        <p>Найскладніший шифр, де кожна літера слова має свій унікальний зсув.</p>
+        <ul style="padding-left: 20px; color: #cbd5e1;">
+          <li>Ключ повторюється, доки не зрівняється за довжиною зі словом.</li>
+          <li>Кожна пара літер (Слово + Ключ) додається за їхніми індексами (0-32).</li>
+          <li>Використовуй таблицю індексів, де А=0, Б=1... Я=32.</li>
+        </ul>
         <div class="cipher-example">
-          Формула:<br>
-          (Індекс Л + Індекс К)
+          СЛОВО: К(14) Л(15)...<br>
+          КЛЮЧ: К(14) Л(15)...<br>
+          Результат: 14+14=28(Щ)
         </div>
-        <p>Використовуй таблицю індексів 0-32 української абетки.</p>
       </div>
 
-      <button class="btn" onclick="toggleAcademy(false)">Зрозумів</button>
+      <button class="btn btn-academy-close" onclick="toggleAcademy(false)">Зрозумів</button>
     </div>
 
     <script>
@@ -210,7 +238,6 @@
       
       let state = { lives: 5, score: 0, subLevel: 1, currentAns: "" };
 
-      // Логіка Академії
       function toggleAcademy(show) {
         document.getElementById('academy-overlay').style.display = show ? 'flex' : 'none';
       }
@@ -218,10 +245,8 @@
       function openTab(evt, tabName) {
         const contents = document.getElementsByClassName("tab-content");
         for (let i = 0; i < contents.length; i++) contents[i].style.display = "none";
-        
         const tabs = document.getElementsByClassName("tab-link");
         for (let i = 0; i < tabs.length; i++) tabs[i].classList.remove("active");
-        
         document.getElementById(tabName).style.display = "block";
         evt.currentTarget.classList.add("active");
       }
@@ -249,10 +274,7 @@
         try {
           await fetch(url, {
             method: 'POST',
-            headers: { 
-              'Content-Type': 'application/json',
-              'ngrok-skip-browser-warning': 'true'
-            },
+            headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
             body: JSON.stringify({ user_id: userId, stars: stars })
           });
           loadStars(); 
@@ -280,17 +302,14 @@
           showScreen('game-over-screen');
           return;
         }
-
         const word = WORDS[Math.floor(Math.random() * WORDS.length)];
         const s = 1 + Math.floor(Math.random() * 5);
         const opts = document.getElementById('options');
         const fback = document.getElementById('feedback');
         const nbtn = document.getElementById('next-btn');
-        
         opts.innerHTML = "";
         fback.style.display = "none";
         nbtn.style.display = "none";
-
         if (state.subLevel === 1) {
           document.getElementById('instr').textContent = "Зашифруй слово:";
           document.getElementById('word').textContent = word;
@@ -309,10 +328,8 @@
           document.getElementById('instr').textContent = "Розшифруй в умі. Яке слово починається на останню літеру?";
           document.getElementById('word').textContent = encrypted;
           document.getElementById('shift-info').textContent = "Зсув: -" + s;
-          
           const possible = WORDS.filter(w => w[0].toLowerCase() === lastChar && w !== word);
           state.currentAns = possible.length > 0 ? possible[Math.floor(Math.random()*possible.length)] : "абетка";
-          
           generateOptions(state.currentAns, () => {
             const wrong = WORDS.filter(w => w[0].toLowerCase() !== lastChar);
             return wrong[Math.floor(Math.random()*wrong.length)];
@@ -359,17 +376,13 @@
       document.getElementById('btn-easy').onclick = () => showScreen('level-detail-screen');
       document.getElementById('btn-medium').onclick = () => { window.location.href = 'medium.html?v=' + Date.now(); };
       document.getElementById('btn-hard').onclick = () => { window.location.href = 'hard.html?v=' + Date.now(); };
-      
       document.getElementById('btn-lvl-1').onclick = () => { state.subLevel = 1; start(); };
       document.getElementById('btn-lvl-2').onclick = () => { state.subLevel = 2; start(); };
       document.getElementById('btn-lvl-3').onclick = () => { state.subLevel = 3; start(); };
-      
       document.getElementById('detail-back-btn').onclick = () => showScreen('menu-screen');
       document.getElementById('next-btn').onclick = nextQuestion;
-      
       document.getElementById('exit-to-levels-btn').onclick = () => showScreen('level-detail-screen');
       document.getElementById('exit-to-menu-btn').onclick = () => showScreen('menu-screen');
-      
       document.getElementById('restart-to-levels-btn').onclick = () => showScreen('level-detail-screen');
       document.getElementById('restart-to-menu-btn').onclick = () => showScreen('menu-screen');
 
