@@ -60,6 +60,13 @@
         border: 2px solid #22c55e; color: #22c55e !important; 
         box-shadow: 0 0 10px rgba(34, 197, 94, 0.2); 
       }
+      
+      /* Червоний стиль для кнопок виходу/назад */
+      .btn-danger-style {
+        border: 2px solid #ef4444 !important; color: #ef4444 !important;
+        box-shadow: 0 0 10px rgba(239, 68, 68, 0.2) !important;
+      }
+
       #btn-medium { 
         border: 2px solid #facc15; color: #facc15 !important; 
         box-shadow: 0 0 10px rgba(250, 204, 21, 0.2); 
@@ -159,7 +166,7 @@
           <button id="btn-lvl-1" class="btn btn-easy-style">1: ЗАШИФРУЙ</button>
           <button id="btn-lvl-2" class="btn btn-easy-style">2: ВІДГАДАЙ КЛЮЧ</button>
           <button id="btn-lvl-3" class="btn btn-easy-style">3: КРИПТО-СЛОВА</button>
-          <button id="detail-back-btn" class="btn back-btn">НАЗАД</button>
+          <button id="detail-back-btn" class="btn btn-danger-style">НАЗАД</button>
         </div>
       </div>
 
@@ -178,8 +185,8 @@
           <button id="next-btn" class="btn btn-easy-style" style="display:none; margin-top:15px;">НАСТУПНЕ</button>
         </div>
         <div class="btn-container">
-          <button id="exit-to-levels-btn" class="btn back-btn btn-half">ДО РІВНІВ</button>
-          <button id="exit-to-menu-btn" class="btn back-btn btn-half">В МЕНЮ</button>
+          <button id="exit-to-levels-btn" class="btn btn-danger-style btn-half">ДО РІВНІВ</button>
+          <button id="exit-to-menu-btn" class="btn btn-danger-style btn-half">В МЕНЮ</button>
         </div>
       </div>
 
@@ -188,7 +195,7 @@
           <h2 style="color: #ef4444;">ГРУ ЗАВЕРШЕНО!</h2>
           <p>Ваш результат: <span id="final-score" style="color: #facc15; font-size: 24px; font-weight: bold;">0</span> ⭐</p>
           <button id="restart-to-levels-btn" class="btn btn-easy-style">ДО РІВНІВ</button>
-          <button id="restart-to-menu-btn" class="btn back-btn">В ГОЛОВНЕ МЕНЮ</button>
+          <button id="restart-to-menu-btn" class="btn btn-danger-style">В ГОЛОВНЕ МЕНЮ</button>
         </div>
       </div>
     </div>
