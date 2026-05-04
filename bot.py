@@ -4,7 +4,7 @@ import logging
 import os
 from aiohttp import web
 from aiogram import Bot, Dispatcher, F
-from aiogram.filters import CommandStart
+from aiogram.filters import CommandStart, Command 
 from aiogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from database import add_user, get_user_stats, update_user_stats
 
@@ -39,7 +39,6 @@ async def handle_update_stars(request):
         return web.json_response({"error": str(e)}, status=500, headers={'Access-Control-Allow-Origin': '*'})
 
 async def handle_get_stars(request):
-    # ВИПРАВЛЕНО: Додано обробку OPTIONS для цього маршруту
     if request.method == 'OPTIONS':
         return web.Response(headers={
             'Access-Control-Allow-Origin': '*',
@@ -59,7 +58,6 @@ async def handle_get_stars(request):
         return web.json_response({"stars": 0}, headers={'Access-Control-Allow-Origin': '*'})
 
 app = web.Application()
-# Дозволяємо всі методи для обох шляхів
 app.router.add_route('*', '/update_stars', handle_update_stars)
 app.router.add_route('*', '/get_stars', handle_get_stars)
 
@@ -70,7 +68,6 @@ async def cmd_start(message: Message):
     user_id = message.from_user.id
     username = message.from_user.username or message.from_user.full_name or "Агент"
 
-    # Отримуємо актуальні зірки з бази
     stats = get_user_stats(user_id)
     if not stats:
         add_user(user_id, username)
@@ -78,16 +75,13 @@ async def cmd_start(message: Message):
     else:
         stars = stats.get('stars', 0)
 
-    # Ваше посилання на Mini App (GitHub Pages)
     web_app_url = f"https://rachel345.github.io/telegram-mini-app-game/index.html?user_id={user_id}&stars={stars}"
     
-    # Створюємо клавіатуру з двома кнопками
     markup = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="🚀 ЗАПУСТИТИ ГРУ", web_app=WebAppInfo(url=web_app_url))],
         [InlineKeyboardButton(text="🆘 ПІДТРИМКА", url="https://t.me/ra4elll")]
     ])
 
-    # Текст привітання
     welcome_text = (
         f"Привіт, {username}! Я твій **Крипто-тренажер**. 🕵️‍♂️\n\n"
         f"Тут ти опануєш мистецтво шифрування. Щоб почати навчання та ігри, "
@@ -96,20 +90,31 @@ async def cmd_start(message: Message):
         f"Якщо виникнуть питання — звертайся до підтримки."
     )
 
-    await message.answer(
-        welcome_text,
-        reply_markup=markup,
-        parse_mode="Markdown" # Це дозволяє робити текст жирним або курсивом
+    await message.answer(welcome_text, reply_markup=markup, parse_mode="Markdown")
+
+# --- ДОДАНО ОБРОБНИК HELP ТУТ ---
+@dp.message(Command("help"))
+async def cmd_help(message: Message):
+    help_text = (
+        "🆘 **Допомога та підтримка**\n\n"
+        "Вітаю у Крипто-тренажері! Ось як тут усе працює:\n\n"
+        "• Тисни /start, щоб отримати посилання на гру.\n"
+        "• У грі обирай рівень складності та розгадуй шифри.\n"
+        "• Теорію можна знайти у розділі **КРИПТО-АКАДЕМІЯ**.\n\n"
+        "Якщо гра не відкривається або ти знайшов баг — пиши розробнику!"
     )
+
+    markup = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="👨‍💻 Написати розробнику", url="https://t.me/ra4elll")]
+    ])
+
+    await message.answer(help_text, reply_markup=markup, parse_mode="Markdown")
+
 async def main():
-    # Запуск бота
     bot_task = asyncio.create_task(dp.start_polling(bot))
-    
-    # Запуск сервера на порту 8080
     runner = web.AppRunner(app)
     await runner.setup()
     site = web.TCPSite(runner, '0.0.0.0', 8080)
-    
     logger.info("🚀 БОТ ТА API ЗАПУЩЕНІ (Порт 8080)")
     await site.start()
     await bot_task
