@@ -6,77 +6,106 @@
     <title>Середній рівень - Кріпто-тренажер</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        /* ГЛОБАЛЬНІ НАЛАШТУВАННЯ */
         * { box-sizing: border-box; }
         body {
-            background-color: var(--tg-theme-bg-color, #1a1a2e) !important;
-            color: var(--tg-theme-text-color, #eee) !important;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #0a0a0c !important; /* Чорний фон */
+            color: #eee !important;
+            font-family: 'Courier New', Courier, monospace; /* Хакерський шрифт */
             margin: 0; padding: 16px; min-height: 100vh;
         }
+        
         .screen { display: none; flex-direction: column; align-items: center; gap: 16px; max-width: 400px; margin: 0 auto; }
         .screen.active { display: flex; }
         
+        /* КАРТКИ */
         .card {
-            background: var(--tg-theme-secondary-bg-color, #16213e);
+            background: rgba(30, 41, 59, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.3); /* Зелена напівпрозора рамка */
             border-radius: 16px; padding: 24px; width: 100%; position: relative;
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.1);
         }
 
-        .menu-title { font-size: 24px; font-weight: bold; margin-bottom: 10px; text-align: center; }
+        .menu-title { 
+            font-size: 24px; font-weight: bold; margin-bottom: 20px; text-align: center; 
+            color: #22c55e; text-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+        }
         
+        /* ХЕДЕР ГРИ */
         .game-header {
             display: flex; align-items: center; justify-content: space-between;
-            padding: 12px 16px; background: var(--tg-theme-secondary-bg-color, #16213e);
-            border-radius: 12px; width: 100%; margin-bottom: 8px;
+            padding: 12px 16px; background: rgba(0,0,0,0.5);
+            border: 1px solid #22c55e; border-radius: 12px; width: 100%; margin-bottom: 8px;
+            color: #fff;
         }
-        .timer-container {
-            width: 100%; height: 6px; background: rgba(255,255,255,0.1);
-            border-radius: 3px; margin-bottom: 20px; overflow: hidden;
-        }
-        .timer-bar { width: 100%; height: 100%; background: #ef4444; transition: width 0.1s linear; }
 
-        .vigenere-wrap { width: 100%; overflow-x: auto; margin: 15px 0; border-radius: 8px; background: #0f172a; border: 1px solid #2ea6ff; }
+        /* ТАЙМЕР */
+        .timer-container {
+            width: 100%; height: 6px; background: rgba(255,255,255,0.05);
+            border-radius: 3px; margin-bottom: 20px; overflow: hidden;
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+        .timer-bar { width: 100%; height: 100%; background: #22c55e; box-shadow: 0 0 10px #22c55e; transition: width 0.1s linear; }
+
+        /* ТАБЛИЦЯ ВІЖЕНЕРА */
+        .vigenere-wrap { 
+            width: 100%; overflow-x: auto; margin: 15px 0; border-radius: 8px; 
+            background: #000; border: 1px solid #22c55e; 
+        }
         table { border-collapse: collapse; font-size: 9px; color: #94a3b8; width: 100%; }
         td, th { width: 18px; height: 18px; text-align: center; border: 1px solid #1e293b; text-transform: uppercase; }
-        th { background: #1e293b; color: #2ea6ff; }
-        .h-cell { background: #2ea6ff !important; color: white !important; font-weight: bold; }
+        th { background: #111; color: #22c55e; }
+        .h-cell { background: #22c55e !important; color: #000 !important; font-weight: bold; box-shadow: inset 0 0 5px #000; }
 
+        /* ІНПУТИ */
         .input-box { width: 100%; margin-bottom: 15px; }
-        .input-box label { display: block; font-size: 12px; color: #2ea6ff; margin-bottom: 5px; }
+        .input-box label { display: block; font-size: 12px; color: #22c55e; margin-bottom: 5px; text-transform: uppercase; }
         .input-box input {
-            width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1);
+            width: 100%; background: #000; border: 1px solid #22c55e;
             color: #fff; padding: 12px; border-radius: 10px; font-size: 16px;
+            box-shadow: inset 0 0 5px rgba(34, 197, 94, 0.2);
         }
-        .input-box input:disabled { opacity: 0.7; color: #facc15; }
+        .input-box input:focus { outline: none; box-shadow: 0 0 10px rgba(34, 197, 94, 0.4); }
 
+        /* КНОПКИ (УНІВЕРСАЛЬНИЙ СТИЛЬ) */
         .btn {
-            background: var(--tg-theme-button-color, #2ea6ff);
-            color: var(--tg-theme-button-text-color, #fff) !important;
-            border: none; border-radius: 12px; padding: 14px; width: 100%; font-size: 16px; cursor: pointer;
+            background: rgba(0, 0, 0, 0.6);
+            color: #22c55e !important;
+            border: 2px solid #22c55e;
+            border-radius: 12px; padding: 14px; width: 100%; font-size: 16px; cursor: pointer;
+            font-weight: bold; text-transform: uppercase;
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.2);
+            transition: all 0.2s ease;
         }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .btn-outline { background: transparent; border: 1px solid #2ea6ff; color: #2ea6ff !important; margin-top: 10px; }
-        .btn-exit { background: transparent; border: 1px solid #ef4444; color: #ef4444 !important; margin-top: 20px; }
-        .btn-danger { background: #ef4444 !important; color: white !important; }
+        .btn:active { transform: scale(0.95); box-shadow: 0 0 20px rgba(34, 197, 94, 0.4); }
+        .btn:disabled { opacity: 0.3; border-color: #444; color: #444 !important; box-shadow: none; }
+        
+        .btn-outline { border-color: rgba(34, 197, 94, 0.5); color: rgba(34, 197, 94, 0.8) !important; }
+        .btn-exit { border-color: #ef4444; color: #ef4444 !important; box-shadow: 0 0 10px rgba(239, 68, 68, 0.2); }
+        .btn-danger { background: rgba(239, 68, 68, 0.1) !important; border-color: #ef4444 !important; color: #ef4444 !important; }
 
+        /* ВАРІАНТИ ВІДПОВІДЕЙ */
         .options-grid { display: grid; grid-template-columns: 1fr; gap: 10px; width: 100%; }
         .option-btn {
-            background: rgba(255,255,255,0.05); color: inherit; border: 2px solid rgba(255,255,255,0.1);
+            background: rgba(0, 0, 0, 0.6); color: #fff; border: 1px solid rgba(34, 197, 94, 0.3);
             border-radius: 12px; padding: 14px; font-size: 16px; cursor: pointer;
+            transition: 0.2s;
         }
-        .option-btn.correct { border-color: #22c55e; background: rgba(34, 197, 94, 0.2); }
-        .option-btn.wrong { border-color: #ef4444; background: rgba(239, 68, 68, 0.2); }
-        .feedback-box { margin-top: 15px; text-align: center; font-weight: bold; padding: 10px; border-radius: 8px; }
+        .option-btn.correct { border-color: #22c55e; background: rgba(34, 197, 94, 0.1); color: #22c55e; box-shadow: 0 0 15px rgba(34, 197, 94, 0.3); }
+        .option-btn.wrong { border-color: #ef4444; background: rgba(239, 68, 68, 0.1); color: #ef4444; box-shadow: 0 0 15px rgba(239, 68, 68, 0.3); }
+        
+        .feedback-box { margin-top: 15px; text-align: center; font-weight: bold; padding: 10px; border-radius: 8px; border: 1px dashed; }
     </style>
 </head>
 <body>
 
     <!-- ЕКРАН ВИБОРУ РІВНЯ -->
     <div id="menu-screen" class="screen active">
-        <h2 class="menu-title">Середній рівень</h2>
+        <h2 class="menu-title">СЕРЕДНІЙ РІВЕНЬ</h2>
         <div class="card">
             <button class="btn" onclick="initAtbash()">Рівень 1: Атбаш</button>
             <button class="btn" style="margin-top: 12px;" onclick="initVigenere()">Рівень 2: Віженер</button>
-            <button class="btn btn-exit" onclick="window.location.href='index.html'">Назад</button>
+            <button class="btn btn-exit" style="margin-top: 24px;" onclick="window.location.href='index.html'">Повернутися в меню</button>
         </div>
     </div>
 
@@ -84,59 +113,59 @@
     <div id="atbash-screen" class="screen">
         <div class="game-header">
             <span>❤️ <span id="atbash-lives">5</span></span>
-            <span style="font-weight: bold; color: #facc15;">Атбаш</span>
+            <span style="font-weight: bold; color: #22c55e;">АТБАШ</span>
             <span>⭐ <span id="atbash-score">0</span></span>
         </div>
         <div class="card">
             <div class="timer-container"><div id="atbash-timer-bar" class="timer-bar"></div></div>
-            <p style="text-align: center; opacity: 0.8;">Розшифруй слово:</p>
-            <div id="atbash-word" style="font-size: 26px; font-weight: bold; text-align: center; margin: 15px 0;">---</div>
+            <p style="text-align: center; opacity: 0.8; font-size: 12px;">СИСТЕМА: РОЗШИФРУЙТЕ ТЕРМІН</p>
+            <div id="atbash-word" style="font-size: 26px; font-weight: bold; text-align: center; margin: 15px 0; letter-spacing: 2px;">---</div>
             <div id="atbash-options" class="options-grid"></div>
             <div id="atbash-feedback" class="feedback-box" style="display:none;"></div>
-            <button id="atbash-next" class="btn" style="display:none; margin-top:10px;">Наступне</button>
+            <button id="atbash-next" class="btn" style="display:none; margin-top:10px;">ДАЛІ</button>
         </div>
-        <button class="btn btn-exit" onclick="resetToMenu()">Вийти</button>
+        <button class="btn btn-exit" onclick="resetToMenu()">ПЕРЕрвати</button>
     </div>
 
     <!-- ЕКРАН ВІЖЕНЕРА -->
     <div id="vigenere-screen" class="screen">
         <div class="game-header">
             <span>❤️ <span id="vig-lives">3</span></span>
-            <span style="font-weight: bold; color: #2ea6ff;">Віженер</span>
+            <span style="font-weight: bold; color: #22c55e;">ВІЖЕНЕР</span>
             <span>⏱️ <span id="vig-timer-text">60</span>с</span>
         </div>
         <div class="card">
             <div class="input-box">
-                <label>Вихідний текст (М):</label>
+                <label>ТЕКСТ (M):</label>
                 <input type="text" id="vig-m" readonly>
             </div>
             <div class="input-box">
-                <label>Ключове слово (К):</label>
+                <label>КЛЮЧ (K):</label>
                 <input type="text" id="vig-k" readonly>
             </div>
             <div id="vig-table-area" class="vigenere-wrap" style="display:none;"><table id="tabula-recta"></table></div>
             <div class="input-box">
-                <label>Ваш результат (С):</label>
-                <input type="text" id="vig-answer" placeholder="Введіть результат...">
+                <label>РЕЗУЛЬТАТ (C):</label>
+                <input type="text" id="vig-answer" placeholder="Введіть код...">
             </div>
             <div id="vig-feedback" class="feedback-box" style="display:none;"></div>
             
-            <button id="vig-check-btn" class="btn" onclick="checkVigenere()">Перевірити результат</button>
-            <button id="vig-show-ans-btn" class="btn btn-danger" style="display:none;" onclick="showVigenereSolution()">Показати правильну відповідь</button>
-            <button id="vig-next-btn" class="btn" style="display:none; margin-top:10px;" onclick="generateNewVigenereTask()">Наступне слово</button>
+            <button id="vig-check-btn" class="btn" onclick="checkVigenere()">ВЕРИФІКУВАТИ</button>
+            <button id="vig-show-ans-btn" class="btn btn-danger" style="display:none;" onclick="showVigenereSolution()">ВІДНОВИТИ ДАНІ</button>
+            <button id="vig-next-btn" class="btn" style="display:none; margin-top:10px;" onclick="generateNewVigenereTask()">ДАЛІ</button>
             
-            <button class="btn btn-outline" id="hint-btn" onclick="useHint()">Підказка (Таблиця) -10с</button>
+            <button class="btn btn-outline" style="margin-top: 15px; font-size: 12px;" id="hint-btn" onclick="useHint()">ПІДКАЗКА (ТАБЛИЦЯ) -10с</button>
         </div>
-        <button class="btn btn-exit" onclick="resetToMenu()">Вийти</button>
+        <button class="btn btn-exit" onclick="resetToMenu()">ВИЙТИ</button>
     </div>
 
     <!-- ЕКРАН ЗАВЕРШЕННЯ -->
     <div id="game-over-screen" class="screen">
         <div class="card" style="text-align: center;">
-            <h2>Гру завершено!</h2>
-            <p style="font-size: 18px; margin: 20px 0;">Ваш результат: <span id="final-score">0</span> ⭐</p>
-            <button class="btn" onclick="resetToMenu()">До вибору рівнів</button>
-            <button class="btn btn-outline" onclick="window.location.href='index.html'">В меню</button>
+            <h2 style="color: #ef4444;">ДОСТУП ПРИПИНЕНО</h2>
+            <p style="font-size: 18px; margin: 20px 0;">ЗІБРАНО ДАНИХ: <span id="final-score" style="color: #22c55e; font-weight: bold;">0</span> ⭐</p>
+            <button class="btn" onclick="resetToMenu()">ПОВТОРНИЙ ВХІД</button>
+            <button class="btn btn-outline" style="margin-top: 12px;" onclick="window.location.href='index.html'">ГОЛОВНИЙ ТЕРМІНАЛ</button>
         </div>
     </div>
 
@@ -210,13 +239,13 @@
                     if(val === state.correctAnswer) {
                         b.classList.add('correct');
                         state.score += 3;
-                        document.getElementById('atbash-feedback').innerHTML = "✅ Правильно! +3 ⭐";
+                        document.getElementById('atbash-feedback').innerHTML = "ВЕРИФІКАЦІЯ УСПІШНА +3 ⭐";
                         document.getElementById('atbash-feedback').style.color = "#22c55e";
                         await syncStars(3);
                     } else {
                         b.classList.add('wrong');
                         state.lives--;
-                        document.getElementById('atbash-feedback').innerHTML = `❌ Неправильно! Відповідь: ${state.correctAnswer}`;
+                        document.getElementById('atbash-feedback').innerHTML = `ПОМИЛКА. ДАНІ: ${state.correctAnswer}`;
                         document.getElementById('atbash-feedback').style.color = "#ef4444";
                     }
                     updateAtbashStats();
@@ -254,7 +283,6 @@
         function generateNewVigenereTask() {
             if(state.lives <= 0) { gameOver(); return; }
             
-            // Очищення підсвітки таблиці
             document.querySelectorAll('#tabula-recta .h-cell').forEach(cell => cell.classList.remove('h-cell'));
 
             const m = WORDS[Math.floor(Math.random()*WORDS.length)].toUpperCase();
@@ -307,7 +335,7 @@
                     
                     const feedback = document.getElementById('vig-feedback');
                     feedback.style.display = "block";
-                    feedback.innerHTML = "⏰ Час вийшов! Уважно переглянь відповідь.";
+                    feedback.innerHTML = "ЧАС ВИЧЕРПАНО. КАНАЛ ВТРАЧЕНО.";
                     feedback.style.color = "#facc15";
                     
                     document.getElementById('vig-check-btn').style.display = "none";
@@ -340,14 +368,14 @@
             const ans = document.getElementById('vig-answer').value.trim().toUpperCase();
             const feedback = document.getElementById('vig-feedback');
             
-            clearInterval(state.timer); // Зупинка таймера на час показу фідбеку
+            clearInterval(state.timer);
             document.getElementById('vig-answer').disabled = true;
             document.getElementById('hint-btn').disabled = true;
 
             if(ans === state.correctAnswer) {
                 state.score += 5;
                 feedback.style.display = "block";
-                feedback.innerHTML = "✅ Правильно! +5 ⭐";
+                feedback.innerHTML = "СИНХРОНІЗАЦІЯ ЗАВЕРШЕНА +5 ⭐";
                 feedback.style.color = "#22c55e";
                 document.getElementById('vig-check-btn').style.display = "none";
                 document.getElementById('vig-next-btn').style.display = "block";
@@ -358,7 +386,7 @@
                 tg.HapticFeedback?.notificationOccurred?.('error');
                 
                 feedback.style.display = "block";
-                feedback.innerHTML = "❌ Неправильно! Уважно переглянь відповідь.";
+                feedback.innerHTML = "ПОМИЛКА ДЕШИФРУВАННЯ";
                 feedback.style.color = "#ef4444";
                 
                 document.getElementById('vig-check-btn').style.display = "none";
@@ -371,7 +399,6 @@
             document.getElementById('vig-table-area').style.display = "block";
             if(document.getElementById('tabula-recta').innerHTML === "") buildVigenereTable();
             
-            // Підсвітка першої літери тексту та ключа
             const m = document.getElementById('vig-m').value;
             const k = document.getElementById('vig-k').value;
             const ri = ALPHABET.indexOf(m[0].toLowerCase());
