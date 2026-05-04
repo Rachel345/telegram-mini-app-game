@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Складний рівень - Кріпто-тренажер</title>
+    <title>Кріпто-тренажер</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -24,16 +24,14 @@
             display: flex; flex-direction: column;
         }
 
+        /* Screens */
+        .screen { display: none; flex-direction: column; height: 100%; }
+        .screen.active { display: flex; }
+
         .header {
             display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 15px; padding: 10px 15px; background: var(--card-bg); border-radius: 12px;
             border: 1px solid rgba(56, 189, 248, 0.2);
-        }
-
-        .mission-box {
-            background: rgba(56, 189, 248, 0.05); border: 1px solid rgba(56, 189, 248, 0.3);
-            border-radius: 12px; padding: 12px; margin-bottom: 15px;
-            font-size: 13px; line-height: 1.4; color: #cbd5e1;
         }
 
         .card {
@@ -41,67 +39,131 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.4); position: relative;
         }
 
+        .btn {
+            background: var(--accent); color: #fff; border: none; border-radius: 10px;
+            padding: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px;
+            text-align: center; text-decoration: none; display: block;
+        }
+
+        .btn-secondary { background: #334155; }
+        .btn-academy { background: transparent; border: 2px solid var(--accent); color: var(--accent); }
+
+        /* Academy Styles */
+        .academy-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--bg-color); z-index: 100; padding: 20px;
+            display: none; flex-direction: column;
+        }
+        .academy-overlay.active { display: flex; }
+
+        .tabs { display: flex; gap: 5px; margin-bottom: 20px; }
+        .tab {
+            flex: 1; padding: 10px; text-align: center; background: #1e293b;
+            border-radius: 8px; font-size: 12px; cursor: pointer; border: 1px solid transparent;
+        }
+        .tab.active { border-color: var(--accent); color: var(--accent); background: rgba(56, 189, 248, 0.1); }
+
+        .tab-content { display: none; flex: 1; overflow-y: auto; }
+        .tab-content.active { display: block; }
+
+        .theory-box {
+            background: rgba(255,255,255,0.05); border-radius: 12px; padding: 15px; line-height: 1.6;
+        }
+        .alphabet-row { font-family: monospace; letter-spacing: 2px; background: #000; padding: 8px; border-radius: 4px; margin: 10px 0; font-size: 14px; }
+
+        /* Game UI */
         .cipher-display {
             background: rgba(15, 23, 42, 0.5); padding: 15px; border-radius: 10px;
             text-align: center; border: 1px dashed var(--accent); margin-bottom: 20px;
         }
-
         .cipher-word { font-size: 22px; font-weight: 800; letter-spacing: 3px; color: var(--accent); }
-
-        .helper-section {
-            background: rgba(0, 0, 0, 0.2); border-radius: 8px; padding: 10px;
-            margin-bottom: 15px; font-family: monospace; font-size: 11px; overflow-x: auto;
-        }
-
-        .alphabet-grid {
-            display: grid; grid-template-columns: repeat(11, 1fr); gap: 4px; text-align: center;
-        }
-
+        .helper-section { background: rgba(0, 0, 0, 0.2); border-radius: 8px; padding: 10px; margin-bottom: 15px; font-family: monospace; font-size: 11px; overflow-x: auto; }
+        .alphabet-grid { display: grid; grid-template-columns: repeat(11, 1fr); gap: 4px; text-align: center; }
         .letter-box { border: 1px solid #334155; border-radius: 4px; padding: 2px; }
         .letter-idx { color: var(--accent); display: block; font-size: 9px; }
-
-        .step-container {
-            border-left: 3px solid #334155; padding-left: 15px; margin-bottom: 20px;
-            opacity: 0.5; transition: 0.3s;
-        }
-
+        .step-container { border-left: 3px solid #334155; padding-left: 15px; margin-bottom: 20px; opacity: 0.5; transition: 0.3s; }
         .step-container.active { border-left-color: var(--accent); opacity: 1; }
-
-        input[type="text"] {
-            width: 100%; background: #0f172a; border: 1px solid #334155;
-            color: #fff; padding: 12px; border-radius: 8px; font-size: 16px;
-            text-transform: uppercase; outline: none;
-        }
-
-        .btn {
-            background: var(--accent); color: #fff; border: none; border-radius: 10px;
-            padding: 12px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 10px;
-        }
-
-        .btn:disabled { background: #475569; opacity: 0.5; }
-        .btn-success { background: var(--success); }
-        .btn-secondary { background: #334155; margin-top: 10px; }
-
+        input[type="text"] { width: 100%; background: #0f172a; border: 1px solid #334155; color: #fff; padding: 12px; border-radius: 8px; font-size: 16px; text-transform: uppercase; outline: none; }
         .validation-msg { font-size: 12px; margin-top: 5px; min-height: 18px; }
         .text-success { color: var(--success); }
         .text-error { color: var(--error); }
-
-        .screen { display: none; }
-        .screen.active { display: flex; flex-direction: column; }
-
-        .atbash-row { display: flex; justify-content: space-around; border-bottom: 1px solid #1e293b; padding: 2px 0; }
     </style>
 </head>
 <body>
 
-    <div id="game-screen" class="screen active">
+    <!-- Меню -->
+    <div id="menu-screen" class="screen active">
+        <div class="header" style="justify-content: center;">
+            <div style="background: rgba(56, 189, 248, 0.1); padding: 5px 15px; border-radius: 20px; border: 1px solid var(--accent);">
+                ⭐ Ваш баланс: <span id="balance-val">0</span>
+            </div>
+        </div>
+        <div class="card" style="text-align: center; margin-top: 40px;">
+            <h2 style="margin-bottom: 30px;">Обери складність</h2>
+            <button class="btn btn-secondary" onclick="startLevel('easy')">Легкий</button>
+            <button class="btn btn-secondary" onclick="startLevel('medium')">Середній</button>
+            <button class="btn" onclick="showGame()">Складний</button>
+            <button class="btn btn-academy" style="margin-top: 30px;" onclick="toggleAcademy(true)">📖 Академія шифрів</button>
+        </div>
+        <div style="text-align: center; margin-top: auto; padding: 20px; opacity: 0.5; font-size: 12px;">@Enigma_AppBot</div>
+    </div>
+
+    <!-- Академія -->
+    <div id="academy-screen" class="academy-overlay">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="margin: 0; color: var(--accent);">КРІПТО-АКАДЕМІЯ</h2>
+            <button style="background: none; border: none; color: #fff; font-size: 24px;" onclick="toggleAcademy(false)">✕</button>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('atbash')">АТБАШ</div>
+            <div class="tab" onclick="switchTab('caesar')">ЦЕЗАР</div>
+            <div class="tab" onclick="switchTab('vigenere')">ВІЖЕНЕР</div>
+        </div>
+
+        <div id="atbash-tab" class="tab-content active">
+            <div class="theory-box">
+                <h3>Дзеркальний шифр</h3>
+                <p>Найдавніший метод, де алфавіт просто "перевертається". Перша літера стає останньою, а друга — передостанньою.</p>
+                <div class="alphabet-row">А Б В Г Ґ Д ...</div>
+                <div class="alphabet-row" style="color: var(--accent)">Я Ю Ь Щ Ш Ч ...</div>
+                <p>Логіка: якщо знаєш порядковий номер літери <b>i</b>, то зашифрована літера має номер <b>32 - i</b>.</p>
+            </div>
+        </div>
+
+        <div id="caesar-tab" class="tab-content">
+            <div class="theory-box">
+                <h3>Шифр зсуву</h3>
+                <p>Кожна літера в тексті замінюється літерою, що знаходиться на певну кількість позицій далі в алфавіті.</p>
+                <p>Наприклад, при зсуві <b>+3</b>:<br>А → Г, Б → Ґ, В → Д.</p>
+                <p>Якщо зсув виходить за межі алфавіту (я + 1), ми повертаємось на початок (я → а). Це називається "зсув по колу".</p>
+            </div>
+        </div>
+
+        <div id="vigenere-tab" class="tab-content">
+            <div class="theory-box">
+                <h3>Шифр Віженера</h3>
+                <p>Це Цезар, де зсув змінюється для кожної літери за допомогою секретного <b>КЛЮЧА</b>.</p>
+                <div style="background: rgba(56,189,248,0.1); padding: 10px; border-radius: 8px; margin: 10px 0;">
+                    СЛОВО + КЛЮЧ = ШИФРОТЕКСТ
+                </div>
+                <p>Для розшифрування ми віднімаємо індекс літери ключа від індексу літери шифру.</p>
+                <p><b>Важливо:</b> Ми використовуємо таблицю індексів від <b>0 до 32</b>. Завжди звіряйся з нею під час розрахунків!</p>
+            </div>
+        </div>
+
+        <button class="btn" style="margin-top: 20px;" onclick="toggleAcademy(false)">ЗРОЗУМІВ, ТРЕНУВАТИСЯ!</button>
+    </div>
+
+    <!-- Гра -->
+    <div id="game-screen" class="screen">
         <div class="header">
             <span>❤️ <span id="lives-count">3</span></span>
             <span style="color: var(--accent);">МІСІЯ <span id="mission-num">1</span></span>
             <span>⏱️ <span id="timer">05:00</span></span>
         </div>
 
-        <div id="mission-text" class="mission-box">...</div>
+        <div id="mission-text" class="mission-box" style="background: rgba(56, 189, 248, 0.05); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 12px; padding: 12px; margin-bottom: 15px; font-size: 13px;">...</div>
 
         <div class="card">
             <div class="cipher-display">
@@ -110,10 +172,6 @@
 
             <div class="helper-section">
                 <div id="alphabet-helper" class="alphabet-grid"></div>
-            </div>
-
-            <div id="atbash-helper" class="helper-section" style="display:none;">
-                <div id="atbash-grid"></div>
             </div>
 
             <div id="step-1-ui" class="step-container active">
@@ -130,13 +188,13 @@
                 <div id="step2-msg" class="validation-msg"></div>
             </div>
 
-            <button id="next-btn" class="btn btn-success" style="display:none;" onclick="startNewMission()">НАСТУПНА МІСІЯ</button>
+            <button id="next-btn" class="btn" style="display:none; background: var(--success);" onclick="startNewMission()">НАСТУПНА МІСІЯ</button>
             <button class="btn btn-secondary" onclick="exitToMenu()">ВИЙТИ В МЕНЮ</button>
         </div>
     </div>
 
     <div id="game-over-screen" class="screen">
-        <div class="card" style="text-align: center;">
+        <div class="card" style="text-align: center; margin-top: 50px;">
             <h1 id="final-title">ГРУ ЗАВЕРШЕНО</h1>
             <div style="font-size: 32px; color: var(--gold); margin: 20px 0;">⭐️ <span id="earned-stars">0</span></div>
             <button class="btn" onclick="location.reload()">ГРАТИ ЗНОВУ</button>
@@ -149,37 +207,39 @@
         tg.expand();
 
         const ALPHABET = "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя";
-        const WORDS = ["БЛОКЧЕЙН", "АЛГОРИТМ", "ПРОТОКОЛ", "СИСТЕМА", "ПАРОЛЬ", "ЗАХИСТ", "МЕРЕЖА", "ТЕХНОЛОГІЯ", "ІНТЕРНЕТ"];
+        const WORDS = ["БЛОКЧЕЙН", "АЛГОРИТМ", "ПРОТОКОЛ", "СИСТЕМА", "ПАРОЛЬ", "ЗАХИСТ", "МЕРЕЖА", "ТЕХНОЛОГІЯ", "ІНТЕРНЕТ", "КІБЕРБЕЗПЕКА", "ШИФРУВАННЯ"];
         
         const MISSIONS = [
-            {
-                text: "Ворожий штаб змінив кодування. Спочатку застосували шифр Віженера з ключем <b>КЛЮЧ</b>, а потім перевернули абетку (Атбаш). Зроби все навпаки!", 
-                steps: ["atbash", "vigenere"],
-                vigenereKey: "КЛЮЧ"
-            },
-            {
-                text: "Сигнал викривлений: спочатку літери зсунули на 5 позицій вперед (+5), а потім віддзеркалили. Поверни істину!", 
-                steps: ["atbash", "caesar"],
-                shift: 5
-            },
-            {
-                text: "Критична помилка: зсув Віженера (КЛЮЧ) і Цезаря (+3). Віднови дані!",
-                steps: ["caesar", "vigenere"],
-                shift: 3,
-                vigenereKey: "КЛЮЧ"
-            }
+            { text: "Ворожий штаб змінив кодування. Спочатку Віженер (КЛЮЧ), потім Атбаш. Зніми Атбаш першим!", steps: ["atbash", "vigenere"], vigenereKey: "КЛЮЧ" },
+            { text: "Сигнал викривлений: зсув +5 (Цезар), потім Атбаш. Поверни текст!", steps: ["atbash", "caesar"], shift: 5 },
+            { text: "Критична помилка: зсув Віженера (КЛЮЧ) і Цезаря (+3). Віднови дані!", steps: ["caesar", "vigenere"], shift: 3, vigenereKey: "КЛЮЧ" }
         ];
 
-        let state = { 
-            missionIdx: 0, 
-            lives: 3, 
-            stars: 0, 
-            timeLeft: 300, 
-            timer: null, 
-            correct1: "", 
-            correct2: "" 
-        };
+        let state = { missionIdx: 0, lives: 3, stars: 0, timeLeft: 300, timer: null, correct1: "", correct2: "" };
 
+        function toggleAcademy(show) {
+            document.getElementById('academy-screen').classList.toggle('active', show);
+        }
+
+        function switchTab(cipher) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            event.currentTarget.classList.add('active');
+            document.getElementById(`${cipher}-tab`).classList.add('active');
+        }
+
+        function showGame() {
+            document.getElementById('menu-screen').classList.remove('active');
+            document.getElementById('game-screen').classList.add('active');
+            startNewMission();
+        }
+
+        function exitToMenu() {
+            location.reload();
+        }
+
+        // Логіка шифрів
         function runAtbash(text) {
             return text.toLowerCase().split('').map(c => {
                 let i = ALPHABET.indexOf(c);
@@ -198,38 +258,23 @@
         }
 
         function runVigenere(text, key, decrypt = false) {
-            let res = "";
-            let kIdx = 0;
-            const t = text.toLowerCase();
-            const k = key.toLowerCase();
+            let res = ""; let kIdx = 0;
+            const t = text.toLowerCase(); const k = key.toLowerCase();
             for(let i=0; i<t.length; i++) {
                 let ti = ALPHABET.indexOf(t[i]);
                 if(ti < 0) { res += t[i]; continue; }
                 let ki = ALPHABET.indexOf(k[kIdx % k.length]);
                 let ni = decrypt ? (ti - ki) : (ti + ki);
-                ni = ni % ALPHABET.length;
-                if(ni < 0) ni += ALPHABET.length;
-                res += ALPHABET[ni];
-                kIdx++;
+                ni = ni % ALPHABET.length; if(ni < 0) ni += ALPHABET.length;
+                res += ALPHABET[ni]; kIdx++;
             }
             return res.toUpperCase();
         }
 
         function buildHelpers() {
-            const grid = document.getElementById('alphabet-helper');
-            grid.innerHTML = ALPHABET.split('').map((l, i) => 
+            document.getElementById('alphabet-helper').innerHTML = ALPHABET.split('').map((l, i) => 
                 `<div class="letter-box"><span class="letter-idx">${i}</span>${l.toUpperCase()}</div>`
             ).join('');
-
-            const atbashGrid = document.getElementById('atbash-grid');
-            let r1 = ALPHABET.slice(0, 11).toUpperCase();
-            let r2 = ALPHABET.slice(0, 11).split('').map(l => runAtbash(l)).join('').toUpperCase();
-            
-            atbashGrid.innerHTML = `
-                <div style="opacity: 0.7; margin-bottom: 5px;">Атбаш (А ↔ Я):</div>
-                <div class="atbash-row">${r1.split('').map(l => `<span>${l}</span>`).join('')}</div>
-                <div class="atbash-row" style="color:var(--accent)">${r2.split('').map(l => `<span>${l}</span>`).join('')}</div>
-            `;
         }
 
         function startNewMission() {
@@ -257,7 +302,6 @@
             document.getElementById('cipher-text').textContent = encrypted;
             document.getElementById('step1-name').textContent = m.steps[0].toUpperCase();
             document.getElementById('step2-name').textContent = m.steps[1].toUpperCase();
-            document.getElementById('atbash-helper').style.display = m.steps.includes('atbash') ? 'block' : 'none';
 
             resetUI();
             startTimer();
@@ -268,12 +312,10 @@
             document.getElementById('step1-input').disabled = false;
             document.getElementById('step1-btn').disabled = false;
             document.getElementById('step1-msg').textContent = "";
-            
             document.getElementById('step2-input').value = "";
             document.getElementById('step2-input').disabled = true;
             document.getElementById('step2-btn').disabled = true;
             document.getElementById('step2-msg').textContent = "";
-
             document.getElementById('step-1-ui').classList.add('active');
             document.getElementById('step-2-ui').classList.remove('active');
             document.getElementById('next-btn').style.display = 'none';
@@ -288,7 +330,6 @@
             if (val === target) {
                 msg.textContent = "✅ Вірно!";
                 msg.className = "validation-msg text-success";
-                
                 if (n === 1) {
                     state.stars += 5;
                     syncStars(5);
@@ -301,16 +342,15 @@
                 } else {
                     state.stars += 5;
                     syncStars(5);
-                    if(state.timer) clearInterval(state.timer);
+                    clearInterval(state.timer);
                     state.missionIdx++;
-                    input.disabled = true;
-                    document.getElementById('step2-btn').disabled = true;
-
                     if (state.missionIdx >= MISSIONS.length) {
                         setTimeout(() => gameOver(true), 1000);
                     } else {
                         document.getElementById('next-btn').style.display = 'block';
                     }
+                    document.getElementById('step2-btn').disabled = true;
+                    input.disabled = true;
                 }
             } else {
                 state.lives--;
@@ -339,9 +379,8 @@
         function handleTimeout() {
             state.lives--;
             document.getElementById('lives-count').textContent = state.lives;
-            
-            if(state.lives > 0) {
-                if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('warning');
+            if (state.lives > 0) {
+                tg.HapticFeedback.notificationOccurred('warning');
                 startNewMission();
             } else {
                 gameOver(false);
@@ -349,23 +388,13 @@
         }
 
         function gameOver(victory) {
-            if(state.timer) clearInterval(state.timer);
+            clearInterval(state.timer);
             document.getElementById('game-screen').classList.remove('active');
             document.getElementById('game-over-screen').classList.add('active');
             document.getElementById('earned-stars').textContent = state.stars;
-            
             const title = document.getElementById('final-title');
-            if(victory) {
-                title.textContent = "ПЕРЕМОГА!";
-                title.style.color = "var(--success)";
-            } else {
-                title.textContent = "ГРУ ЗАВЕРШЕНО";
-                title.style.color = "var(--error)";
-            }
-        }
-
-        function exitToMenu() {
-            window.location.href = 'index.html';
+            if(victory) { title.textContent = "ПЕРЕМОГА!"; title.style.color = "var(--success)"; }
+            else { title.textContent = "ГРУ ЗАВЕРШЕНО"; title.style.color = "var(--error)"; }
         }
 
         async function syncStars(amount) {
@@ -380,7 +409,6 @@
         }
 
         buildHelpers();
-        startNewMission();
     </script>
 </body>
 </html>
