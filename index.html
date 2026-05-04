@@ -253,7 +253,7 @@
         <p>Якщо ключ коротший за слово, він повторюється: СЛОВО + КЛЮЧКЛ.</p>
       </div>
 
-      <button class="btn btn-academy-close" onclick="toggleAcademy(false)">ЗРОЗУМІЛО</button>
+      <button class="btn btn-academy-close" onclick="toggleAcademy(false)">ЗРОЗУМІВ</button>
     </div>
 
     <script>
@@ -281,8 +281,17 @@
       document.getElementById('btn-open-academy').onclick = () => toggleAcademy(true);
 
       async function loadStars() {
-        const userId = tg.initDataUnsafe?.user?.id || 981926714;
+        const urlParams = new URLSearchParams(window.location.search);
+        const starsFromUrl = urlParams.get('stars');
+        
+        // Спочатку виводимо те, що прийшло в посиланні від бота
+        if (starsFromUrl !== null) {
+            document.getElementById('total-stars').textContent = starsFromUrl;
+        }
+
+        const userId = tg.initDataUnsafe?.user?.id || urlParams.get('user_id') || 981926714;
         const url = `https://anyway-art-mustard.ngrok-free.dev/get_stars?user_id=${userId}`;
+        
         try {
           const response = await fetch(url, { headers: { 'ngrok-skip-browser-warning': 'true' } });
           const data = await response.json();
@@ -291,7 +300,9 @@
           }
         } catch (error) {
           console.error('Помилка:', error);
-          document.getElementById('total-stars').textContent = "0";
+          if (starsFromUrl === null) {
+            document.getElementById('total-stars').textContent = "0";
+          }
         }
       }
 
