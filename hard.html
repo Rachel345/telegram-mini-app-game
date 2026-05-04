@@ -98,7 +98,7 @@
         <div class="header">
             <span>❤️ <span id="lives-count">3</span></span>
             <span style="color: var(--accent);">МІСІЯ <span id="mission-num">1</span></span>
-            <span>⏱️ <span id="timer">03:00</span></span>
+            <span>⏱️ <span id="timer">05:00</span></span>
         </div>
 
         <div id="mission-text" class="mission-box">...</div>
@@ -163,10 +163,10 @@
                 shift: 5
             },
             {
-                text: "Подвійний захист: спочатку зсув -3 (Цезар), а потім ключ КОД (Віженер). Поверни істину!",
-                steps: ["vigenere", "caesar"],
-                vigenereKey: "КОД",
-                shift: -3
+                text: "Критична помилка: зсув Віженера (КЛЮЧ) і Цезаря (+3). Віднови дані!",
+                steps: ["caesar", "vigenere"],
+                shift: 3,
+                vigenereKey: "КЛЮЧ"
             }
         ];
 
@@ -240,13 +240,13 @@
             let encrypted = word;
             [...m.steps].reverse().forEach(s => {
                 if(s === "atbash") encrypted = runAtbash(encrypted);
-                if(s === "caesar") encrypted = runCaesar(encrypted, m.shift || 0);
+                if(s === "caesar") encrypted = runCaesar(encrypted, m.shift);
                 if(s === "vigenere") encrypted = runVigenere(encrypted, m.vigenereKey, false);
             });
 
             let s1 = encrypted;
             if(m.steps[0] === "atbash") s1 = runAtbash(s1);
-            if(m.steps[0] === "caesar") s1 = runCaesar(s1, -(m.shift || 0));
+            if(m.steps[0] === "caesar") s1 = runCaesar(s1, -m.shift);
             if(m.steps[0] === "vigenere") s1 = runVigenere(s1, m.vigenereKey, true);
             
             state.correct1 = s1;
@@ -288,7 +288,10 @@
             if (val === target) {
                 msg.textContent = "✅ Вірно!";
                 msg.className = "validation-msg text-success";
+                
                 if (n === 1) {
+                    state.stars += 5;
+                    syncStars(5);
                     input.disabled = true;
                     document.getElementById('step1-btn').disabled = true;
                     document.getElementById('step2-input').disabled = false;
@@ -296,13 +299,18 @@
                     document.getElementById('step-2-ui').classList.add('active');
                     document.getElementById('step-1-ui').classList.remove('active');
                 } else {
-                    state.stars += 10;
+                    state.stars += 5;
+                    syncStars(5);
+                    if(state.timer) clearInterval(state.timer);
                     state.missionIdx++;
-                    clearInterval(state.timer);
-                    document.getElementById('next-btn').style.display = 'block';
-                    document.getElementById('step2-btn').disabled = true;
                     input.disabled = true;
-                    syncStars(10);
+                    document.getElementById('step2-btn').disabled = true;
+
+                    if (state.missionIdx >= MISSIONS.length) {
+                        setTimeout(() => gameOver(true), 1000);
+                    } else {
+                        document.getElementById('next-btn').style.display = 'block';
+                    }
                 }
             } else {
                 state.lives--;
@@ -316,36 +324,32 @@
         function startTimer() {
             if(state.timer) clearInterval(state.timer);
             state.timeLeft = 300;
-            updateTimerDisplay();
             state.timer = setInterval(() => {
                 if(state.timeLeft <= 0) {
                     handleTimeout();
                 } else {
                     state.timeLeft--;
-                    updateTimerDisplay();
+                    let m = Math.floor(state.timeLeft / 60);
+                    let s = state.timeLeft % 60;
+                    document.getElementById('timer').textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
                 }
             }, 1000);
-        }
-
-        function updateTimerDisplay() {
-            let m = Math.floor(state.timeLeft / 60);
-            let s = state.timeLeft % 60;
-            document.getElementById('timer').textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
         }
 
         function handleTimeout() {
             state.lives--;
             document.getElementById('lives-count').textContent = state.lives;
-            if (state.lives <= 0) {
-                gameOver(false);
-            } else {
-                tg.HapticFeedback.notificationOccurred('error');
+            
+            if(state.lives > 0) {
+                if(tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('warning');
                 startNewMission();
+            } else {
+                gameOver(false);
             }
         }
 
         function gameOver(victory) {
-            clearInterval(state.timer);
+            if(state.timer) clearInterval(state.timer);
             document.getElementById('game-screen').classList.remove('active');
             document.getElementById('game-over-screen').classList.add('active');
             document.getElementById('earned-stars').textContent = state.stars;
