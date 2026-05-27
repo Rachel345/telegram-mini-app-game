@@ -9,9 +9,9 @@
         /* ГЛОБАЛЬНІ НАЛАШТУВАННЯ */
         * { box-sizing: border-box; }
         body {
-            background-color: #0a0a0c !important; /* Чорний фон */
+            background-color: #0a0a0c !important;
             color: #eee !important;
-            font-family: 'Courier New', Courier, monospace; /* Хакерський шрифт */
+            font-family: 'Courier New', Courier, monospace;
             margin: 0; padding: 16px; min-height: 100vh;
         }
         
@@ -21,7 +21,7 @@
         /* КАРТКИ */
         .card {
             background: rgba(30, 41, 59, 0.2);
-            border: 1px solid rgba(250, 204, 21, 0.3); /* Жовта напівпрозора рамка */
+            border: 1px solid rgba(250, 204, 21, 0.3);
             border-radius: 16px; padding: 24px; width: 100%; position: relative;
             box-shadow: 0 0 15px rgba(250, 204, 21, 0.1);
         }
@@ -47,15 +47,29 @@
         }
         .timer-bar { width: 100%; height: 100%; background: #facc15; box-shadow: 0 0 10px #facc15; transition: width 0.1s linear; }
 
-        /* ТАБЛИЦЯ ВІЖЕНЕРА */
-        .vigenere-wrap { 
+        /* ТАБЛИЦІ */
+        .vigenere-wrap, .playfair-wrap { 
             width: 100%; overflow-x: auto; margin: 15px 0; border-radius: 8px; 
             background: #000; border: 1px solid #facc15; 
         }
         table { border-collapse: collapse; font-size: 9px; color: #94a3b8; width: 100%; }
-        td, th { width: 18px; height: 18px; text-align: center; border: 1px solid #1e293b; text-transform: uppercase; }
+        td, th { text-align: center; border: 1px solid #1e293b; text-transform: uppercase; }
+        
+        /* Стилі Віженера */
+        .vigenere-wrap td, .vigenere-wrap th { width: 18px; height: 18px; }
         th { background: #111; color: #facc15; }
         .h-cell { background: #facc15 !important; color: #000 !important; font-weight: bold; box-shadow: inset 0 0 5px #000; }
+
+        /* Стилі Плейфера */
+        .playfair-grid td { 
+            width: 40px; height: 40px; font-size: 16px; color: #facc15; 
+            border: 1px solid rgba(239, 68, 68, 0.5); font-weight: bold;
+        }
+        .pf-highlight { background: rgba(250, 204, 21, 0.3); color: #fff !important; border: 2px solid #facc15 !important; }
+
+        .pf-info-panel { background: rgba(250, 204, 21, 0.1); padding: 12px; border-radius: 10px; border: 1px solid rgba(250, 204, 21, 0.4); margin-bottom: 15px; text-align: center; }
+        .pf-target-word { font-size: 20px; font-weight: bold; color: #fff; letter-spacing: 3px; margin: 5px 0; }
+        .pf-progress-bar { font-family: monospace; font-size: 18px; color: #22c55e; min-height: 24px; letter-spacing: 2px; }
 
         /* ІНПУТИ */
         .input-box { width: 100%; margin-bottom: 15px; }
@@ -64,10 +78,10 @@
             width: 100%; background: #000; border: 1px solid #facc15;
             color: #fff; padding: 12px; border-radius: 10px; font-size: 16px;
             box-shadow: inset 0 0 5px rgba(250, 204, 21, 0.2);
+            text-transform: uppercase; /* АВТОМАТИЧНО ВЕЛИКІ ЛІТЕРИ */
         }
-        .input-box input:focus { outline: none; box-shadow: 0 0 10px rgba(250, 204, 21, 0.4); }
 
-        /* КНОПКИ (УНІВЕРСАЛЬНИЙ СТИЛЬ) */
+        /* КНОПКИ */
         .btn {
             background: rgba(0, 0, 0, 0.6);
             color: #facc15 !important;
@@ -77,39 +91,37 @@
             box-shadow: 0 0 10px rgba(250, 204, 21, 0.2);
             transition: all 0.2s ease;
         }
-        .btn:active { transform: scale(0.95); box-shadow: 0 0 20px rgba(250, 204, 21, 0.4); }
+        .btn:active { transform: scale(0.95); }
         .btn:disabled { opacity: 0.3; border-color: #444; color: #444 !important; box-shadow: none; }
         
         .btn-outline { border-color: rgba(250, 204, 21, 0.5); color: rgba(250, 204, 21, 0.8) !important; }
-        .btn-exit { border-color: #ef4444; color: #ef4444 !important; box-shadow: 0 0 10px rgba(239, 68, 68, 0.2); }
+        .btn-exit { border-color: #ef4444; color: #ef4444 !important; }
         .btn-danger { background: rgba(239, 68, 68, 0.1) !important; border-color: #ef4444 !important; color: #ef4444 !important; }
 
-        /* ВАРІАНТИ ВІДПОВІДЕЙ */
         .options-grid { display: grid; grid-template-columns: 1fr; gap: 10px; width: 100%; }
         .option-btn {
             background: rgba(0, 0, 0, 0.6); color: #fff; border: 1px solid rgba(250, 204, 21, 0.3);
             border-radius: 12px; padding: 14px; font-size: 16px; cursor: pointer;
-            transition: 0.2s;
         }
-        .option-btn.correct { border-color: #facc15; background: rgba(250, 204, 21, 0.1); color: #facc15; box-shadow: 0 0 15px rgba(250, 204, 21, 0.3); }
-        .option-btn.wrong { border-color: #ef4444; background: rgba(239, 68, 68, 0.1); color: #ef4444; box-shadow: 0 0 15px rgba(239, 68, 68, 0.3); }
+        .option-btn.correct { border-color: #facc15; background: rgba(250, 204, 21, 0.1); color: #facc15; }
+        .option-btn.wrong { border-color: #ef4444; background: rgba(239, 68, 68, 0.1); color: #ef4444; }
         
         .feedback-box { margin-top: 15px; text-align: center; font-weight: bold; padding: 10px; border-radius: 8px; border: 1px dashed; }
     </style>
 </head>
 <body>
 
-    <!-- ЕКРАН ВИБОРУ РІВНЯ -->
     <div id="menu-screen" class="screen active">
         <h2 class="menu-title">СЕРЕДНІЙ РІВЕНЬ</h2>
         <div class="card">
             <button class="btn" onclick="initAtbash()">Рівень 1: Атбаш</button>
             <button class="btn" style="margin-top: 12px;" onclick="initVigenere()">Рівень 2: Віженер</button>
+            <button class="btn" style="margin-top: 12px;" onclick="initPlayfair()">Рівень 3: Плейфер</button>
             <button class="btn btn-exit" style="margin-top: 24px;" onclick="window.location.href='index.html'">Повернутися в меню</button>
         </div>
     </div>
 
-    <!-- ЕКРАН АТБАШ -->
+    <!-- АТБАШ (БЕЗ ЗМІН) -->
     <div id="atbash-screen" class="screen">
         <div class="game-header">
             <span>❤️ <span id="atbash-lives">5</span></span>
@@ -127,7 +139,7 @@
         <button class="btn btn-exit" onclick="resetToMenu()">ПЕРЕрвати</button>
     </div>
 
-    <!-- ЕКРАН ВІЖЕНЕРА -->
+    <!-- ВІЖЕНЕР (З ПІДСВІТКОЮ) -->
     <div id="vigenere-screen" class="screen">
         <div class="game-header">
             <span>❤️ <span id="vig-lives">3</span></span>
@@ -149,17 +161,56 @@
                 <input type="text" id="vig-answer" placeholder="Введіть код...">
             </div>
             <div id="vig-feedback" class="feedback-box" style="display:none;"></div>
-            
             <button id="vig-check-btn" class="btn" onclick="checkVigenere()">ВЕРИФІКУВАТИ</button>
             <button id="vig-show-ans-btn" class="btn btn-danger" style="display:none;" onclick="showVigenereSolution()">ВІДНОВИТИ ДАНІ</button>
             <button id="vig-next-btn" class="btn" style="display:none; margin-top:10px;" onclick="generateNewVigenereTask()">ДАЛІ</button>
-            
             <button class="btn btn-outline" style="margin-top: 15px; font-size: 12px;" id="hint-btn" onclick="useHint()">ПІДКАЗКА (ТАБЛИЦЯ) -10с</button>
         </div>
         <button class="btn btn-exit" onclick="resetToMenu()">ВИЙТИ</button>
     </div>
 
-    <!-- ЕКРАН ЗАВЕРШЕННЯ -->
+    <!-- ПЛЕЙФЕР (ОНОВЛЕНИЙ) -->
+    <div id="playfair-screen" class="screen">
+        <div class="game-header">
+            <span>❤️ <span id="pf-lives">3</span></span>
+            <span style="font-weight: bold; color: #facc15;">ПЛЕЙФЕР</span>
+            <span>⭐ <span id="pf-score">0</span></span>
+        </div>
+        <div class="card">
+            <div class="pf-info-panel">
+                <div style="font-size: 10px; color: #facc15; opacity: 0.8;">ШИФРУЄМО СЛОВО:</div>
+                <div id="pf-target-word-display" class="pf-target-word">---</div>
+                <div id="pf-progress-bar" class="pf-progress-bar"></div>
+            </div>
+            <p id="pf-step-info" style="text-align: center; color: #facc15; font-size: 13px; margin-bottom: 10px;">Крок 1: Підготовка біграм</p>
+            <div class="playfair-wrap">
+                <table id="pf-matrix-table" class="playfair-grid"></table>
+            </div>
+            <div id="pf-active-area">
+                <div class="input-box" style="text-align: center; margin-top: 15px;">
+                    <label>ПОТОЧНА ПАРА:</label>
+                    <div id="pf-current-bigram" style="font-size: 28px; font-weight: bold; letter-spacing: 5px; color: #fff;">--</div>
+                </div>
+                <div class="input-box">
+                    <label>ВВЕДІТЬ РЕЗУЛЬТАТ ШИФРУВАННЯ:</label>
+                    <input type="text" id="pf-answer" placeholder="2 літери...">
+                </div>
+                <div id="pf-feedback" class="feedback-box" style="display:none;"></div>
+                <button id="pf-check-btn" class="btn" onclick="checkPlayfair()">ПЕРЕВІРИТИ ПАРУ</button>
+                <button id="pf-next-btn" class="btn" style="display:none; margin-top:10px;" onclick="nextPlayfairStep()">НАСТУПНИЙ КРОК</button>
+            </div>
+            <div id="pf-final-block" style="display:none; text-align: center; border: 1px dashed #22c55e; padding: 15px; border-radius: 10px; background: rgba(34, 197, 94, 0.05);">
+                <div style="color: #22c55e; font-weight: bold; margin-bottom: 10px;">РІВЕНЬ ПЛЕЙФЕРА ПРОЙДЕНО!</div>
+                <div style="font-size: 10px; color: #facc15;">ОТРИМАНИЙ ШИФРОТЕКСТ:</div>
+                <div id="pf-final-result" style="font-size: 22px; color: #fff; letter-spacing: 3px; font-weight: bold; margin: 5px 0;"></div>
+                <button class="btn" style="margin-top: 15px;" onclick="initPlayfair()">ПРОЙТИ ЩЕ РАЗ (НОВІ ДАНІ)</button>
+                <button class="btn btn-outline" style="margin-top: 10px;" onclick="resetToMenu()">ПОВЕРНУТИСЯ ДО ТЕРМІНАЛУ</button>
+            </div>
+        </div>
+        <button class="btn btn-exit" onclick="resetToMenu()">ВИЙТИ</button>
+    </div>
+
+    <!-- ЗАВЕРШЕННЯ -->
     <div id="game-over-screen" class="screen">
         <div class="card" style="text-align: center;">
             <h2 style="color: #ef4444;">ДОСТУП ПРИПИНЕНО</h2>
@@ -176,7 +227,7 @@
         const WORDS = ["блокчейн", "алгоритм", "крипто", "захист", "пароль", "мережа", "цифра", "сервер", "майнінг", "ключі", "депозит"];
         const V_KEYS = ["код", "база", "хаб", "біт", "стек"];
         
-        let state = { lives: 0, score: 0, timer: null, timeLeft: 0, correctAnswer: "", hintUsed: false };
+        let state = { lives: 0, score: 0, timer: null, timeLeft: 0, correctAnswer: "", hintUsed: false, pfStep: 0, pfMatrix: [], pfFinalText: "", pfCurrentWord: "", pfBigrams: [] };
 
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -205,7 +256,7 @@
             } catch (e) { console.error(e); }
         }
 
-        // --- АТБАШ ---
+        // --- АТБАШ (БЕЗ ЗМІН) ---
         function initAtbash() {
             state.lives = 5; state.score = 0;
             updateAtbashStats();
@@ -221,12 +272,10 @@
                 let i = ALPHABET.indexOf(c.toLowerCase());
                 return i < 0 ? c : ALPHABET[ALPHABET.length - 1 - i];
             }).join('');
-            
             document.getElementById('atbash-feedback').style.display = "none";
             document.getElementById('atbash-next').style.display = "none";
             const opts = document.getElementById('atbash-options');
             opts.innerHTML = "";
-            
             let choices = new Set([word]);
             while(choices.size < 4) choices.add(WORDS[Math.floor(Math.random()*WORDS.length)]);
             [...choices].sort(() => Math.random()-0.5).forEach(val => {
@@ -272,22 +321,18 @@
         }
         document.getElementById('atbash-next').onclick = nextAtbashQuestion;
 
-        // --- ВІЖЕНЕР ---
+        // --- ВІЖЕНЕР (З ПІДСВІТКОЮ) ---
         function initVigenere() {
-            state.lives = 3; 
-            state.score = 0; 
+            state.lives = 3; state.score = 0; 
             showScreen('vigenere-screen');
             generateNewVigenereTask();
         }
 
         function generateNewVigenereTask() {
             if(state.lives <= 0) { gameOver(); return; }
-            
             document.querySelectorAll('#tabula-recta .h-cell').forEach(cell => cell.classList.remove('h-cell'));
-
             const m = WORDS[Math.floor(Math.random()*WORDS.length)].toUpperCase();
             const k = V_KEYS[Math.floor(Math.random()*V_KEYS.length)].toUpperCase();
-            
             state.correctAnswer = "";
             let kIdx = 0;
             for(let i=0; i<m.length; i++) {
@@ -296,11 +341,8 @@
                 if (ci !== -1) {
                     state.correctAnswer += ALPHABET[(ci + ki) % ALPHABET.length].toUpperCase();
                     kIdx++;
-                } else {
-                    state.correctAnswer += m[i];
-                }
+                } else { state.correctAnswer += m[i]; }
             }
-
             document.getElementById('vig-m').value = m;
             document.getElementById('vig-k').value = k;
             document.getElementById('vig-answer').value = "";
@@ -311,11 +353,8 @@
             document.getElementById('vig-check-btn').style.display = "block";
             document.getElementById('vig-table-area').style.display = "none";
             document.getElementById('hint-btn').disabled = false;
-            
-            state.hintUsed = false;
-            state.timeLeft = 60;
-            updateVigStats();
-            startVigenereTimer();
+            state.hintUsed = false; state.timeLeft = 60;
+            updateVigStats(); startVigenereTimer();
         }
 
         function startVigenereTimer() {
@@ -324,20 +363,16 @@
                 state.timeLeft--;
                 if (state.timeLeft < 0) state.timeLeft = 0;
                 document.getElementById('vig-timer-text').textContent = state.timeLeft;
-                
                 if(state.timeLeft <= 0) {
                     clearInterval(state.timer);
                     if(state.lives > 0) state.lives--;
                     updateVigStats();
-                    
                     document.getElementById('vig-answer').disabled = true;
                     document.getElementById('hint-btn').disabled = true;
-                    
                     const feedback = document.getElementById('vig-feedback');
                     feedback.style.display = "block";
                     feedback.innerHTML = "ЧАС ВИЧЕРПАНО. КАНАЛ ВТРАЧЕНО.";
                     feedback.style.color = "#facc15";
-                    
                     document.getElementById('vig-check-btn').style.display = "none";
                     document.getElementById('vig-show-ans-btn').style.display = "block";
                 }
@@ -367,11 +402,9 @@
         async function checkVigenere() {
             const ans = document.getElementById('vig-answer').value.trim().toUpperCase();
             const feedback = document.getElementById('vig-feedback');
-            
             clearInterval(state.timer);
             document.getElementById('vig-answer').disabled = true;
             document.getElementById('hint-btn').disabled = true;
-
             if(ans === state.correctAnswer) {
                 state.score += 5;
                 feedback.style.display = "block";
@@ -384,11 +417,9 @@
                 if(state.lives > 0) state.lives--;
                 updateVigStats();
                 tg.HapticFeedback?.notificationOccurred?.('error');
-                
                 feedback.style.display = "block";
                 feedback.innerHTML = "ПОМИЛКА ДЕШИФРУВАННЯ";
                 feedback.style.color = "#ef4444";
-                
                 document.getElementById('vig-check-btn').style.display = "none";
                 document.getElementById('vig-show-ans-btn').style.display = "block";
             }
@@ -398,23 +429,121 @@
             document.getElementById('vig-answer').value = state.correctAnswer;
             document.getElementById('vig-table-area').style.display = "block";
             if(document.getElementById('tabula-recta').innerHTML === "") buildVigenereTable();
-            
             const m = document.getElementById('vig-m').value;
             const k = document.getElementById('vig-k').value;
             const ri = ALPHABET.indexOf(m[0].toLowerCase());
             const ci = ALPHABET.indexOf(k[0].toLowerCase());
-            
             if(ri !== -1 && ci !== -1) {
                 const cell = document.getElementById(`v-${ri}-${ci}`);
                 if(cell) cell.classList.add('h-cell');
             }
-            
             document.getElementById('vig-show-ans-btn').style.display = "none";
             document.getElementById('vig-next-btn').style.display = "block";
         }
 
-        function updateVigStats() {
-            document.getElementById('vig-lives').textContent = state.lives;
+        function updateVigStats() { document.getElementById('vig-lives').textContent = state.lives; }
+
+        // --- ПЛЕЙФЕР ---
+        const PF_ALPHABET = "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя_.[]";
+        const PF_WORDS = ["БЕЗПЕКА", "КРИПТО", "ЗАХИСТ", "МЕРЕЖА", "ДОСТУП", "ТЕРМІНАЛ", "ХАКЕР", "ШИФРОВКА"];
+        const PF_KEYS = ["ГРАВІТАЦІЯ", "ВЕКТОР", "СИСТЕМА", "СЕРВЕР", "ТЕРМІНАЛ", "ПОРТАЛ", "МАТРИЦЯ"];
+
+        function initPlayfair() {
+            state.lives = 3; state.pfStep = 0; state.pfFinalText = "";
+            state.pfCurrentWord = PF_WORDS[Math.floor(Math.random() * PF_WORDS.length)];
+            const currentKey = PF_KEYS[Math.floor(Math.random() * PF_KEYS.length)];
+            
+            let wordForBigrams = state.pfCurrentWord.toUpperCase();
+            if (wordForBigrams.length % 2 !== 0) wordForBigrams += "_";
+            state.pfBigrams = [];
+            for (let i = 0; i < wordForBigrams.length; i += 2) {
+                state.pfBigrams.push(wordForBigrams.substring(i, i + 2));
+            }
+
+            state.pfMatrix = generatePlayfairMatrix(currentKey);
+            document.getElementById('pf-target-word-display').innerText = state.pfCurrentWord;
+            document.getElementById('pf-active-area').style.display = "block";
+            document.getElementById('pf-final-block').style.display = "none";
+            document.getElementById('pf-progress-bar').innerText = "";
+            
+            updatePFStats();
+            showScreen('playfair-screen');
+            drawPFMatrix();
+            nextPlayfairStep();
+        }
+
+        function generatePlayfairMatrix(key) {
+            let used = new Set(); let flat = [];
+            key.toUpperCase().split('').forEach(c => { if (!used.has(c)) { used.add(c); flat.push(c); } });
+            PF_ALPHABET.toUpperCase().split('').forEach(c => { if (!used.has(c)) { used.add(c); flat.push(c); } });
+            let matrix = [];
+            for (let i = 0; i < 5; i++) matrix.push(flat.slice(i * 7, (i + 1) * 7));
+            return matrix;
+        }
+
+        function drawPFMatrix() {
+            const table = document.getElementById('pf-matrix-table');
+            let html = "";
+            state.pfMatrix.forEach(row => { html += "<tr>" + row.map(c => `<td id="pf-${c}">${c}</td>`).join('') + "</tr>"; });
+            table.innerHTML = html;
+        }
+
+        function nextPlayfairStep() {
+            if (state.pfStep >= state.pfBigrams.length) {
+                document.getElementById('pf-active-area').style.display = "none";
+                document.getElementById('pf-final-block').style.display = "block";
+                document.getElementById('pf-final-result').innerText = state.pfFinalText;
+                return;
+            }
+            document.querySelectorAll('.pf-highlight').forEach(el => el.classList.remove('pf-highlight'));
+            const bigram = state.pfBigrams[state.pfStep];
+            document.getElementById('pf-current-bigram').innerText = bigram;
+            document.getElementById('pf-step-info').innerText = `Крок ${state.pfStep + 1}: Пара "${bigram}"`;
+            bigram.split('').forEach(char => {
+                const el = document.getElementById(`pf-${char.toUpperCase()}`);
+                if (el) el.classList.add('pf-highlight');
+            });
+            document.getElementById('pf-answer').value = "";
+            document.getElementById('pf-answer').disabled = false;
+            document.getElementById('pf-feedback').style.display = "none";
+            document.getElementById('pf-next-btn').style.display = "none";
+            document.getElementById('pf-check-btn').style.display = "block";
+        }
+
+        async function checkPlayfair() {
+            const bigram = state.pfBigrams[state.pfStep];
+            const ans = document.getElementById('pf-answer').value.trim().toUpperCase();
+            let r1, c1, r2, c2;
+            state.pfMatrix.forEach((row, r) => row.forEach((char, c) => {
+                if (char === bigram[0].toUpperCase()) { r1 = r; c1 = c; }
+                if (char === bigram[1].toUpperCase()) { r2 = r; c2 = c; }
+            }));
+            let correct = "";
+            if (r1 === r2) { correct = state.pfMatrix[r1][(c1 + 1) % 7] + state.pfMatrix[r2][(c2 + 1) % 7]; }
+            else if (c1 === c2) { correct = state.pfMatrix[(r1 + 1) % 5][c1] + state.pfMatrix[(r2 + 1) % 5][c2]; }
+            else { correct = state.pfMatrix[r1][c2] + state.pfMatrix[r2][c1]; }
+            
+            const feedback = document.getElementById('pf-feedback');
+            feedback.style.display = "block";
+            if (ans === correct) {
+                state.score += 5; state.pfFinalText += correct; state.pfStep++;
+                document.getElementById('pf-progress-bar').innerText = state.pfFinalText;
+                feedback.innerHTML = "СИНХРОНІЗАЦІЯ УСПІШНА! +5 ⭐";
+                feedback.style.color = "#facc15";
+                document.getElementById('pf-check-btn').style.display = "none";
+                document.getElementById('pf-next-btn').style.display = "block";
+                await syncStars(5);
+            } else {
+                state.lives--; updatePFStats();
+                if (state.lives <= 0) { gameOver(); return; }
+                feedback.innerHTML = `ПОМИЛКА КАНАЛУ. КОРЕКТНО: ${correct}`;
+                feedback.style.color = "#ef4444";
+            }
+        }
+
+        function updatePFStats() {
+            document.getElementById('pf-lives').textContent = state.lives;
+            document.getElementById('pf-score').textContent = state.score;
         }
     </script>
 </body>
