@@ -44,7 +44,6 @@
 
       .level-select-card { display: flex; flex-direction: column; align-items: center; gap: 16px; }
       
-      /* Базовий стиль неонових кнопок */
       .btn {
         background: rgba(0, 0, 0, 0.3);
         border-radius: 12px; padding: 14px 20px; font-size: 16px; width: 100%; cursor: pointer;
@@ -55,102 +54,78 @@
         letter-spacing: 1px;
       }
       
-      /* Кольорові коди для рівнів */
-      #btn-easy, .btn-easy-style { 
-        border: 2px solid #22c55e; color: #22c55e !important; 
-        box-shadow: 0 0 10px rgba(34, 197, 94, 0.2); 
-      }
-      #btn-medium { 
-        border: 2px solid #facc15; color: #facc15 !important; 
-        box-shadow: 0 0 10px rgba(250, 204, 21, 0.2); 
-      }
-      #btn-hard { 
-        border: 2px solid #38bdf8; color: #38bdf8 !important; 
-        box-shadow: 0 0 10px rgba(56, 189, 248, 0.2); 
-      }
-      #btn-open-academy { 
-        border: 2px solid #a855f7; color: #a855f7 !important; 
-        box-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
-        margin-top: 10px;
-      }
+      #btn-easy, .btn-easy-style { border: 2px solid #22c55e; color: #22c55e !important; box-shadow: 0 0 10px rgba(34, 197, 94, 0.2); }
+      #btn-medium { border: 2px solid #facc15; color: #facc15 !important; box-shadow: 0 0 10px rgba(250, 204, 21, 0.2); }
+      #btn-hard { border: 2px solid #38bdf8; color: #38bdf8 !important; box-shadow: 0 0 10px rgba(56, 189, 248, 0.2); }
+      #btn-open-academy { border: 2px solid #a855f7; color: #a855f7 !important; box-shadow: 0 0 15px rgba(168, 85, 247, 0.3); margin-top: 10px; }
 
       .btn:active { transform: scale(0.96); opacity: 0.8; }
-      
+      .btn-danger-style { border: 2px solid #ef4444 !important; color: #ef4444 !important; box-shadow: 0 0 10px rgba(239, 68, 68, 0.2) !important; }
+      .btn-container { display: flex; gap: 10px; width: 100%; margin-top: 10px; }
+      .btn-half { flex: 1; padding: 10px 5px; font-size: 14px; }
+
+      /* ГРА ЦЕЗАРЯ */
       .game-header {
         display: flex; align-items: center; justify-content: space-between;
         padding: 12px 16px; background: rgba(30, 41, 59, 0.6);
-        border-radius: 12px; width: 100%; margin-bottom: 16px;
-        border: 2px solid #22c55e;
+        border-radius: 12px; width: 100%; margin-bottom: 16px; border: 2px solid #22c55e;
       }
-
       .caesar-word {
         font-size: 24px; font-weight: bold; margin: 12px 0; text-align: center;
         background: rgba(0, 0, 0, 0.5); padding: 15px; border-radius: 12px;
-        border: 1px solid rgba(34, 197, 94, 0.3);
-        color: #22c55e;
+        border: 1px solid rgba(34, 197, 94, 0.3); color: #22c55e;
       }
-
       .caesar-shift { font-size: 18px; color: #22c55e; font-weight: bold; text-align: center; margin-bottom: 15px; }
       .caesar-options { display: flex; flex-direction: column; gap: 10px; width: 100%; }
-      
       .caesar-option-btn {
         background: rgba(0, 0, 0, 0.4); color: #f1f5f9; border: 1px solid rgba(34, 197, 94, 0.4);
         border-radius: 12px; padding: 14px; font-size: 16px; cursor: pointer;
       }
       .caesar-option-btn.correct { border-color: #22c55e; background: rgba(34, 197, 94, 0.2); color: #fff; box-shadow: 0 0 10px #22c55e; }
       .caesar-option-btn.wrong { border-color: #ef4444; background: rgba(239, 68, 68, 0.2); color: #fff; }
-      
-      /* Стиль для небезпечних/червоних кнопок */
-      .btn-danger-style { 
-        border: 2px solid #ef4444 !important; 
-        color: #ef4444 !important; 
-        box-shadow: 0 0 10px rgba(239, 68, 68, 0.2) !important;
-      }
-      
-      .back-btn { background: transparent !important; border: 2px solid #22c55e !important; color: #22c55e !important; margin-top: 10px; }
-      
-      .btn-container { display: flex; gap: 10px; width: 100%; margin-top: 10px; }
-      .btn-half { flex: 1; padding: 10px 5px; font-size: 14px; }
 
-      /* Стилі для Оверлею Академії (Фіолетовий неон) */
+      /* АКАДЕМІЯ */
       .overlay {
         display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background-color: #0a0a0c; z-index: 9999; padding: 20px; flex-direction: column;
       }
-      .academy-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+      .academy-tabs { display: flex; gap: 4px; margin-bottom: 15px; flex-wrap: wrap; }
       .tab-link {
-        flex: 1; background: transparent; border: 1px solid #a855f7; color: #a855f7;
-        padding: 10px 5px; border-radius: 10px; font-size: 13px; cursor: pointer;
-        transition: all 0.3s;
+        flex: 1; min-width: 80px; background: transparent; border: 1px solid #a855f7; color: #a855f7;
+        padding: 8px 4px; border-radius: 10px; font-size: 11px; cursor: pointer;
       }
-      .tab-link.active { background: #a855f7; color: #0a0a0c; font-weight: bold; box-shadow: 0 0 15px #a855f7; }
-      
+      .tab-link.active { background: #a855f7; color: #0a0a0c; font-weight: bold; box-shadow: 0 0 10px #a855f7; }
       .tab-content {
-        background: rgba(20, 20, 25, 0.8); border-radius: 15px; padding: 20px; flex-grow: 1;
+        background: rgba(20, 20, 25, 0.8); border-radius: 15px; padding: 15px; flex-grow: 1;
         overflow-y: auto; margin-bottom: 20px; border: 2px solid #a855f7;
-        box-shadow: inset 0 0 15px rgba(168, 85, 247, 0.2);
       }
-      .tab-content h3 { color: #a855f7; margin-top: 0; text-transform: uppercase; letter-spacing: 1px; }
-      .tab-content p, .tab-content li { color: #cbd5e1; line-height: 1.5; font-size: 14px; }
-      
+      .tab-content h3 { color: #a855f7; margin-top: 0; text-transform: uppercase; font-size: 16px; }
+      .tab-content p, .tab-content li { color: #cbd5e1; line-height: 1.4; font-size: 13px; }
       .cipher-example {
         background: rgba(0, 0, 0, 0.6); padding: 12px; border-radius: 10px;
-        font-family: 'Courier New', monospace; margin: 15px 0; text-align: left; color: #a855f7;
-        border: 1px dashed #a855f7; font-size: 13px;
+        font-family: 'Courier New', monospace; margin: 10px 0; text-align: left; color: #a855f7;
+        border: 1px dashed #a855f7; font-size: 12px;
       }
-      .btn-academy-close {
-        background: #000 !important; color: #a855f7 !important; border: 2px solid #a855f7 !important; 
-        font-weight: bold; box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);
-      }
+
+      /* ТАБЛИЦЯ ВІЖЕНЕРА */
+      .vig-table-wrap { width: 100%; overflow-x: auto; margin: 10px 0; border-radius: 8px; border: 1px solid #a855f7; }
+      .vig-table-wrap table { border-collapse: collapse; font-size: 8px; color: #444; width: 100%; }
+      .vig-table-wrap td, .vig-table-wrap th { width: 16px; height: 16px; text-align: center; border: 1px solid #1e1e1e; }
+      .vig-table-wrap th { background: #111; color: #a855f7; }
+      .highlight-row { background: rgba(168, 85, 247, 0.2); color: #a855f7 !important; }
+      .highlight-col { background: rgba(168, 85, 247, 0.1); color: #a855f7 !important; }
+      .highlight-cell { background: #a855f7 !important; color: #000 !important; font-weight: bold; box-shadow: 0 0 10px #a855f7; }
+
+      .pf-schema { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin: 10px 0; }
+      .pf-cell { background: #000; border: 1px solid #333; height: 35px; color: #cbd5e1; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+      .pf-active { border-color: #a855f7; color: #a855f7; box-shadow: inset 0 0 5px #a855f7; }
+      .btn-academy-close { background: #000 !important; color: #a855f7 !important; border: 2px solid #a855f7 !important; font-weight: bold; }
     </style>
   </head>
   <body>
     <div id="app">
       <div id="menu-screen" class="screen active">
-        <div class="balance-badge">
-            ⭐ БАЛАНС: <span id="total-stars">...</span>
-        </div>
-        
+        <div class="balance-badge">⭐ БАЛАНС: <span id="total-stars">...</span></div>
         <div class="card level-select-card">
           <h2 style="margin: 0 0 10px 0; color: #f1f5f9;">КРИПТО-КОНСОЛЬ</h2>
           <button id="btn-easy" class="btn">ЛЕГКИЙ РІВЕНЬ</button>
@@ -200,17 +175,17 @@
       </div>
     </div>
 
-    <!-- Оверлей навчання -->
+    <!-- АКАДЕМІЯ -->
     <div id="academy-overlay" class="overlay">
       <h2 style="text-align: center; margin-top: 0; color: #a855f7;">АКАДЕМІЯ ШИФРІВ</h2>
-      
       <div class="academy-tabs">
         <button class="tab-link active" onclick="openTab(event, 'atbash')">АТБАШ</button>
         <button class="tab-link" onclick="openTab(event, 'caesar')">ЦЕЗАР</button>
         <button class="tab-link" onclick="openTab(event, 'vigenere')">ВІЖЕНЕР</button>
+        <button class="tab-link" onclick="openTab(event, 'playfair')">ПЛЕЙФЕР</button>
       </div>
 
-      <div id="atbash" class="tab-content" style="display: block;">
+       <div id="atbash" class="tab-content" style="display: block;">
         <h3>Дзеркальний шифр</h3>
         <p>Атбаш походить із Давнього Ізраїлю. Це шифр підстановки, де алфавіт просто віддзеркалюється.</p>
         <p><strong>Формула: f(i) = 32 - i</strong>, де i — індекс літери (0-32).</p>
@@ -224,7 +199,7 @@
         </div>
       </div>
 
-      <div id="caesar" class="tab-content" style="display: none;">
+        <div id="caesar" class="tab-content" style="display: none;">
         <h3>Модульна арифметика</h3>
         <p>Шифр Цезаря зміщує кожну літеру на сталу кількість кроків (k).</p>
         <p><strong>Формула: (x + k) mod 33</strong></p>
@@ -240,7 +215,7 @@
       </div>
 
       <div id="vigenere" class="tab-content" style="display: none;">
-        <h3>Накладання ключів</h3>
+         <h3>Накладання ключів</h3>
         <p>У Віженері кожна літера слова отримує свій зсув, залежно від літери ключа.</p>
         <p><strong>Формула: (Слово[i] + Ключ[i]) mod 33</strong></p>
         <div class="cipher-example" style="line-height: 1.6;">
@@ -248,27 +223,41 @@
           Слово: П (інд. 19)<br>
           Ключ:  К (інд. 14)<br>
           Розрахунок: 19 + 14 = 33<br>
-          Результат: 33 mod 33 = 0 (Літера А)
-        </div>
-        <p>Якщо ключ коротший за слово, він повторюється: СЛОВО + КЛЮЧКЛ.</p>
+          Результат: 33 mod 33 = 0 (Літера А) </div>
+        <div class="vig-table-wrap" id="vigenere-table"></div>
+        <p style="font-size: 11px; opacity: 0.7;">* Підсвічено перетин рядка літери слова та стовпця літери ключа.</p>
       </div>
 
-      <button class="btn btn-academy-close" onclick="toggleAcademy(false)">ЗРОЗУМІЛО</button>
+      <div id="playfair" class="tab-content" style="display: none;">
+        <h3>Шифр Плейфера</h3>
+        <p>Перший біграмний шифр (1854 р.). Використовує матрицю літер.</p>
+        <ul style="padding-left: 15px;">
+          <li><strong>Прямокутник:</strong> Літери замінюються на кути того ж прямокутника.</li>
+          <li><strong>Рядок:</strong> Зсув праворуч на 1 клітинку.</li>
+          <li><strong>Стовпець:</strong> Зсув униз на 1 клітинку.</li>
+        </ul>
+        <div class="pf-schema">
+          <div class="pf-cell pf-active">i</div><div class="pf-cell">.</div><div class="pf-cell">.</div><div class="pf-cell pf-active">m</div>
+          <div class="pf-cell">.</div><div class="pf-cell">.</div><div class="pf-cell">.</div><div class="pf-cell">.</div>
+          <div class="pf-cell pf-active">l</div><div class="pf-cell">.</div><div class="pf-cell">.</div><div class="pf-cell pf-active">j</div>
+        </div>
+      </div>
+      <button class="btn btn-academy-close" style="margin-top: 10px;" onclick="toggleAcademy(false)">ЗРОЗУМІЛО</button>
     </div>
 
     <script>
       const tg = window.Telegram.WebApp;
       tg.expand();
-
       const ALPHABET = "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя";
       const WORDS = ["привіт", "театр", "річка", "апельсин", "нога", "авто", "око", "озеро", "острів", "вітер", "робот", "танк", "карта", "абетка", "ананас", "слово", "хліб", "банан", "море", "ефір", "радіо", "океан", "номер"];
       
       let state = { lives: 5, score: 0, subLevel: 1, currentAns: "" };
 
-      function toggleAcademy(show) {
-        document.getElementById('academy-overlay').style.display = show ? 'flex' : 'none';
+      function toggleAcademy(show) { 
+        if(show && document.getElementById('vigenere-table').innerHTML === "") buildVigTable();
+        document.getElementById('academy-overlay').style.display = show ? 'flex' : 'none'; 
       }
-
+      
       function openTab(evt, tabName) {
         const contents = document.getElementsByClassName("tab-content");
         for (let i = 0; i < contents.length; i++) contents[i].style.display = "none";
@@ -278,45 +267,33 @@
         evt.currentTarget.classList.add("active");
       }
 
-      document.getElementById('btn-open-academy').onclick = () => toggleAcademy(true);
-
-      async function loadStars() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const starsFromUrl = urlParams.get('stars');
-        const totalStarsElem = document.getElementById('total-stars');
-
-        if (starsFromUrl !== null && totalStarsElem.textContent === "...") {
-          totalStarsElem.textContent = starsFromUrl;
+      function buildVigTable() {
+        const wrap = document.getElementById('vigenere-table');
+        const targetRow = 19; const targetCol = 14; 
+        let html = "<table><tr><th></th>";
+        for (let j=0; j<ALPHABET.length; j++) {
+          const colHeadClass = (j === targetCol) ? 'highlight-col' : '';
+          html += `<th class="${colHeadClass}">${ALPHABET[j]}</th>`;
         }
-
-        const userId = tg.initDataUnsafe?.user?.id || urlParams.get('user_id') || 981926714;
-        const url = `https://anyway-art-mustard.ngrok-free.dev/get_stars?user_id=${userId}`;
-        
-        try {
-          const response = await fetch(url, { headers: { 'ngrok-skip-browser-warning': 'true' } });
-          const data = await response.json();
-          if (data.stars !== undefined) {
-            totalStarsElem.textContent = data.stars;
+        html += "</tr>";
+        for (let i=0; i<ALPHABET.length; i++) {
+          const rowClass = (i === targetRow) ? 'highlight-row' : '';
+          html += `<tr class="${rowClass}"><th>${ALPHABET[i]}</th>`;
+          for (let j=0; j<ALPHABET.length; j++) {
+            let cellClass = "";
+            if (i === targetRow && j === targetCol) cellClass = "highlight-cell";
+            else if (j === targetCol) cellClass = "highlight-col";
+            html += `<td class="${cellClass}">${ALPHABET[(i+j)%ALPHABET.length]}</td>`;
           }
-        } catch (error) {
-          console.error('Помилка сервера, залишаємо локальні дані:', error);
-          if (totalStarsElem.textContent === "...") totalStarsElem.textContent = "0";
+          html += "</tr>";
         }
+        html += "</table>";
+        wrap.innerHTML = html;
       }
 
-      async function syncStars(stars) {
-        const userId = tg.initDataUnsafe?.user?.id || 981926714;
-        const url = `https://anyway-art-mustard.ngrok-free.dev/update_stars`;
-        try {
-          await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-            body: JSON.stringify({ user_id: userId, stars: stars })
-          });
-          loadStars(); 
-        } catch (error) {
-          console.error('Помилка синхронізації:', error);
-        }
+      function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
       }
 
       function cipher(text, s) {
@@ -325,11 +302,6 @@
           if (idx < 0) return char;
           return ALPHABET[(idx + s + ALPHABET.length) % ALPHABET.length];
         }).join('');
-      }
-
-      function showScreen(id) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
       }
 
       function nextQuestion() {
@@ -341,11 +313,10 @@
         const word = WORDS[Math.floor(Math.random() * WORDS.length)];
         const s = 1 + Math.floor(Math.random() * 5);
         const opts = document.getElementById('options');
-        const fback = document.getElementById('feedback');
-        const nbtn = document.getElementById('next-btn');
         opts.innerHTML = "";
-        fback.style.display = "none";
-        nbtn.style.display = "none";
+        document.getElementById('feedback').style.display = "none";
+        document.getElementById('next-btn').style.display = "none";
+
         if (state.subLevel === 1) {
           document.getElementById('instr').textContent = "Зашифруй слово:";
           document.getElementById('word').textContent = word;
@@ -359,16 +330,20 @@
           state.currentAns = s;
           generateOptions(s, () => 1 + Math.floor(Math.random()*10));
         } else {
+          // ТУТ БУЛА ПОМИЛКА - ТЕПЕР ВИПРАВЛЕНО
           const encrypted = cipher(word, s);
           const lastChar = word.slice(-1).toLowerCase();
           document.getElementById('instr').textContent = "Розшифруй в умі. Яке слово починається на останню літеру?";
           document.getElementById('word').textContent = encrypted;
           document.getElementById('shift-info').textContent = "Зсув: -" + s;
-          const possible = WORDS.filter(w => w[0].toLowerCase() === lastChar && w !== word);
-          state.currentAns = possible.length > 0 ? possible[Math.floor(Math.random()*possible.length)] : "абетка";
+          
+          const possible = WORDS.filter(w => w[0].toLowerCase() === lastChar);
+          // Якщо слів на цю літеру немає, беремо "ананас" як запасний варіант, щоб код не впав
+          state.currentAns = possible.length > 0 ? possible[Math.floor(Math.random() * possible.length)] : "ананас";
+          
           generateOptions(state.currentAns, () => {
-            const wrong = WORDS.filter(w => w[0].toLowerCase() !== lastChar);
-            return wrong[Math.floor(Math.random()*wrong.length)];
+             const wrong = WORDS.filter(w => w[0].toLowerCase() !== lastChar);
+             return wrong[Math.floor(Math.random() * wrong.length)];
           });
         }
       }
@@ -384,13 +359,10 @@
             document.querySelectorAll('.caesar-option-btn').forEach(btn => btn.disabled = true);
             if (val == correct) {
               b.classList.add('correct');
-              state.score += 1;
-              syncStars(1);
-              document.getElementById('feedback').textContent = "✅ Правильно! +1⭐";
+              state.score += 1; syncStars(1);
             } else {
               b.classList.add('wrong');
               state.lives--;
-              document.getElementById('feedback').textContent = "❌ Ні. Відповідь: " + correct;
             }
             document.getElementById('lives').textContent = state.lives;
             document.getElementById('score').textContent = state.score;
@@ -401,13 +373,7 @@
         });
       }
 
-      function start() {
-        state.lives = 5; state.score = 0;
-        document.getElementById('lives').textContent = state.lives;
-        document.getElementById('score').textContent = state.score;
-        showScreen('caesar-screen');
-        nextQuestion();
-      }
+      function start() { state.lives = 5; state.score = 0; showScreen('caesar-screen'); nextQuestion(); }
 
       document.getElementById('btn-easy').onclick = () => showScreen('level-detail-screen');
       document.getElementById('btn-medium').onclick = () => { window.location.href = 'medium.html?v=' + Date.now(); };
@@ -416,12 +382,30 @@
       document.getElementById('btn-lvl-2').onclick = () => { state.subLevel = 2; start(); };
       document.getElementById('btn-lvl-3').onclick = () => { state.subLevel = 3; start(); };
       document.getElementById('detail-back-btn').onclick = () => showScreen('menu-screen');
+      document.getElementById('btn-open-academy').onclick = () => toggleAcademy(true);
       document.getElementById('next-btn').onclick = nextQuestion;
       document.getElementById('exit-to-levels-btn').onclick = () => showScreen('level-detail-screen');
       document.getElementById('exit-to-menu-btn').onclick = () => showScreen('menu-screen');
       document.getElementById('restart-to-levels-btn').onclick = () => showScreen('level-detail-screen');
       document.getElementById('restart-to-menu-btn').onclick = () => showScreen('menu-screen');
 
+      async function loadStars() {
+        const userId = tg.initDataUnsafe?.user?.id || 981926714;
+        try {
+          const r = await fetch(`https://anyway-art-mustard.ngrok-free.dev/get_stars?user_id=${userId}`, { headers: {'ngrok-skip-browser-warning': 'true'} });
+          const d = await r.json(); if (d.stars !== undefined) document.getElementById('total-stars').textContent = d.stars;
+        } catch (e) { document.getElementById('total-stars').textContent = "0"; }
+      }
+      async function syncStars(stars) {
+        const userId = tg.initDataUnsafe?.user?.id || 981926714;
+        try {
+          await fetch(`https://anyway-art-mustard.ngrok-free.dev/update_stars`, {
+            method: 'POST', headers: {'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true'},
+            body: JSON.stringify({ user_id: userId, stars: stars })
+          });
+          loadStars();
+        } catch (e) {}
+      }
       loadStars();
     </script>
   </body>
