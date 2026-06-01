@@ -78,7 +78,7 @@
             width: 100%; background: #000; border: 1px solid #facc15;
             color: #fff; padding: 12px; border-radius: 10px; font-size: 16px;
             box-shadow: inset 0 0 5px rgba(250, 204, 21, 0.2);
-            text-transform: uppercase; /* АВТОМАТИЧНО ВЕЛИКІ ЛІТЕРИ */
+            text-transform: uppercase;
         }
 
         /* КНОПКИ */
@@ -121,7 +121,7 @@
         </div>
     </div>
 
-    <!-- АТБАШ (БЕЗ ЗМІН) -->
+    <!-- АТБАШ -->
     <div id="atbash-screen" class="screen">
         <div class="game-header">
             <span>❤️ <span id="atbash-lives">5</span></span>
@@ -134,12 +134,12 @@
             <div id="atbash-word" style="font-size: 26px; font-weight: bold; text-align: center; margin: 15px 0; letter-spacing: 2px;">---</div>
             <div id="atbash-options" class="options-grid"></div>
             <div id="atbash-feedback" class="feedback-box" style="display:none;"></div>
-            <button id="atbash-next" class="btn" style="display:none; margin-top:10px;">ДАЛІ</button>
+            <button id="atbash-next" class="btn" style="display:none; margin-top:10px;" onclick="nextAtbashQuestion()">ДАЛІ</button>
         </div>
         <button class="btn btn-exit" onclick="resetToMenu()">ПЕРЕрвати</button>
     </div>
 
-    <!-- ВІЖЕНЕР (З ПІДСВІТКОЮ) -->
+    <!-- ВІЖЕНЕР -->
     <div id="vigenere-screen" class="screen">
         <div class="game-header">
             <span>❤️ <span id="vig-lives">3</span></span>
@@ -169,7 +169,7 @@
         <button class="btn btn-exit" onclick="resetToMenu()">ВИЙТИ</button>
     </div>
 
-    <!-- ПЛЕЙФЕР (ОНОВЛЕНИЙ) -->
+    <!-- ПЛЕЙФЕР -->
     <div id="playfair-screen" class="screen">
         <div class="game-header">
             <span>❤️ <span id="pf-lives">3</span></span>
@@ -182,7 +182,7 @@
                 <div id="pf-target-word-display" class="pf-target-word">---</div>
                 <div id="pf-progress-bar" class="pf-progress-bar"></div>
             </div>
-            <p id="pf-step-info" style="text-align: center; color: #facc15; font-size: 13px; margin-bottom: 10px;">Крок 1: Підготовка біграм</p>
+            <p id="pf-step-info" style="text-align: center; color: #facc15; font-size: 13px; margin-bottom: 10px;">Крок 1</p>
             <div class="playfair-wrap">
                 <table id="pf-matrix-table" class="playfair-grid"></table>
             </div>
@@ -192,7 +192,7 @@
                     <div id="pf-current-bigram" style="font-size: 28px; font-weight: bold; letter-spacing: 5px; color: #fff;">--</div>
                 </div>
                 <div class="input-box">
-                    <label>ВВЕДІТЬ РЕЗУЛЬТАТ ШИФРУВАННЯ:</label>
+                    <label>ВВЕДІТЬ РЕЗУЛЬТАТ:</label>
                     <input type="text" id="pf-answer" placeholder="2 літери...">
                 </div>
                 <div id="pf-feedback" class="feedback-box" style="display:none;"></div>
@@ -200,11 +200,10 @@
                 <button id="pf-next-btn" class="btn" style="display:none; margin-top:10px;" onclick="nextPlayfairStep()">НАСТУПНИЙ КРОК</button>
             </div>
             <div id="pf-final-block" style="display:none; text-align: center; border: 1px dashed #22c55e; padding: 15px; border-radius: 10px; background: rgba(34, 197, 94, 0.05);">
-                <div style="color: #22c55e; font-weight: bold; margin-bottom: 10px;">РІВЕНЬ ПЛЕЙФЕРА ПРОЙДЕНО!</div>
-                <div style="font-size: 10px; color: #facc15;">ОТРИМАНИЙ ШИФРОТЕКСТ:</div>
+                <div style="color: #22c55e; font-weight: bold; margin-bottom: 10px;">РІВЕНЬ ПРОЙДЕНО!</div>
                 <div id="pf-final-result" style="font-size: 22px; color: #fff; letter-spacing: 3px; font-weight: bold; margin: 5px 0;"></div>
-                <button class="btn" style="margin-top: 15px;" onclick="initPlayfair()">ПРОЙТИ ЩЕ РАЗ (НОВІ ДАНІ)</button>
-                <button class="btn btn-outline" style="margin-top: 10px;" onclick="resetToMenu()">ПОВЕРНУТИСЯ ДО ТЕРМІНАЛУ</button>
+                <button class="btn" style="margin-top: 15px;" onclick="initPlayfair()">ЩЕ РАЗ</button>
+                <button class="btn btn-outline" style="margin-top: 10px;" onclick="resetToMenu()">В ТЕРМІНАЛ</button>
             </div>
         </div>
         <button class="btn btn-exit" onclick="resetToMenu()">ВИЙТИ</button>
@@ -256,7 +255,7 @@
             } catch (e) { console.error(e); }
         }
 
-        // --- АТБАШ (БЕЗ ЗМІН) ---
+        // --- АТБАШ ---
         function initAtbash() {
             state.lives = 5; state.score = 0;
             updateAtbashStats();
@@ -319,9 +318,8 @@
             document.getElementById('atbash-lives').textContent = state.lives;
             document.getElementById('atbash-score').textContent = state.score;
         }
-        document.getElementById('atbash-next').onclick = nextAtbashQuestion;
 
-        // --- ВІЖЕНЕР (З ПІДСВІТКОЮ) ---
+        // --- ВІЖЕНЕР ---
         function initVigenere() {
             state.lives = 3; state.score = 0; 
             showScreen('vigenere-screen');
@@ -330,7 +328,6 @@
 
         function generateNewVigenereTask() {
             if(state.lives <= 0) { gameOver(); return; }
-            document.querySelectorAll('#tabula-recta .h-cell').forEach(cell => cell.classList.remove('h-cell'));
             const m = WORDS[Math.floor(Math.random()*WORDS.length)].toUpperCase();
             const k = V_KEYS[Math.floor(Math.random()*V_KEYS.length)].toUpperCase();
             state.correctAnswer = "";
@@ -361,18 +358,10 @@
             clearInterval(state.timer);
             state.timer = setInterval(() => {
                 state.timeLeft--;
-                if (state.timeLeft < 0) state.timeLeft = 0;
                 document.getElementById('vig-timer-text').textContent = state.timeLeft;
                 if(state.timeLeft <= 0) {
                     clearInterval(state.timer);
-                    if(state.lives > 0) state.lives--;
-                    updateVigStats();
-                    document.getElementById('vig-answer').disabled = true;
-                    document.getElementById('hint-btn').disabled = true;
-                    const feedback = document.getElementById('vig-feedback');
-                    feedback.style.display = "block";
-                    feedback.innerHTML = "ЧАС ВИЧЕРПАНО. КАНАЛ ВТРАЧЕНО.";
-                    feedback.style.color = "#facc15";
+                    state.lives--; updateVigStats();
                     document.getElementById('vig-check-btn').style.display = "none";
                     document.getElementById('vig-show-ans-btn').style.display = "block";
                 }
@@ -389,37 +378,22 @@
         }
 
         function useHint() {
-            if(!state.hintUsed) {
-                state.timeLeft = Math.max(0, state.timeLeft - 10);
-                state.hintUsed = true;
-                document.getElementById('vig-timer-text').textContent = state.timeLeft;
-            }
-            document.getElementById('vig-table-area').style.display = 
-                document.getElementById('vig-table-area').style.display === "none" ? "block" : "none";
+            if(!state.hintUsed) { state.timeLeft = Math.max(0, state.timeLeft - 10); state.hintUsed = true; }
+            document.getElementById('vig-table-area').style.display = (document.getElementById('vig-table-area').style.display === "none") ? "block" : "none";
             if(document.getElementById('tabula-recta').innerHTML === "") buildVigenereTable();
         }
 
         async function checkVigenere() {
             const ans = document.getElementById('vig-answer').value.trim().toUpperCase();
-            const feedback = document.getElementById('vig-feedback');
             clearInterval(state.timer);
-            document.getElementById('vig-answer').disabled = true;
-            document.getElementById('hint-btn').disabled = true;
             if(ans === state.correctAnswer) {
-                state.score += 5;
-                feedback.style.display = "block";
-                feedback.innerHTML = "СИНХРОНІЗАЦІЯ ЗАВЕРШЕНА +5 ⭐";
-                feedback.style.color = "#facc15";
+                state.score += 5; await syncStars(5);
+                document.getElementById('vig-feedback').innerHTML = "ВІРНО +5 ⭐";
+                document.getElementById('vig-feedback').style.display = "block";
                 document.getElementById('vig-check-btn').style.display = "none";
                 document.getElementById('vig-next-btn').style.display = "block";
-                await syncStars(5);
             } else {
-                if(state.lives > 0) state.lives--;
-                updateVigStats();
-                tg.HapticFeedback?.notificationOccurred?.('error');
-                feedback.style.display = "block";
-                feedback.innerHTML = "ПОМИЛКА ДЕШИФРУВАННЯ";
-                feedback.style.color = "#ef4444";
+                state.lives--; updateVigStats();
                 document.getElementById('vig-check-btn').style.display = "none";
                 document.getElementById('vig-show-ans-btn').style.display = "block";
             }
@@ -429,47 +403,37 @@
             document.getElementById('vig-answer').value = state.correctAnswer;
             document.getElementById('vig-table-area').style.display = "block";
             if(document.getElementById('tabula-recta').innerHTML === "") buildVigenereTable();
-            const m = document.getElementById('vig-m').value;
-            const k = document.getElementById('vig-k').value;
-            const ri = ALPHABET.indexOf(m[0].toLowerCase());
-            const ci = ALPHABET.indexOf(k[0].toLowerCase());
-            if(ri !== -1 && ci !== -1) {
-                const cell = document.getElementById(`v-${ri}-${ci}`);
-                if(cell) cell.classList.add('h-cell');
-            }
+            document.querySelectorAll('#tabula-recta td').forEach(c => c.classList.remove('h-cell'));
+            const mChar = document.getElementById('vig-m').value[0].toLowerCase();
+            const kChar = document.getElementById('vig-k').value[0].toLowerCase();
+            const ri = ALPHABET.indexOf(mChar);
+            const ci = ALPHABET.indexOf(kChar);
+            if(ri !== -1 && ci !== -1) document.getElementById(`v-${ri}-${ci}`).classList.add('h-cell');
             document.getElementById('vig-show-ans-btn').style.display = "none";
             document.getElementById('vig-next-btn').style.display = "block";
         }
 
         function updateVigStats() { document.getElementById('vig-lives').textContent = state.lives; }
 
-        // --- ПЛЕЙФЕР ---
+                        // --- ПЛЕЙФЕР ---
         const PF_ALPHABET = "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя_.[]";
-        const PF_WORDS = ["БЕЗПЕКА", "КРИПТО", "ЗАХИСТ", "МЕРЕЖА", "ДОСТУП", "ТЕРМІНАЛ", "ХАКЕР", "ШИФРОВКА"];
-        const PF_KEYS = ["ГРАВІТАЦІЯ", "ВЕКТОР", "СИСТЕМА", "СЕРВЕР", "ТЕРМІНАЛ", "ПОРТАЛ", "МАТРИЦЯ"];
+        const PF_WORDS = ["БЕЗПЕКА", "КРИПТО", "ЗАХИСТ", "МЕРЕЖА", "ДОСТУП", "ТЕРМІНАЛ"];
+        const PF_KEYS = ["ВЕКТОР", "СИСТЕМА", "СЕРВЕР", "МАТРИЦЯ"];
 
         function initPlayfair() {
-            state.lives = 3; state.pfStep = 0; state.pfFinalText = "";
+            state.lives = 3; state.score = 0; state.pfStep = 0; state.pfFinalText = "";
             state.pfCurrentWord = PF_WORDS[Math.floor(Math.random() * PF_WORDS.length)];
-            const currentKey = PF_KEYS[Math.floor(Math.random() * PF_KEYS.length)];
-            
-            let wordForBigrams = state.pfCurrentWord.toUpperCase();
-            if (wordForBigrams.length % 2 !== 0) wordForBigrams += "_";
+            const key = PF_KEYS[Math.floor(Math.random() * PF_KEYS.length)];
+            let word = state.pfCurrentWord.toUpperCase();
+            if (word.length % 2 !== 0) word += "_";
             state.pfBigrams = [];
-            for (let i = 0; i < wordForBigrams.length; i += 2) {
-                state.pfBigrams.push(wordForBigrams.substring(i, i + 2));
-            }
-
-            state.pfMatrix = generatePlayfairMatrix(currentKey);
+            for (let i = 0; i < word.length; i += 2) state.pfBigrams.push(word.substring(i, i + 2));
+            state.pfMatrix = generatePlayfairMatrix(key);
             document.getElementById('pf-target-word-display').innerText = state.pfCurrentWord;
+            document.getElementById('pf-progress-bar').innerText = "";
             document.getElementById('pf-active-area').style.display = "block";
             document.getElementById('pf-final-block').style.display = "none";
-            document.getElementById('pf-progress-bar').innerText = "";
-            
-            updatePFStats();
-            showScreen('playfair-screen');
-            drawPFMatrix();
-            nextPlayfairStep();
+            updatePFStats(); showScreen('playfair-screen'); drawPFMatrix(); nextPlayfairStep();
         }
 
         function generatePlayfairMatrix(key) {
@@ -482,10 +446,9 @@
         }
 
         function drawPFMatrix() {
-            const table = document.getElementById('pf-matrix-table');
             let html = "";
             state.pfMatrix.forEach(row => { html += "<tr>" + row.map(c => `<td id="pf-${c}">${c}</td>`).join('') + "</tr>"; });
-            table.innerHTML = html;
+            document.getElementById('pf-matrix-table').innerHTML = html;
         }
 
         function nextPlayfairStep() {
@@ -504,45 +467,66 @@
                 if (el) el.classList.add('pf-highlight');
             });
             document.getElementById('pf-answer').value = "";
-            document.getElementById('pf-answer').disabled = false;
             document.getElementById('pf-feedback').style.display = "none";
             document.getElementById('pf-next-btn').style.display = "none";
-            document.getElementById('pf-check-btn').style.display = "block";
+            const checkBtn = document.getElementById('pf-check-btn');
+            checkBtn.style.display = "block";
+            checkBtn.disabled = false;
         }
 
         async function checkPlayfair() {
+            if (state.lives <= 0) return; // Захист від спрацювання після смерті
+
             const bigram = state.pfBigrams[state.pfStep];
-            const ans = document.getElementById('pf-answer').value.trim().toUpperCase();
+            const ansInput = document.getElementById('pf-answer');
+            const ans = ansInput.value.trim().toUpperCase();
+            const fb = document.getElementById('pf-feedback');
+            const checkBtn = document.getElementById('pf-check-btn');
+            
+            checkBtn.disabled = true; // Блокуємо кнопку на час перевірки
+
             let r1, c1, r2, c2;
             state.pfMatrix.forEach((row, r) => row.forEach((char, c) => {
                 if (char === bigram[0].toUpperCase()) { r1 = r; c1 = c; }
                 if (char === bigram[1].toUpperCase()) { r2 = r; c2 = c; }
             }));
-            let correct = "";
-            if (r1 === r2) { correct = state.pfMatrix[r1][(c1 + 1) % 7] + state.pfMatrix[r2][(c2 + 1) % 7]; }
-            else if (c1 === c2) { correct = state.pfMatrix[(r1 + 1) % 5][c1] + state.pfMatrix[(r2 + 1) % 5][c2]; }
-            else { correct = state.pfMatrix[r1][c2] + state.pfMatrix[r2][c1]; }
             
-            const feedback = document.getElementById('pf-feedback');
-            feedback.style.display = "block";
+            let correct = "";
+            if (r1 === r2) correct = state.pfMatrix[r1][(c1 + 1) % 7] + state.pfMatrix[r2][(c2 + 1) % 7];
+            else if (c1 === c2) correct = state.pfMatrix[(r1 + 1) % 5][c1] + state.pfMatrix[(r2 + 1) % 5][c2];
+            else correct = state.pfMatrix[r1][c2] + state.pfMatrix[r2][c1];
+
             if (ans === correct) {
                 state.score += 5; state.pfFinalText += correct; state.pfStep++;
                 document.getElementById('pf-progress-bar').innerText = state.pfFinalText;
-                feedback.innerHTML = "СИНХРОНІЗАЦІЯ УСПІШНА! +5 ⭐";
-                feedback.style.color = "#facc15";
-                document.getElementById('pf-check-btn').style.display = "none";
+                updatePFStats(); await syncStars(5);
+                fb.innerHTML = "ВІРНО! +5 ⭐";
+                fb.style.color = "#facc15";
+                fb.style.borderColor = "#facc15";
+                fb.style.display = "block";
+                checkBtn.style.display = "none";
                 document.getElementById('pf-next-btn').style.display = "block";
-                await syncStars(5);
             } else {
-                state.lives--; updatePFStats();
-                if (state.lives <= 0) { gameOver(); return; }
-                feedback.innerHTML = `ПОМИЛКА КАНАЛУ. КОРЕКТНО: ${correct}`;
-                feedback.style.color = "#ef4444";
+                state.lives--; 
+                updatePFStats();
+                fb.innerHTML = "ПОМИЛКА";
+                fb.style.color = "#ef4444";
+                fb.style.borderColor = "#ef4444";
+                fb.style.display = "block";
+                
+                if (state.lives <= 0) {
+                    checkBtn.disabled = true;
+                    setTimeout(gameOver, 800);
+                } else {
+                    checkBtn.disabled = false; // Дозволяємо спробувати знову, якщо є життя
+                }
             }
         }
 
         function updatePFStats() {
-            document.getElementById('pf-lives').textContent = state.lives;
+            // Запобігаємо відображенню від'ємних значень
+            const displayLives = state.lives < 0 ? 0 : state.lives;
+            document.getElementById('pf-lives').textContent = displayLives;
             document.getElementById('pf-score').textContent = state.score;
         }
     </script>
