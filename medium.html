@@ -167,7 +167,7 @@
             <button id="vig-next-btn" class="btn" style="display:none; margin-top:10px;" onclick="generateNewVigenereTask()">ДАЛІ</button>
             <button class="btn btn-outline" style="margin-top: 15px; font-size: 12px;" id="hint-btn" onclick="useHint()">ПІДКАЗКА (ТАБЛИЦЯ) -10с</button>
         </div>
-        <button class="btn btn-exit" onclick="resetToMenu()">ВИЙТИ</button>
+        <button class="btn btn-exit" onclick="handleVigenereExit()">ВИЙТИ</button>
     </div>
 
     <!-- ПЛЕЙФЕР -->
@@ -243,6 +243,14 @@
             clearInterval(state.timer);
             document.getElementById('final-score').textContent = state.score;
             showScreen('game-over-screen');
+        }
+
+        function handleVigenereExit() {
+            if (state.lives <= 0) {
+                gameOver();
+            } else {
+                resetToMenu();
+            }
         }
 
         async function syncStars(points) {
@@ -344,14 +352,13 @@
             document.getElementById('vig-m').value = m;
             document.getElementById('vig-k').value = k;
             
-            // Скидання інтерфейсу
             const ansInput = document.getElementById('vig-answer');
             ansInput.value = "";
             ansInput.disabled = false;
             
             const fb = document.getElementById('vig-feedback');
             fb.style.display = "none";
-            fb.style.borderColor = "#facc15"; // Скидання кольору бордера
+            fb.style.borderColor = "#facc15";
             
             document.getElementById('vig-next-btn').style.display = "none";
             document.getElementById('vig-show-ans-btn').style.display = "none";
@@ -361,7 +368,6 @@
             const hintBtn = document.getElementById('hint-btn');
             hintBtn.disabled = false;
             
-            // Очищення старої підсвітки таблиці
             if(document.getElementById('tabula-recta').innerHTML !== "") {
                 document.querySelectorAll('#tabula-recta td, #tabula-recta th').forEach(el => {
                     el.classList.remove('h-cell', 'h-line');
@@ -381,7 +387,6 @@
                     clearInterval(state.timer);
                     state.lives--; updateVigStats();
                     
-                    // Блокування
                     document.getElementById('vig-answer').disabled = true;
                     document.getElementById('hint-btn').disabled = true;
                     
@@ -420,7 +425,7 @@
             if(ans === state.correctAnswer) {
                 state.score += 5; await syncStars(5);
                 fb.innerHTML = "ВІРНО! +5 ⭐";
-                fb.style.color = "#facc15"; // Золотистий як на фото
+                fb.style.color = "#facc15";
                 fb.style.borderColor = "#facc15";
                 fb.style.display = "block";
                 document.getElementById('vig-check-btn').style.display = "none";
@@ -430,7 +435,7 @@
             } else {
                 state.lives--; updateVigStats();
                 fb.innerHTML = "ПОМИЛКА";
-                fb.style.color = "#ef4444"; // Червоний
+                fb.style.color = "#ef4444";
                 fb.style.borderColor = "#ef4444";
                 fb.style.display = "block";
                 
@@ -438,8 +443,6 @@
                 document.getElementById('hint-btn').disabled = true;
                 document.getElementById('vig-check-btn').style.display = "none";
                 document.getElementById('vig-show-ans-btn').style.display = "block";
-                
-                if (state.lives <= 0) setTimeout(gameOver, 1000);
             }
         }
 
@@ -448,27 +451,22 @@
             document.getElementById('vig-table-area').style.display = "block";
             if(document.getElementById('tabula-recta').innerHTML === "") buildVigenereTable();
             
-            // Очищення старої підсвітки перед новою
             document.querySelectorAll('#tabula-recta td, #tabula-recta th').forEach(c => {
                 c.classList.remove('h-cell', 'h-line');
             });
 
-            // Беремо першу літеру тексту та першу літеру ключа для демонстрації принципу
             const mChar = document.getElementById('vig-m').value[0].toLowerCase();
             const kChar = document.getElementById('vig-k').value[0].toLowerCase();
-            const ri = ALPHABET.indexOf(mChar); // Індекс літери тексту (рядок)
-            const ci = ALPHABET.indexOf(kChar); // Індекс літери ключа (стовпець)
+            const ri = ALPHABET.indexOf(mChar);
+            const ci = ALPHABET.indexOf(kChar);
             
             if(ri !== -1 && ci !== -1) {
-                // Підсвічуємо весь рядок
                 for(let j=0; j<ALPHABET.length; j++) {
                     document.getElementById(`v-${ri}-${j}`).classList.add('h-line');
                 }
-                // Підсвічуємо весь стовпець
                 for(let i=0; i<ALPHABET.length; i++) {
                     document.getElementById(`v-${i}-${ci}`).classList.add('h-line');
                 }
-                // Яскраво підсвічуємо перетин
                 document.getElementById(`v-${ri}-${ci}`).classList.add('h-cell');
             }
             
