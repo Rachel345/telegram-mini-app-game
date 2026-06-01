@@ -59,6 +59,7 @@
         .vigenere-wrap td, .vigenere-wrap th { width: 18px; height: 18px; }
         th { background: #111; color: #facc15; }
         .h-cell { background: #facc15 !important; color: #000 !important; font-weight: bold; box-shadow: inset 0 0 5px #000; }
+        .h-line { background: rgba(250, 204, 21, 0.2); color: #fff; }
 
         /* Стилі Плейфера */
         .playfair-grid td { 
@@ -92,7 +93,7 @@
             transition: all 0.2s ease;
         }
         .btn:active { transform: scale(0.95); }
-        .btn:disabled { opacity: 0.3; border-color: #444; color: #444 !important; box-shadow: none; }
+        .btn:disabled { opacity: 0.3; border-color: #444; color: #444 !important; box-shadow: none; cursor: default; }
         
         .btn-outline { border-color: rgba(250, 204, 21, 0.5); color: rgba(250, 204, 21, 0.8) !important; }
         .btn-exit { border-color: #ef4444; color: #ef4444 !important; }
@@ -342,14 +343,31 @@
             }
             document.getElementById('vig-m').value = m;
             document.getElementById('vig-k').value = k;
-            document.getElementById('vig-answer').value = "";
-            document.getElementById('vig-answer').disabled = false;
-            document.getElementById('vig-feedback').style.display = "none";
+            
+            // Скидання інтерфейсу
+            const ansInput = document.getElementById('vig-answer');
+            ansInput.value = "";
+            ansInput.disabled = false;
+            
+            const fb = document.getElementById('vig-feedback');
+            fb.style.display = "none";
+            fb.style.borderColor = "#facc15"; // Скидання кольору бордера
+            
             document.getElementById('vig-next-btn').style.display = "none";
             document.getElementById('vig-show-ans-btn').style.display = "none";
             document.getElementById('vig-check-btn').style.display = "block";
             document.getElementById('vig-table-area').style.display = "none";
-            document.getElementById('hint-btn').disabled = false;
+            
+            const hintBtn = document.getElementById('hint-btn');
+            hintBtn.disabled = false;
+            
+            // Очищення старої підсвітки таблиці
+            if(document.getElementById('tabula-recta').innerHTML !== "") {
+                document.querySelectorAll('#tabula-recta td, #tabula-recta th').forEach(el => {
+                    el.classList.remove('h-cell', 'h-line');
+                });
+            }
+
             state.hintUsed = false; state.timeLeft = 60;
             updateVigStats(); startVigenereTimer();
         }
@@ -362,6 +380,17 @@
                 if(state.timeLeft <= 0) {
                     clearInterval(state.timer);
                     state.lives--; updateVigStats();
+                    
+                    // Блокування
+                    document.getElementById('vig-answer').disabled = true;
+                    document.getElementById('hint-btn').disabled = true;
+                    
+                    const fb = document.getElementById('vig-feedback');
+                    fb.innerHTML = "ЧАС ВИЧЕРПАНО";
+                    fb.style.color = "#ef4444";
+                    fb.style.borderColor = "#ef4444";
+                    fb.style.display = "block";
+                    
                     document.getElementById('vig-check-btn').style.display = "none";
                     document.getElementById('vig-show-ans-btn').style.display = "block";
                 }
@@ -385,17 +414,32 @@
 
         async function checkVigenere() {
             const ans = document.getElementById('vig-answer').value.trim().toUpperCase();
+            const fb = document.getElementById('vig-feedback');
             clearInterval(state.timer);
+            
             if(ans === state.correctAnswer) {
                 state.score += 5; await syncStars(5);
-                document.getElementById('vig-feedback').innerHTML = "ВІРНО +5 ⭐";
-                document.getElementById('vig-feedback').style.display = "block";
+                fb.innerHTML = "ВІРНО! +5 ⭐";
+                fb.style.color = "#facc15"; // Золотистий як на фото
+                fb.style.borderColor = "#facc15";
+                fb.style.display = "block";
                 document.getElementById('vig-check-btn').style.display = "none";
                 document.getElementById('vig-next-btn').style.display = "block";
+                document.getElementById('vig-answer').disabled = true;
+                document.getElementById('hint-btn').disabled = true;
             } else {
                 state.lives--; updateVigStats();
+                fb.innerHTML = "ПОМИЛКА";
+                fb.style.color = "#ef4444"; // Червоний
+                fb.style.borderColor = "#ef4444";
+                fb.style.display = "block";
+                
+                document.getElementById('vig-answer').disabled = true;
+                document.getElementById('hint-btn').disabled = true;
                 document.getElementById('vig-check-btn').style.display = "none";
                 document.getElementById('vig-show-ans-btn').style.display = "block";
+                
+                if (state.lives <= 0) setTimeout(gameOver, 1000);
             }
         }
 
@@ -403,17 +447,39 @@
             document.getElementById('vig-answer').value = state.correctAnswer;
             document.getElementById('vig-table-area').style.display = "block";
             if(document.getElementById('tabula-recta').innerHTML === "") buildVigenereTable();
-            document.querySelectorAll('#tabula-recta td').forEach(c => c.classList.remove('h-cell'));
+            
+            // Очищення старої підсвітки перед новою
+            document.querySelectorAll('#tabula-recta td, #tabula-recta th').forEach(c => {
+                c.classList.remove('h-cell', 'h-line');
+            });
+
+            // Беремо першу літеру тексту та першу літеру ключа для демонстрації принципу
             const mChar = document.getElementById('vig-m').value[0].toLowerCase();
             const kChar = document.getElementById('vig-k').value[0].toLowerCase();
-            const ri = ALPHABET.indexOf(mChar);
-            const ci = ALPHABET.indexOf(kChar);
-            if(ri !== -1 && ci !== -1) document.getElementById(`v-${ri}-${ci}`).classList.add('h-cell');
+            const ri = ALPHABET.indexOf(mChar); // Індекс літери тексту (рядок)
+            const ci = ALPHABET.indexOf(kChar); // Індекс літери ключа (стовпець)
+            
+            if(ri !== -1 && ci !== -1) {
+                // Підсвічуємо весь рядок
+                for(let j=0; j<ALPHABET.length; j++) {
+                    document.getElementById(`v-${ri}-${j}`).classList.add('h-line');
+                }
+                // Підсвічуємо весь стовпець
+                for(let i=0; i<ALPHABET.length; i++) {
+                    document.getElementById(`v-${i}-${ci}`).classList.add('h-line');
+                }
+                // Яскраво підсвічуємо перетин
+                document.getElementById(`v-${ri}-${ci}`).classList.add('h-cell');
+            }
+            
             document.getElementById('vig-show-ans-btn').style.display = "none";
             document.getElementById('vig-next-btn').style.display = "block";
         }
 
-        function updateVigStats() { document.getElementById('vig-lives').textContent = state.lives; }
+        function updateVigStats() { 
+            const displayLives = state.lives < 0 ? 0 : state.lives;
+            document.getElementById('vig-lives').textContent = displayLives; 
+        }
 
                         // --- ПЛЕЙФЕР ---
         const PF_ALPHABET = "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя_.[]";
@@ -475,7 +541,7 @@
         }
 
         async function checkPlayfair() {
-            if (state.lives <= 0) return; // Захист від спрацювання після смерті
+            if (state.lives <= 0) return;
 
             const bigram = state.pfBigrams[state.pfStep];
             const ansInput = document.getElementById('pf-answer');
@@ -483,7 +549,7 @@
             const fb = document.getElementById('pf-feedback');
             const checkBtn = document.getElementById('pf-check-btn');
             
-            checkBtn.disabled = true; // Блокуємо кнопку на час перевірки
+            checkBtn.disabled = true;
 
             let r1, c1, r2, c2;
             state.pfMatrix.forEach((row, r) => row.forEach((char, c) => {
@@ -518,13 +584,12 @@
                     checkBtn.disabled = true;
                     setTimeout(gameOver, 800);
                 } else {
-                    checkBtn.disabled = false; // Дозволяємо спробувати знову, якщо є життя
+                    checkBtn.disabled = false;
                 }
             }
         }
 
         function updatePFStats() {
-            // Запобігаємо відображенню від'ємних значень
             const displayLives = state.lives < 0 ? 0 : state.lives;
             document.getElementById('pf-lives').textContent = displayLives;
             document.getElementById('pf-score').textContent = state.score;
