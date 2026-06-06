@@ -6,109 +6,211 @@
     <title>Складний рівень - Крипто-тренажер</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* ПОВНИЙ ІГНОР ТЕМИ ТЕЛЕГРАМ - CYBERPUNK DARK STYLE */
         * { box-sizing: border-box; }
         body {
             background-color: #0a0a0c !important;
             color: #f1f5f9 !important;
-            font-family: 'Courier New', Courier, monospace; /* Хакерський шрифт */
+            font-family: 'Courier New', Courier, monospace;
             margin: 0; padding: 12px; min-height: 100vh;
             display: flex; flex-direction: column;
         }
 
+        .screen { display: none; flex-direction: column; align-items: center; }
+        .screen.active { display: flex; }
+
+        /* ===== МЕНЮ ВИБОРУ ===== */
+        #select-screen {
+            justify-content: center; min-height: 100vh; gap: 16px;
+        }
+        .select-title {
+            font-size: 22px; font-weight: bold; color: #38bdf8;
+            text-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+            text-align: center; margin-bottom: 10px;
+        }
+        .select-card {
+            background: rgba(15, 23, 42, 0.8);
+            border: 2px solid rgba(56, 189, 248, 0.4);
+            border-radius: 16px; padding: 24px; width: 100%; max-width: 360px;
+            display: flex; flex-direction: column; gap: 14px;
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.1);
+        }
+
+        /* ===== ЗАГАЛЬНІ КНОПКИ ===== */
+        .btn {
+            background: transparent; color: #38bdf8;
+            border: 2px solid #38bdf8; border-radius: 10px;
+            padding: 14px; width: 100%; font-weight: bold; cursor: pointer;
+            text-transform: uppercase; font-family: 'Courier New', monospace;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+            font-size: 15px; letter-spacing: 1px;
+            transition: all 0.2s;
+        }
+        .btn:active { transform: scale(0.98); background: rgba(56, 189, 248, 0.1); }
+        .btn:disabled { border-color: #475569; color: #475569; box-shadow: none; cursor: not-allowed; }
+        .btn-success { border-color: #22c55e !important; color: #22c55e !important; box-shadow: 0 0 10px rgba(34, 197, 94, 0.2) !important; }
+        .btn-exit { border-color: #ef4444 !important; color: #ef4444 !important; }
+
+        /* ===== МІСІЇ (ПОДВІЙНЕ ШИФРУВАННЯ) ===== */
         .header {
             display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 15px; padding: 12px 15px; 
-            background: rgba(56, 189, 248, 0.05); 
-            border-radius: 12px;
-            border: 2px solid #38bdf8;
+            margin-bottom: 15px; padding: 12px 15px;
+            background: rgba(56, 189, 248, 0.05);
+            border-radius: 12px; border: 2px solid #38bdf8;
             box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+            width: 100%;
         }
-
         .mission-box {
-            background: rgba(0, 0, 0, 0.6); 
+            background: rgba(0, 0, 0, 0.6);
             border: 1px solid rgba(56, 189, 248, 0.3);
             border-radius: 12px; padding: 14px; margin-bottom: 15px;
-            font-size: 14px; line-height: 1.4; color: #cbd5e1;
+            font-size: 14px; line-height: 1.4; color: #cbd5e1; width: 100%;
         }
-
         .card {
-            background: rgba(15, 23, 42, 0.8); 
+            background: rgba(15, 23, 42, 0.8);
             border-radius: 16px; padding: 20px; width: 100%;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            position: relative;
         }
-
         .cipher-display {
-            background: rgba(0, 0, 0, 0.4); 
-            padding: 20px; border-radius: 10px;
-            text-align: center; 
-            border: 2px solid #38bdf8; 
-            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px; border-radius: 10px; text-align: center;
+            border: 2px solid #38bdf8; margin-bottom: 20px;
             box-shadow: inset 0 0 15px rgba(56, 189, 248, 0.2);
         }
-
-        .cipher-word { 
-            font-size: 24px; font-weight: 800; letter-spacing: 4px; color: #38bdf8; 
+        .cipher-word {
+            font-size: 24px; font-weight: 800; letter-spacing: 4px; color: #38bdf8;
             text-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
         }
-
         .helper-section {
             background: rgba(0, 0, 0, 0.3); border-radius: 8px; padding: 10px;
-            margin-bottom: 15px; font-family: monospace; font-size: 11px; 
+            margin-bottom: 15px; font-family: monospace; font-size: 11px;
             overflow-x: auto; border: 1px solid rgba(56, 189, 248, 0.2);
         }
-
-        .alphabet-grid {
-            display: grid; grid-template-columns: repeat(11, 1fr); gap: 4px; text-align: center;
-        }
-
+        .alphabet-grid { display: grid; grid-template-columns: repeat(11, 1fr); gap: 4px; text-align: center; }
         .letter-box { border: 1px solid #334155; border-radius: 4px; padding: 2px; background: rgba(0,0,0,0.2); }
         .letter-idx { color: #38bdf8; display: block; font-size: 9px; }
-
-        .step-container {
-            border-left: 3px solid #1e293b; padding-left: 15px; margin-bottom: 20px;
-            opacity: 0.4; transition: 0.3s;
-        }
-
+        .step-container { border-left: 3px solid #1e293b; padding-left: 15px; margin-bottom: 20px; opacity: 0.4; transition: 0.3s; }
         .step-container.active { border-left-color: #38bdf8; opacity: 1; }
-
         input[type="text"] {
             width: 100%; background: #000; border: 1px solid #38bdf8;
             color: #fff; padding: 12px; border-radius: 8px; font-size: 16px;
             text-transform: uppercase; outline: none; margin-top: 8px;
             box-shadow: inset 0 0 5px rgba(56, 189, 248, 0.2);
+            font-family: 'Courier New', monospace;
         }
-
-        .btn {
-            background: transparent; color: #38bdf8; 
-            border: 2px solid #38bdf8; border-radius: 10px;
-            padding: 14px; width: 100%; font-weight: bold; cursor: pointer; 
-            margin-top: 10px; text-transform: uppercase;
-            box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
-        }
-
-        .btn:active { transform: scale(0.98); background: rgba(56, 189, 248, 0.1); }
-        .btn:disabled { border-color: #475569; color: #475569; box-shadow: none; cursor: not-allowed; }
-        
-        .btn-success { border-color: #22c55e; color: #22c55e; box-shadow: 0 0 10px rgba(34, 197, 94, 0.2); }
-        .btn-exit { border-color: #ef4444; color: #ef4444; margin-top: 15px; }
-
         .validation-msg { font-size: 13px; margin-top: 8px; min-height: 18px; font-weight: bold; }
         .text-success { color: #22c55e; }
         .text-error { color: #ef4444; }
-
-        .screen { display: none; }
-        .screen.active { display: flex; flex-direction: column; }
-
         .atbash-row { display: flex; justify-content: space-around; border-bottom: 1px solid #1e293b; padding: 4px 0; }
-        
         #timer { color: #facc15; font-weight: bold; }
+
+        /* ===== RSA КВЕСТ ===== */
+        #rsa-screen { width: 100%; gap: 12px; padding-bottom: 20px; }
+        .rsa-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 15px; background: rgba(56, 189, 248, 0.05);
+            border-radius: 12px; border: 2px solid #38bdf8;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+            width: 100%;
+        }
+        .rsa-card {
+            background: rgba(15, 23, 42, 0.8);
+            border-radius: 16px; padding: 20px; width: 100%;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+        .rsa-step {
+            border-left: 3px solid #1e293b; padding-left: 15px;
+            margin-bottom: 16px; opacity: 0.35; transition: 0.4s;
+            display: none;
+        }
+        .rsa-step.active { border-left-color: #38bdf8; opacity: 1; display: block; }
+        .rsa-step.done { border-left-color: #22c55e; opacity: 0.7; display: block; }
+        .rsa-step-title { color: #38bdf8; font-size: 12px; font-weight: bold; margin-bottom: 8px; letter-spacing: 1px; }
+        .rsa-step.done .rsa-step-title { color: #22c55e; }
+        .robot-msg {
+            background: rgba(0,0,0,0.5); border: 1px solid rgba(56,189,248,0.25);
+            border-radius: 10px; padding: 12px; font-size: 13px;
+            color: #cbd5e1; line-height: 1.5; margin-bottom: 12px;
+        }
+        .rsa-formula {
+            background: rgba(56, 189, 248, 0.08); border: 1px dashed rgba(56,189,248,0.4);
+            border-radius: 8px; padding: 8px 12px; font-size: 13px;
+            color: #38bdf8; font-family: monospace; text-align: center; margin-bottom: 12px;
+        }
+        .rsa-input {
+            width: 100%; background: #000; border: 1px solid #38bdf8;
+            color: #fff; padding: 11px; border-radius: 8px; font-size: 18px;
+            text-align: center; outline: none; margin-bottom: 8px;
+            box-shadow: inset 0 0 5px rgba(56, 189, 248, 0.2);
+            font-family: 'Courier New', monospace;
+        }
+        .rsa-input.correct { border-color: #22c55e !important; box-shadow: 0 0 10px rgba(34,197,94,0.4) !important; }
+        .rsa-input:disabled { opacity: 0.7; }
+        .rsa-msg { font-size: 13px; min-height: 18px; font-weight: bold; text-align: center; margin-bottom: 6px; }
+        .hint-box {
+            background: rgba(250, 204, 21, 0.08); border: 1px dashed rgba(250,204,21,0.4);
+            border-radius: 8px; padding: 10px; font-size: 12px;
+            color: #facc15; line-height: 1.5; margin-bottom: 10px; display: none;
+        }
+        /* Фінальна панель RSA */
+        .intercept-panel {
+            background: rgba(0,0,0,0.6); border: 1px solid rgba(56,189,248,0.3);
+            border-radius: 10px; padding: 14px; margin-bottom: 12px;
+        }
+        .intercept-label { font-size: 11px; color: #38bdf8; opacity: 0.7; margin-bottom: 6px; text-transform: uppercase; }
+        .indices-row {
+            display: flex; gap: 6px; flex-wrap: wrap; justify-content: center;
+            margin-bottom: 8px;
+        }
+        .idx-cell {
+            background: rgba(56,189,248,0.1); border: 1px solid rgba(56,189,248,0.4);
+            border-radius: 6px; width: 36px; height: 36px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; font-weight: bold; color: #38bdf8;
+            transition: all 0.5s;
+        }
+        .idx-cell.unknown { color: #ef4444; border-color: #ef4444; }
+        .idx-cell.revealed { color: #22c55e; border-color: #22c55e; background: rgba(34,197,94,0.1); }
+        .letters-row {
+            display: flex; gap: 6px; flex-wrap: wrap; justify-content: center;
+        }
+        .letter-cell {
+            background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.4);
+            border-radius: 6px; width: 36px; height: 36px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; font-weight: bold; color: #22c55e;
+            opacity: 0; transition: all 0.4s;
+        }
+        .letter-cell.show { opacity: 1; }
+        .rsa-victory {
+            text-align: center; padding: 20px; border-radius: 12px;
+            border: 2px solid #22c55e; background: rgba(34,197,94,0.08);
+            display: none;
+        }
+        .rsa-victory h2 { color: #22c55e; text-shadow: 0 0 15px rgba(34,197,94,0.6); margin: 0 0 10px; }
+
+        /* Таймер RSA */
+        .rsa-timer-bar-wrap {
+            width: 100%; height: 5px; background: rgba(255,255,255,0.05);
+            border-radius: 3px; margin-bottom: 10px; overflow: hidden;
+            border: 1px solid rgba(56,189,248,0.2);
+        }
+        .rsa-timer-bar { height: 100%; background: #38bdf8; transition: width 1s linear; }
     </style>
 </head>
 <body>
 
-    <div id="game-screen" class="screen active">
+    <!-- ===== ЕКРАН ВИБОРУ РІВНЯ ===== -->
+    <div id="select-screen" class="screen active">
+        <div class="select-title">⚡ СКЛАДНИЙ РІВЕНЬ</div>
+        <div class="select-card">
+            <button class="btn" onclick="startMissions()">🔐 МІСІЇ: ПОДВІЙНЕ ШИФРУВАННЯ</button>
+            <button class="btn" onclick="startRSA()">🔑 МІСІЯ: RSA-КВЕСТ</button>
+            <button class="btn btn-exit" onclick="exitToMenu()">↩ ПОВЕРНУТИСЯ В МЕНЮ</button>
+        </div>
+    </div>
+
+    <!-- ===== ЕКРАН МІСІЙ (ПОДВІЙНЕ ШИФРУВАННЯ) ===== -->
+    <div id="game-screen" class="screen">
         <div class="header">
             <span>❤️ <span id="lives-count">3</span></span>
             <span style="color: #38bdf8; font-weight: bold;">MISSION <span id="mission-num">1</span></span>
@@ -121,40 +223,128 @@
             <div class="cipher-display">
                 <div id="cipher-text" class="cipher-word">---</div>
             </div>
-
             <div class="helper-section">
                 <div id="alphabet-helper" class="alphabet-grid"></div>
             </div>
-
             <div id="atbash-helper" class="helper-section" style="display:none;">
                 <div id="atbash-grid"></div>
             </div>
-
             <div id="step-1-ui" class="step-container active">
                 <div class="step-title" style="color:#38bdf8">КРОК 1: <span id="step1-name">ШИФР</span></div>
                 <input type="text" id="step1-input" placeholder="Декодувати крок 1..." autocomplete="off">
                 <button id="step1-btn" class="btn" onclick="validateStep(1)">Встановити зв'язок</button>
                 <div id="step1-msg" class="validation-msg"></div>
             </div>
-
             <div id="step-2-ui" class="step-container">
                 <div class="step-title" style="color:#38bdf8">КРОК 2: <span id="step2-name">ШИФР</span></div>
                 <input type="text" id="step2-input" placeholder="Фінальний ключ..." disabled autocomplete="off">
                 <button id="step2-btn" class="btn" onclick="validateStep(2)" disabled>Завершити розшифровку</button>
                 <div id="step2-msg" class="validation-msg"></div>
             </div>
-
             <button id="next-btn" class="btn btn-success" style="display:none;" onclick="startNewMission()">НАСТУПНА МІСІЯ</button>
-            <button class="btn btn-exit" onclick="exitToMenu()">ПЕРЕРВАТИ МІСІЮ</button>
+            <button class="btn btn-exit" onclick="backToSelect()">ПЕРЕРВАТИ МІСІЮ</button>
         </div>
     </div>
 
+    <!-- ===== RSA КВЕСТ ===== -->
+    <div id="rsa-screen" class="screen">
+        <div class="rsa-header">
+            <span>❤️ <span id="rsa-lives">3</span></span>
+            <span style="color: #38bdf8; font-weight: bold; font-size: 13px;">RSA КВЕСТ</span>
+            <span style="color: #facc15; font-weight: bold;">⏱️ <span id="rsa-timer-text">90</span>с</span>
+        </div>
+        <div class="rsa-timer-bar-wrap"><div id="rsa-timer-bar" class="rsa-timer-bar"></div></div>
+
+        <div class="rsa-card">
+            <!-- КРОК 1 -->
+            <div class="rsa-step active" id="rsa-s1">
+                <div class="rsa-step-title">◆ КРОК 1: МОДУЛЬ N</div>
+                <div class="robot-msg">🤖 Для RSA оберемо два простих числа: <b>p = 3</b>, <b>q = 11</b>.<br>Обчисли спільний модуль за формулою:</div>
+                <div class="rsa-formula">n = p × q</div>
+                <input type="text" class="rsa-input" id="rsa-in1" placeholder="n = ?" inputmode="numeric">
+                <div class="rsa-msg" id="rsa-msg1"></div>
+                <div class="hint-box" id="rsa-hint1">💡 3 × 11 = ?</div>
+            </div>
+
+            <!-- КРОК 2 -->
+            <div class="rsa-step" id="rsa-s2">
+                <div class="rsa-step-title">◆ КРОК 2: ФУНКЦІЯ ЕЙЛЕРА</div>
+                <div class="robot-msg">🤖 Тепер обчисли функцію Ейлера:</div>
+                <div class="rsa-formula">φ(n) = (p − 1) × (q − 1)</div>
+                <input type="text" class="rsa-input" id="rsa-in2" placeholder="φ(n) = ?" inputmode="numeric" disabled>
+                <div class="rsa-msg" id="rsa-msg2"></div>
+                <div class="hint-box" id="rsa-hint2">💡 (3−1) × (11−1) = 2 × 10 = ?</div>
+            </div>
+
+            <!-- КРОК 3 -->
+            <div class="rsa-step" id="rsa-s3">
+                <div class="rsa-step-title">◆ КРОК 3: СЕКРЕТНА ЕКСПОНЕНТА d</div>
+                <div class="robot-msg">🤖 Система обрала відкриту експоненту <b>e = 3</b>.<br>Знайди секретну експоненту d:</div>
+                <div class="rsa-formula">(d × e) mod φ(n) = 1</div>
+                <input type="text" class="rsa-input" id="rsa-in3" placeholder="d = ?" inputmode="numeric" disabled>
+                <div class="rsa-msg" id="rsa-msg3"></div>
+                <div class="hint-box" id="rsa-hint3">💡 Знайди d таке, щоб (d × 3) mod 20 = 1<br>Спробуй: 7 × 3 = 21, а 21 mod 20 = ?</div>
+            </div>
+
+            <!-- КРОК 4 -->
+            <div class="rsa-step" id="rsa-s4">
+                <div class="rsa-step-title">◆ КРОК 4: ТЕСТОВЕ ШИФРУВАННЯ</div>
+                <div class="robot-msg">🤖 Ключі готові! Зашифруй тестове повідомлення <b>M = 2</b> відкритим ключем {e=3, n=33}:</div>
+                <div class="rsa-formula">C = (M^e) mod n = (2³) mod 33</div>
+                <input type="text" class="rsa-input" id="rsa-in4" placeholder="C = ?" inputmode="numeric" disabled>
+                <div class="rsa-msg" id="rsa-msg4"></div>
+                <div class="hint-box" id="rsa-hint4">💡 2³ = 8, а 8 mod 33 = ?</div>
+            </div>
+
+            <!-- КРОК 5 -->
+            <div class="rsa-step" id="rsa-s5">
+                <div class="rsa-step-title">◆ КРОК 5: ДЕШИФРУВАННЯ</div>
+                <div class="robot-msg">🤖 Перехоплено пакет даних!<br>Масив індексів: [14, 18, 5, 14, 18, 14, <b style="color:#ef4444">?</b>]<br>Шифротекст останньої літери: <b>C = 8</b><br><br>Використай закритий ключ <b>d = 7</b>, модуль <b>n = 33</b>:</div>
+                <div class="rsa-formula">M = (C^d) mod n = (8⁷) mod 33</div>
+                <input type="text" class="rsa-input" id="rsa-in5" placeholder="M = ?" inputmode="numeric" disabled>
+                <div class="rsa-msg" id="rsa-msg5"></div>
+                <div class="hint-box" id="rsa-hint5">
+                    💡 Покроковий розрахунок:<br>
+                    8² = 64 ≡ 64−33 = 31 ≡ −2 (mod 33)<br>
+                    8⁶ = (8²)³ = (−2)³ = −8 ≡ 25 (mod 33)<br>
+                    8⁷ = 8⁶ × 8 = 25 × 8 = 200<br>
+                    200 mod 33 = 200 − 6×33 = 200−198 = ?
+                </div>
+            </div>
+
+            <!-- КРОК 6: ФІНАЛ -->
+            <div class="rsa-step" id="rsa-s6">
+                <div class="rsa-step-title">◆ КРОК 6: ВІДНОВЛЕННЯ СЛОВА</div>
+                <div class="intercept-panel">
+                    <div class="intercept-label">📡 Перехоплений масив індексів:</div>
+                    <div class="indices-row" id="rsa-indices"></div>
+                    <div class="intercept-label" style="margin-top:10px;">🔓 Розшифроване слово:</div>
+                    <div class="letters-row" id="rsa-letters"></div>
+                </div>
+                <div class="rsa-victory" id="rsa-victory">
+                    <h2>🏆 МІСІЮ ВИКОНАНО!</h2>
+                    <div style="color:#cbd5e1; font-size:14px; margin-bottom:15px;">Секретне слово розшифровано! +20 ⭐</div>
+                    <button class="btn btn-success" onclick="startRSA()">ЩЕ РАЗ</button>
+                    <button class="btn" style="margin-top:10px;" onclick="backToSelect()">↩ НАЗАД</button>
+                </div>
+            </div>
+
+            <!-- Кнопки управління RSA -->
+            <div id="rsa-controls" style="margin-top: 10px;">
+                <button id="rsa-verify-btn" class="btn" onclick="verifyRSAStep()">◉ ВЕРИФІКУВАТИ</button>
+                <button id="rsa-hint-btn" class="btn btn-exit" style="border-color: #facc15; color: #facc15; margin-top:8px; font-size:13px;" onclick="showRSAHint()">💡 ПІДКАЗКА (−10с)</button>
+                <button class="btn btn-exit" style="margin-top:8px;" onclick="backToSelect()">✕ ПЕРЕРВАТИ МІСІЮ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== GAME OVER ===== -->
     <div id="game-over-screen" class="screen">
-        <div class="card" style="text-align: center; border-color: #ef4444;">
+        <div class="card" style="text-align: center; border-color: #ef4444; margin-top: 40px;">
             <h1 id="final-title" style="text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);">МІСІЮ ПРОВАЛЕНО</h1>
             <div style="font-size: 32px; color: #facc15; margin: 20px 0;">⭐️ <span id="earned-stars">0</span></div>
-            <button class="btn btn-success" onclick="location.reload()">ПЕРЕЗАПУСТИТИ</button>
-            <button class="btn btn-exit" onclick="exitToMenu()">ВИЙТИ В ГОЛОВНЕ МЕНЮ</button>
+            <button class="btn btn-success" onclick="backToSelect()">↩ ДО ВИБОРУ РІВНЯ</button>
+            <button class="btn btn-exit" style="margin-top:10px;" onclick="exitToMenu()">ВИЙТИ В ГОЛОВНЕ МЕНЮ</button>
         </div>
     </div>
 
@@ -164,35 +354,31 @@
 
         const ALPHABET = "абвгґдеєжзиіїйклмнопрстуфхцчшщьюя";
         const WORDS = ["БЛОКЧЕЙН", "АЛГОРИТМ", "ПРОТОКОЛ", "СИСТЕМА", "ПАРОЛЬ", "ЗАХИСТ", "МЕРЕЖА", "ТЕХНОЛОГІЯ", "ІНТЕРНЕТ", "КРИПТО"];
-        
+
         const MISSIONS = [
-            {
-                text: "Систему зламано комбінованим методом. Спочатку застосували <b>Віженер (КЛЮЧ)</b>, потім <b>Атбаш</b>. Віднови дані в зворотному порядку!", 
-                steps: ["atbash", "vigenere"],
-                vigenereKey: "КЛЮЧ"
-            },
-            {
-                text: "Перехоплений сигнал має подвійний зсув: <b>Цезар (+5)</b> та <b>Атбаш</b>. Знайди оригінальний текст!", 
-                steps: ["atbash", "caesar"],
-                shift: 5
-            },
-            {
-                text: "Критична загроза! Потрібно зняти зсув <b>Цезаря (+3)</b>, а потім розкодувати <b>Віженер (КЛЮЧ)</b>. Поспішай!",
-                steps: ["caesar", "vigenere"],
-                shift: 3,
-                vigenereKey: "КЛЮЧ"
-            }
+            { text: "Систему зламано комбінованим методом. Спочатку застосували <b>Віженер (КЛЮЧ)</b>, потім <b>Атбаш</b>. Віднови дані в зворотному порядку!", steps: ["atbash", "vigenere"], vigenereKey: "КЛЮЧ" },
+            { text: "Перехоплений сигнал має подвійний зсув: <b>Цезар (+5)</b> та <b>Атбаш</b>. Знайди оригінальний текст!", steps: ["atbash", "caesar"], shift: 5 },
+            { text: "Критична загроза! Потрібно зняти зсув <b>Цезаря (+3)</b>, а потім розкодувати <b>Віженер (КЛЮЧ)</b>. Поспішай!", steps: ["caesar", "vigenere"], shift: 3, vigenereKey: "КЛЮЧ" }
         ];
 
-        let state = { 
-            missionIdx: 0, 
-            lives: 3, 
-            stars: 0, 
-            timeLeft: 300, 
-            timer: null, 
-            correct1: "", 
-            correct2: "" 
-        };
+        let state = { missionIdx: 0, lives: 3, stars: 0, timeLeft: 300, timer: null, correct1: "", correct2: "" };
+        let rsaState = { step: 0, lives: 3, stars: 0, timeLeft: 90, timer: null, hintUsed: false };
+
+        // ===== НАВІГАЦІЯ =====
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+        function backToSelect() { clearInterval(state.timer); clearInterval(rsaState.timer); showScreen('select-screen'); }
+        function exitToMenu() { window.location.href = 'index.html'; }
+
+        // ===== МІСІЇ: ПОДВІЙНЕ ШИФРУВАННЯ =====
+        function startMissions() {
+            state.missionIdx = 0; state.lives = 3; state.stars = 0;
+            buildHelpers();
+            showScreen('game-screen');
+            startNewMission();
+        }
 
         function runAtbash(text) {
             return text.toLowerCase().split('').map(c => {
@@ -200,96 +386,69 @@
                 return i < 0 ? c : ALPHABET[ALPHABET.length - 1 - i];
             }).join('').toUpperCase();
         }
-
         function runCaesar(text, shift) {
             return text.toLowerCase().split('').map(c => {
                 let i = ALPHABET.indexOf(c);
                 if (i < 0) return c;
-                let ni = (i + shift) % ALPHABET.length;
-                if (ni < 0) ni += ALPHABET.length;
+                let ni = ((i + shift) % ALPHABET.length + ALPHABET.length) % ALPHABET.length;
                 return ALPHABET[ni];
             }).join('').toUpperCase();
         }
-
         function runVigenere(text, key, decrypt = false) {
-            let res = "";
-            let kIdx = 0;
-            const t = text.toLowerCase();
-            const k = key.toLowerCase();
-            for(let i=0; i<t.length; i++) {
+            let res = "", kIdx = 0;
+            const t = text.toLowerCase(), k = key.toLowerCase();
+            for (let i = 0; i < t.length; i++) {
                 let ti = ALPHABET.indexOf(t[i]);
-                if(ti < 0) { res += t[i]; continue; }
+                if (ti < 0) { res += t[i]; continue; }
                 let ki = ALPHABET.indexOf(k[kIdx % k.length]);
                 let ni = decrypt ? (ti - ki) : (ti + ki);
-                ni = ni % ALPHABET.length;
-                if(ni < 0) ni += ALPHABET.length;
-                res += ALPHABET[ni];
-                kIdx++;
+                ni = ((ni % ALPHABET.length) + ALPHABET.length) % ALPHABET.length;
+                res += ALPHABET[ni]; kIdx++;
             }
             return res.toUpperCase();
         }
 
         function buildHelpers() {
-            const grid = document.getElementById('alphabet-helper');
-            grid.innerHTML = ALPHABET.split('').map((l, i) => 
-                `<div class="letter-box"><span class="letter-idx">${i}</span>${l.toUpperCase()}</div>`
-            ).join('');
-
-            const atbashGrid = document.getElementById('atbash-grid');
+            document.getElementById('alphabet-helper').innerHTML = ALPHABET.split('').map((l, i) =>
+                `<div class="letter-box"><span class="letter-idx">${i}</span>${l.toUpperCase()}</div>`).join('');
             let r1 = ALPHABET.slice(0, 11).toUpperCase();
-            let r2 = ALPHABET.slice(0, 11).split('').map(l => runAtbash(l)).join('').toUpperCase();
-            
-            atbashGrid.innerHTML = `
-                <div style="opacity: 0.7; margin-bottom: 5px; font-size: 10px;">ДЗЕРКАЛЬНА ТАБЛИЦЯ (АТБАШ):</div>
+            let r2 = ALPHABET.slice(0, 11).split('').map(l => runAtbash(l)).join('');
+            document.getElementById('atbash-grid').innerHTML = `
+                <div style="opacity:0.7;margin-bottom:5px;font-size:10px;">ДЗЕРКАЛЬНА ТАБЛИЦЯ (АТБАШ):</div>
                 <div class="atbash-row">${r1.split('').map(l => `<span>${l}</span>`).join('')}</div>
-                <div class="atbash-row" style="color:#38bdf8">${r2.split('').map(l => `<span>${l}</span>`).join('')}</div>
-            `;
+                <div class="atbash-row" style="color:#38bdf8">${r2.split('').map(l => `<span>${l}</span>`).join('')}</div>`;
         }
 
         function startNewMission() {
             if (state.missionIdx >= MISSIONS.length) return gameOver(true);
             const m = MISSIONS[state.missionIdx];
             const word = WORDS[Math.floor(Math.random() * WORDS.length)];
-            
             let encrypted = word;
-            // Шифрування для завдання (у зворотному порядку від дешифрування)
             [...m.steps].reverse().forEach(s => {
-                if(s === "atbash") encrypted = runAtbash(encrypted);
-                if(s === "caesar") encrypted = runCaesar(encrypted, m.shift);
-                if(s === "vigenere") encrypted = runVigenere(encrypted, m.vigenereKey, false);
+                if (s === "atbash") encrypted = runAtbash(encrypted);
+                if (s === "caesar") encrypted = runCaesar(encrypted, m.shift);
+                if (s === "vigenere") encrypted = runVigenere(encrypted, m.vigenereKey, false);
             });
-
-            // Те, що гравець має отримати після 1-го кроку дешифрування
             let s1 = encrypted;
-            if(m.steps[0] === "atbash") s1 = runAtbash(s1);
-            if(m.steps[0] === "caesar") s1 = runCaesar(s1, -m.shift);
-            if(m.steps[0] === "vigenere") s1 = runVigenere(s1, m.vigenereKey, true);
-            
-            state.correct1 = s1;
-            state.correct2 = word;
-
+            if (m.steps[0] === "atbash") s1 = runAtbash(s1);
+            if (m.steps[0] === "caesar") s1 = runCaesar(s1, -m.shift);
+            if (m.steps[0] === "vigenere") s1 = runVigenere(s1, m.vigenereKey, true);
+            state.correct1 = s1; state.correct2 = word;
             document.getElementById('mission-num').textContent = state.missionIdx + 1;
             document.getElementById('mission-text').innerHTML = m.text;
             document.getElementById('cipher-text').textContent = encrypted;
             document.getElementById('step1-name').textContent = m.steps[0].toUpperCase();
             document.getElementById('step2-name').textContent = m.steps[1].toUpperCase();
             document.getElementById('atbash-helper').style.display = m.steps.includes('atbash') ? 'block' : 'none';
-
-            resetUI();
-            startTimer();
+            resetMissionUI(); startTimer();
         }
 
-        function resetUI() {
-            document.getElementById('step1-input').value = "";
-            document.getElementById('step1-input').disabled = false;
-            document.getElementById('step1-btn').disabled = false;
-            document.getElementById('step1-msg').textContent = "";
-            
-            document.getElementById('step2-input').value = "";
-            document.getElementById('step2-input').disabled = true;
-            document.getElementById('step2-btn').disabled = true;
-            document.getElementById('step2-msg').textContent = "";
-
+        function resetMissionUI() {
+            ['step1-input','step2-input'].forEach((id,i) => {
+                document.getElementById(id).value = ""; document.getElementById(id).disabled = i===1;
+            });
+            ['step1-btn','step2-btn'].forEach((id,i) => document.getElementById(id).disabled = i===1);
+            ['step1-msg','step2-msg'].forEach(id => document.getElementById(id).textContent = "");
             document.getElementById('step-1-ui').classList.add('active');
             document.getElementById('step-2-ui').classList.remove('active');
             document.getElementById('next-btn').style.display = 'none';
@@ -298,107 +457,224 @@
         function validateStep(n) {
             const input = document.getElementById(`step${n}-input`);
             const val = input.value.trim().toUpperCase();
-            const target = (n === 1) ? state.correct1 : state.correct2;
+            const target = n === 1 ? state.correct1 : state.correct2;
             const msg = document.getElementById(`step${n}-msg`);
-
             if (val === target) {
-                msg.textContent = ">>> ДОСТУП ДОЗВОЛЕНО";
-                msg.className = "validation-msg text-success";
-                
+                msg.textContent = ">>> ДОСТУП ДОЗВОЛЕНО"; msg.className = "validation-msg text-success";
                 if (n === 1) {
-                    state.stars += 5;
-                    syncStars(5);
-                    input.disabled = true;
+                    state.stars += 5; syncStars(5); input.disabled = true;
                     document.getElementById('step1-btn').disabled = true;
                     document.getElementById('step2-input').disabled = false;
                     document.getElementById('step2-btn').disabled = false;
                     document.getElementById('step-2-ui').classList.add('active');
                     document.getElementById('step-1-ui').classList.remove('active');
-                    tg.HapticFeedback?.notificationOccurred?.('success');
                 } else {
-                    state.stars += 10;
-                    syncStars(10);
-                    if(state.timer) clearInterval(state.timer);
-                    state.missionIdx++;
-                    input.disabled = true;
+                    state.stars += 10; syncStars(10); clearInterval(state.timer);
+                    state.missionIdx++; input.disabled = true;
                     document.getElementById('step2-btn').disabled = true;
-
-                    if (state.missionIdx >= MISSIONS.length) {
-                        setTimeout(() => gameOver(true), 1000);
-                    } else {
-                        document.getElementById('next-btn').style.display = 'block';
-                    }
-                    tg.HapticFeedback?.notificationOccurred?.('success');
+                    if (state.missionIdx >= MISSIONS.length) setTimeout(() => gameOver(true), 1000);
+                    else document.getElementById('next-btn').style.display = 'block';
                 }
             } else {
-                state.lives--;
-                document.getElementById('lives-count').textContent = state.lives;
-                msg.textContent = ">>> ПОМИЛКА ДОСТУПУ!";
-                msg.className = "validation-msg text-error";
-                tg.HapticFeedback?.notificationOccurred?.('error');
-                if(state.lives <= 0) gameOver(false);
+                state.lives--; document.getElementById('lives-count').textContent = state.lives;
+                msg.textContent = ">>> ПОМИЛКА ДОСТУПУ!"; msg.className = "validation-msg text-error";
+                if (state.lives <= 0) gameOver(false);
             }
         }
 
         function startTimer() {
-            if(state.timer) clearInterval(state.timer);
-            state.timeLeft = 300;
+            clearInterval(state.timer); state.timeLeft = 300;
             state.timer = setInterval(() => {
-                if(state.timeLeft <= 0) {
-                    handleTimeout();
-                } else {
-                    state.timeLeft--;
-                    let m = Math.floor(state.timeLeft / 60);
-                    let s = state.timeLeft % 60;
-                    document.getElementById('timer').textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                if (state.timeLeft <= 0) { handleTimeout(); return; }
+                state.timeLeft--;
+                let m = Math.floor(state.timeLeft / 60), s = state.timeLeft % 60;
+                document.getElementById('timer').textContent = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+            }, 1000);
+        }
+        function handleTimeout() {
+            clearInterval(state.timer); state.lives--;
+            document.getElementById('lives-count').textContent = state.lives;
+            if (state.lives > 0) startNewMission(); else gameOver(false);
+        }
+
+        // ===== RSA КВЕСТ =====
+        const RSA_ANSWERS = [33, 20, 7, 8, 2];
+        const RSA_INDICES = [14, 18, 5, 14, 18, 14, 2];
+
+        function startRSA() {
+            rsaState = { step: 1, lives: 3, stars: 0, timeLeft: 90, timer: null, hintUsed: false };
+            // Скидаємо всі кроки
+            for (let i = 1; i <= 6; i++) {
+                const s = document.getElementById(`rsa-s${i}`);
+                s.classList.remove('active', 'done');
+                if (i < 6) s.style.display = 'none';
+            }
+            for (let i = 1; i <= 5; i++) {
+                const inp = document.getElementById(`rsa-in${i}`);
+                if (inp) { inp.value = ""; inp.disabled = i > 1; inp.classList.remove('correct'); }
+                const msg = document.getElementById(`rsa-msg${i}`);
+                if (msg) msg.textContent = "";
+                const hint = document.getElementById(`rsa-hint${i}`);
+                if (hint) hint.style.display = 'none';
+            }
+            document.getElementById('rsa-s6').style.display = 'none';
+            document.getElementById('rsa-victory').style.display = 'none';
+            document.getElementById('rsa-indices').innerHTML = '';
+            document.getElementById('rsa-letters').innerHTML = '';
+            document.getElementById('rsa-controls').style.display = 'block';
+            document.getElementById('rsa-verify-btn').disabled = false;
+            document.getElementById('rsa-hint-btn').disabled = false;
+            document.getElementById('rsa-lives').textContent = 3;
+
+            // Активуємо перший крок
+            document.getElementById('rsa-s1').style.display = 'block';
+            document.getElementById('rsa-s1').classList.add('active');
+
+            showScreen('rsa-screen');
+            startRSATimer();
+        }
+
+        function startRSATimer() {
+            clearInterval(rsaState.timer);
+            rsaState.timer = setInterval(() => {
+                rsaState.timeLeft--;
+                document.getElementById('rsa-timer-text').textContent = rsaState.timeLeft;
+                document.getElementById('rsa-timer-bar').style.width = (rsaState.timeLeft / 90 * 100) + '%';
+                if (rsaState.timeLeft <= 0) {
+                    clearInterval(rsaState.timer);
+                    rsaState.lives--; document.getElementById('rsa-lives').textContent = Math.max(0, rsaState.lives);
+                    if (rsaState.lives <= 0) { gameOver(false); return; }
+                    // Показуємо підказку і продовжуємо
+                    const hint = document.getElementById(`rsa-hint${rsaState.step}`);
+                    if (hint) hint.style.display = 'block';
+                    const msg = document.getElementById(`rsa-msg${rsaState.step}`);
+                    if (msg) { msg.textContent = "⏰ ЧАС ВИЧЕРПАНО! Переходимо далі..."; msg.style.color = "#ef4444"; }
+                    setTimeout(() => advanceRSAStep(true), 1500);
                 }
             }, 1000);
         }
 
-        function handleTimeout() {
-            state.lives--;
-            document.getElementById('lives-count').textContent = state.lives;
-            if(state.lives > 0) {
-                startNewMission();
+        function verifyRSAStep() {
+            if (rsaState.step > 5) return;
+            const inp = document.getElementById(`rsa-in${rsaState.step}`);
+            const val = parseInt(inp.value.trim());
+            const correct = RSA_ANSWERS[rsaState.step - 1];
+            const msg = document.getElementById(`rsa-msg${rsaState.step}`);
+
+            if (val === correct) {
+                inp.classList.add('correct');
+                inp.disabled = true;
+                msg.textContent = "✓ ВІРНО!"; msg.style.color = "#22c55e";
+                rsaState.stars += 4; syncStars(4);
+                clearInterval(rsaState.timer);
+                setTimeout(() => advanceRSAStep(false), 700);
             } else {
-                gameOver(false);
+                rsaState.lives--; document.getElementById('rsa-lives').textContent = Math.max(0, rsaState.lives);
+                msg.textContent = "✗ ПОМИЛКА. СПРОБУЙ ЩЕ."; msg.style.color = "#ef4444";
+                if (rsaState.lives <= 0) { setTimeout(() => gameOver(false), 800); }
             }
         }
 
+        function advanceRSAStep(timedOut) {
+            // Позначаємо поточний як done
+            const cur = document.getElementById(`rsa-s${rsaState.step}`);
+            cur.classList.remove('active'); cur.classList.add('done');
+
+            rsaState.step++;
+            if (rsaState.step === 6) {
+                // Фінальний крок — показуємо панель з індексами
+                document.getElementById('rsa-controls').style.display = 'none';
+                showRSAFinal();
+                return;
+            }
+            if (rsaState.step > 5) return;
+
+            const next = document.getElementById(`rsa-s${rsaState.step}`);
+            next.style.display = 'block';
+            next.classList.add('active');
+
+            // Розблоковуємо інпут наступного кроку
+            const nextInp = document.getElementById(`rsa-in${rsaState.step}`);
+            if (nextInp) nextInp.disabled = false;
+
+            // Перезапускаємо таймер
+            rsaState.timeLeft = 90;
+            rsaState.hintUsed = false;
+            document.getElementById('rsa-hint-btn').disabled = false;
+            startRSATimer();
+        }
+
+        function showRSAHint() {
+            if (!rsaState.hintUsed) {
+                rsaState.timeLeft = Math.max(0, rsaState.timeLeft - 10);
+                rsaState.hintUsed = true;
+                document.getElementById('rsa-hint-btn').disabled = true;
+            }
+            const hint = document.getElementById(`rsa-hint${rsaState.step}`);
+            if (hint) hint.style.display = hint.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function showRSAFinal() {
+            const s6 = document.getElementById('rsa-s6');
+            s6.style.display = 'block'; s6.classList.add('active');
+
+            // Відображаємо індекси
+            const indicesRow = document.getElementById('rsa-indices');
+            indicesRow.innerHTML = RSA_INDICES.map((idx, i) =>
+                `<div class="idx-cell ${i === 6 ? 'unknown' : ''}" id="idx-cell-${i}">${i === 6 ? '?' : idx}</div>`
+            ).join('');
+
+            // Відображаємо порожні клітинки для літер
+            const lettersRow = document.getElementById('rsa-letters');
+            lettersRow.innerHTML = RSA_INDICES.map((_, i) =>
+                `<div class="letter-cell" id="letter-cell-${i}"></div>`
+            ).join('');
+
+            // Анімація: спочатку показуємо розкриття "?"
+            setTimeout(() => {
+                const unknownCell = document.getElementById('idx-cell-6');
+                unknownCell.textContent = '2';
+                unknownCell.classList.remove('unknown'); unknownCell.classList.add('revealed');
+
+                // Потім по одній показуємо літери
+                RSA_INDICES.forEach((idx, i) => {
+                    setTimeout(() => {
+                        const letter = ALPHABET[idx].toUpperCase();
+                        const cell = document.getElementById(`letter-cell-${i}`);
+                        cell.textContent = letter; cell.classList.add('show');
+                    }, 300 + i * 200);
+                });
+
+                // Після останньої літери — перемога
+                setTimeout(() => {
+                    rsaState.stars += 4; syncStars(4);
+                    document.getElementById('rsa-victory').style.display = 'block';
+                    document.getElementById('rsa-victory').scrollIntoView({ behavior: 'smooth' });
+                }, 300 + RSA_INDICES.length * 200 + 400);
+            }, 500);
+        }
+
+        // ===== GAME OVER =====
         function gameOver(victory) {
-            if(state.timer) clearInterval(state.timer);
-            document.getElementById('game-screen').classList.remove('active');
-            document.getElementById('game-over-screen').classList.add('active');
-            document.getElementById('earned-stars').textContent = state.stars;
-            
+            clearInterval(state.timer); clearInterval(rsaState.timer);
+            const totalStars = state.stars + rsaState.stars;
+            document.getElementById('earned-stars').textContent = totalStars;
+            showScreen('game-over-screen');
             const title = document.getElementById('final-title');
-            if(victory) {
-                title.textContent = "СИСТЕМУ ВІДНОВЛЕНО";
-                title.style.color = "#22c55e";
-                title.style.textShadow = "0 0 10px rgba(34, 197, 94, 0.5)";
-            } else {
-                title.textContent = "МІСІЮ ПРОВАЛЕНО";
-                title.style.color = "#ef4444";
-            }
-        }
-
-        function exitToMenu() {
-            window.location.href = 'index.html';
+            if (victory) { title.textContent = "СИСТЕМУ ВІДНОВЛЕНО"; title.style.color = "#22c55e"; title.style.textShadow = "0 0 10px rgba(34,197,94,0.5)"; }
+            else { title.textContent = "МІСІЮ ПРОВАЛЕНО"; title.style.color = "#ef4444"; }
         }
 
         async function syncStars(amount) {
             const userId = tg.initDataUnsafe?.user?.id || 981926714;
             try {
-                await fetch(`https://anyway-art-mustard.ngrok-free.dev/update_stars`, {
+                await fetch('https://anyway-art-mustard.ngrok-free.dev/update_stars', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
                     body: JSON.stringify({ user_id: userId, stars: amount })
                 });
             } catch(e) {}
         }
-
-        buildHelpers();
-        startNewMission();
     </script>
 </body>
 </html>
