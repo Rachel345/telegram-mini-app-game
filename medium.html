@@ -15,8 +15,9 @@
             margin: 0; padding: 16px; min-height: 100vh;
         }
         
-        .screen { display: none; flex-direction: column; align-items: center; gap: 16px; max-width: 400px; margin: 0 auto; }
+        .screen { display: none; flex-direction: column; align-items: center; gap: 16px; max-width: 400px; margin: 0 auto; min-height: calc(100vh - 32px);}
         .screen.active { display: flex; }
+        #menu-screen { justify-content: center; }
         
         /* КАРТКИ */
         .card {
@@ -82,7 +83,7 @@
             text-transform: uppercase;
         }
 
-        /* КНОПКИ */
+        /* КНОПКИ */ 
         .btn {
             background: rgba(0, 0, 0, 0.6);
             color: #facc15 !important;
