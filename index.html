@@ -61,10 +61,7 @@
 
       .btn:active { transform: scale(0.96); opacity: 0.8; }
       .btn-danger-style { border: 2px solid #ef4444 !important; color: #ef4444 !important; box-shadow: 0 0 10px rgba(239, 68, 68, 0.2) !important; }
-      
-      /* НОВИЙ КОЛІР ДЛЯ КНОПКИ "ДО РІВНІВ" */
       .btn-nav-style { border: 2px solid #38bdf8 !important; color: #38bdf8 !important; box-shadow: 0 0 10px rgba(56, 189, 248, 0.2) !important; }
-      
       .btn-container { display: flex; gap: 10px; width: 100%; margin-top: 10px; }
       .btn-half { flex: 1; padding: 10px 5px; font-size: 14px; }
 
@@ -95,8 +92,8 @@
       }
       .academy-tabs { display: flex; gap: 4px; margin-bottom: 15px; flex-wrap: wrap; }
       .tab-link {
-        flex: 1; min-width: 80px; background: transparent; border: 1px solid #a855f7; color: #a855f7;
-        padding: 8px 4px; border-radius: 10px; font-size: 11px; cursor: pointer;
+        flex: 1; min-width: 60px; background: transparent; border: 1px solid #a855f7; color: #a855f7;
+        padding: 8px 4px; border-radius: 10px; font-size: 10px; cursor: pointer;
       }
       .tab-link.active { background: #a855f7; color: #0a0a0c; font-weight: bold; box-shadow: 0 0 10px #a855f7; }
       .tab-content {
@@ -123,6 +120,26 @@
       .pf-cell { background: #000; border: 1px solid #333; height: 35px; color: #cbd5e1; display: flex; align-items: center; justify-content: center; font-weight: bold; }
       .pf-active { border-color: #a855f7; color: #a855f7; box-shadow: inset 0 0 5px #a855f7; }
       .btn-academy-close { background: #000 !important; color: #a855f7 !important; border: 2px solid #a855f7 !important; font-weight: bold; }
+
+      /* RSA-СХЕМА */
+      .rsa-schema {
+        display: flex; flex-direction: column; gap: 6px; margin: 10px 0;
+      }
+      .rsa-row {
+        display: flex; align-items: center; gap: 8px;
+        background: rgba(0,0,0,0.4); border: 1px solid rgba(168,85,247,0.3);
+        border-radius: 8px; padding: 8px 10px;
+      }
+      .rsa-label {
+        font-size: 11px; color: #a855f7; font-weight: bold;
+        min-width: 30px; font-family: 'Courier New', monospace;
+      }
+      .rsa-val {
+        font-size: 12px; color: #cbd5e1; font-family: 'Courier New', monospace;
+      }
+      .rsa-arrow {
+        text-align: center; color: rgba(168,85,247,0.5); font-size: 16px; margin: 2px 0;
+      }
     </style>
   </head>
   <body>
@@ -159,12 +176,10 @@
           <div id="word" class="caesar-word"></div>
           <div id="shift-info" class="caesar-shift"></div>
           <div id="options" class="caesar-options"></div>
-          <!-- ТУТ ВИПРАВЛЕНО ВИГЛЯД ФІДБЕКУ -->
           <div id="feedback" style="display:none; margin-top:15px; text-align:center; font-weight:bold; font-size: 16px;"></div>
           <button id="next-btn" class="btn btn-easy-style" style="display:none; margin-top:15px;">НАСТУПНЕ</button>
         </div>
         <div class="btn-container">
-          <!-- ЗМІНЕНО КОЛІР КНОПКИ -->
           <button id="exit-to-levels-btn" class="btn btn-nav-style btn-half">ДО РІВНІВ</button>
           <button id="exit-to-menu-btn" class="btn btn-danger-style btn-half">В МЕНЮ</button>
         </div>
@@ -180,7 +195,7 @@
       </div>
     </div>
 
-    <!-- АКАДЕМІЯ ТА СКРИПТИ... (залишаються без змін) -->
+    <!-- АКАДЕМІЯ -->
     <div id="academy-overlay" class="overlay">
       <h2 style="text-align: center; margin-top: 0; color: #a855f7;">АКАДЕМІЯ ШИФРІВ</h2>
       <div class="academy-tabs">
@@ -188,9 +203,10 @@
         <button class="tab-link" onclick="openTab(event, 'caesar')">ЦЕЗАР</button>
         <button class="tab-link" onclick="openTab(event, 'vigenere')">ВІЖЕНЕР</button>
         <button class="tab-link" onclick="openTab(event, 'playfair')">ПЛЕЙФЕР</button>
+        <button class="tab-link" onclick="openTab(event, 'rsa')">RSA</button>
       </div>
 
-       <div id="atbash" class="tab-content" style="display: block;">
+      <div id="atbash" class="tab-content" style="display: block;">
         <h3>Дзеркальний шифр</h3>
         <p>Атбаш походить із Давнього Ізраїлю. Це шифр підстановки, де алфавіт просто віддзеркалюється.</p>
         <p><strong>Формула: f(i) = 32 - i</strong>, де i — індекс літери (0-32).</p>
@@ -204,7 +220,7 @@
         </div>
       </div>
 
-        <div id="caesar" class="tab-content" style="display: none;">
+      <div id="caesar" class="tab-content" style="display: none;">
         <h3>Модульна арифметика</h3>
         <p>Шифр Цезаря зміщує кожну літеру на сталу кількість кроків (k).</p>
         <p><strong>Формула: (x + k) mod 33</strong></p>
@@ -220,7 +236,7 @@
       </div>
 
       <div id="vigenere" class="tab-content" style="display: none;">
-         <h3>Накладання ключів</h3>
+        <h3>Накладання ключів</h3>
         <p>У Віженері кожна літера слова отримує свій зсув, залежно від літери ключа.</p>
         <p><strong>Формула: (Слово[i] + Ключ[i]) mod 33</strong></p>
         <div class="cipher-example" style="line-height: 1.6;">
@@ -228,7 +244,8 @@
           Слово: П (інд. 19)<br>
           Ключ:  К (інд. 14)<br>
           Розрахунок: 19 + 14 = 33<br>
-          Результат: 33 mod 33 = 0 (Літера А) </div>
+          Результат: 33 mod 33 = 0 (Літера А)
+        </div>
         <div class="vig-table-wrap" id="vigenere-table"></div>
         <p style="font-size: 11px; opacity: 0.7;">* Підсвічено перетин рядка літери слова та стовпця літери ключа.</p>
       </div>
@@ -247,6 +264,71 @@
           <div class="pf-cell pf-active">l</div><div class="pf-cell">.</div><div class="pf-cell">.</div><div class="pf-cell pf-active">j</div>
         </div>
       </div>
+
+      <!-- НОВА ВКЛАДКА RSA -->
+      <div id="rsa" class="tab-content" style="display: none;">
+        <h3>Асиметричне шифрування</h3>
+        <p>RSA створено у 1977 році трьома математиками: <strong style="color:#a855f7">Рівест, Шамір, Адлеман</strong> (звідси абревіатура). Це перша практична система з <em>двома різними ключами</em>: відкритим для шифрування і закритим для дешифрування.</p>
+
+        <p><strong style="color:#a855f7">Чому це революція?</strong> До RSA відправник і отримувач мали заздалегідь обмінятися секретним ключем. RSA вирішив цю проблему: відкритий ключ можна публікувати всім, а розшифрувати зможе лише власник закритого.</p>
+
+        <h3 style="margin-top: 14px;">Генерація ключів</h3>
+        <div class="rsa-schema">
+          <div class="rsa-row">
+            <span class="rsa-label">1.</span>
+            <span class="rsa-val">Обираємо два простих числа <strong style="color:#a855f7">p</strong> і <strong style="color:#a855f7">q</strong></span>
+          </div>
+          <div class="rsa-arrow">↓</div>
+          <div class="rsa-row">
+            <span class="rsa-label">2.</span>
+            <span class="rsa-val">Модуль: <strong style="color:#a855f7">n = p × q</strong></span>
+          </div>
+          <div class="rsa-arrow">↓</div>
+          <div class="rsa-row">
+            <span class="rsa-label">3.</span>
+            <span class="rsa-val">Функція Ейлера: <strong style="color:#a855f7">φ(n) = (p−1)×(q−1)</strong></span>
+          </div>
+          <div class="rsa-arrow">↓</div>
+          <div class="rsa-row">
+            <span class="rsa-label">4.</span>
+            <span class="rsa-val">Відкрита експонента <strong style="color:#a855f7">e</strong>: взаємно проста з φ(n)</span>
+          </div>
+          <div class="rsa-arrow">↓</div>
+          <div class="rsa-row">
+            <span class="rsa-label">5.</span>
+            <span class="rsa-val">Секретна експонента <strong style="color:#a855f7">d</strong>: (d×e) mod φ(n) = 1</span>
+          </div>
+        </div>
+
+        <div class="cipher-example">
+          Відкритий ключ:  {e, n}<br>
+          Закритий ключ:   {d, n}
+        </div>
+
+        <h3 style="margin-top: 14px;">Шифрування і дешифрування</h3>
+        <div class="rsa-schema">
+          <div class="rsa-row">
+            <span class="rsa-label">🔒</span>
+            <span class="rsa-val">Шифрування: <strong style="color:#a855f7">C = Mᵉ mod n</strong></span>
+          </div>
+          <div class="rsa-row">
+            <span class="rsa-label">🔓</span>
+            <span class="rsa-val">Дешифрування: <strong style="color:#a855f7">M = Cᵈ mod n</strong></span>
+          </div>
+        </div>
+
+        <div class="cipher-example" style="line-height: 1.8;">
+          Приклад (p=3, q=11, e=3, d=7):<br>
+          n = 3×11 = 33<br>
+          φ(n) = 2×10 = 20<br>
+          Повідомлення M = 2:<br>
+          C = 2³ mod 33 = <strong style="color:#a855f7">8</strong><br>
+          M = 8⁷ mod 33 = <strong style="color:#a855f7">2</strong> ✓
+        </div>
+
+        <p style="font-size: 12px; opacity: 0.7; margin-top: 10px;">Безпека RSA ґрунтується на складності задачі розкладання великого числа n на множники p і q. Сучасні системи використовують числа довжиною 2048–4096 біт.</p>
+      </div>
+
       <button class="btn btn-academy-close" style="margin-top: 10px;" onclick="toggleAcademy(false)">ЗРОЗУМІЛО</button>
     </div>
 
@@ -340,10 +422,8 @@
           document.getElementById('instr').textContent = "Розшифруй в умі. Яке слово починається на останню літеру?";
           document.getElementById('word').textContent = encrypted;
           document.getElementById('shift-info').textContent = "Зсув: -" + s;
-          
           const possible = WORDS.filter(w => w[0].toLowerCase() === lastChar);
           state.currentAns = possible.length > 0 ? possible[Math.floor(Math.random() * possible.length)] : "ананас";
-          
           generateOptions(state.currentAns, () => {
              const wrong = WORDS.filter(w => w[0].toLowerCase() !== lastChar);
              return wrong[Math.floor(Math.random() * wrong.length)];
